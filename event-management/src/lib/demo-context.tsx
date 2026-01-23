@@ -174,7 +174,7 @@ const DEFAULT_CATEGORIES: Category[] = [
 
 const DemoContext = createContext<DemoContextType | undefined>(undefined);
 
-export function DemoProvider({ children, eventId }: { children: ReactNode, eventId: string }) {
+export function DemoProvider({ children, eventId = "" }: { children: ReactNode, eventId?: string }) {
     const [isLoading, setIsLoading] = useState(true);
     const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
     const [venues, setVenues] = useState<Venue[]>([]);
