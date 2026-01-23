@@ -26,46 +26,74 @@ export async function GET(request: Request) {
 
     // Return an HTML page that requires manual interaction to complete manual redirect
     // This ensures user gesture to prevent browser cleaning up "tracking" cookies
+    // Return an HTML page that handles the redirect via client-side with Session Hydration
+    // This bypasses server-side cookie size limits by setting the session in the browser
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const accessToken = sessionData?.session?.access_token;
+    const refreshToken = sessionData?.session?.refresh_token;
+
     return new NextResponse(`
         <html>
             <head>
-                <title>Login Successful</title>
+                <title>Finalizing Login...</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1">
+                <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
                 <style>
                     body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #f9fafb; }
                     .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 100%; }
                     h1 { color: #111827; margin-bottom: 1rem; font-size: 1.5rem; }
-                    pre { text-align: left; background: #eee; padding: 0.5rem; overflow-x: auto; }
-                    a.btn { display: inline-block; background: #000; color: white; padding: 0.75rem 1.5rem; border-radius: 4px; text-decoration: none; font-weight: bold; }
-                    a.btn:hover { background: #374151; }
+                    .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #000; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
+                    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
                 </style>
             </head>
             <body>
                 <div class="card">
-                    <h1>Login Successful</h1>
-                    <p>Click the button below to continue to the dashboard.</p>
-                    <a href="${next}" class="btn">Continue to Dashboard</a>
-                    
-                    <div style="margin-top: 2rem; padding: 1rem; background: #eee; font-size: 0.8rem; word-break: break-all;">
-                        <strong>Debug: Current Cookies</strong>
-                        <div id="cookie-debug">Loading...</div>
-                    </div>
-
-                    <div style="margin-top: 1rem; padding: 1rem; background: #eef; font-size: 0.8rem; border: 1px solid #ccf;">
-                        <strong>Session Check:</strong>
-                        <pre>${sessionData?.session ? 'Session Exists ✅' : 'No Session ❌'}</pre>
-                        <pre>User: ${sessionData?.user?.email || 'None'}</pre>
-                    </div>
-
-                    ${sessionError ? `
-                        <div style="margin-top: 1rem; padding: 1rem; background: #fee; color: #c00; font-size: 0.8rem; border: 1px solid #fcc;">
-                            <strong>Auth Error:</strong>
-                            <pre>${JSON.stringify(sessionError, null, 2)}</pre>
-                        </div>
-                    ` : ''}
+                    <div class="spinner"></div>
+                    <h1>Finalizing Login...</h1>
+                    <p>Securing your session, please wait.</p>
+                    <div id="status" style="color: #666; font-size: 0.8rem;">Initializing...</div>
                 </div>
+
                 <script>
-                    document.getElementById('cookie-debug').textContent = document.cookie || '(No cookies found)';
+                    const supabaseUrl = "${supabaseUrl}";
+                    const supabaseKey = "${supabaseKey}";
+                    const accessToken = "${accessToken || ''}";
+                    const refreshToken = "${refreshToken || ''}";
+                    const nextUrl = "${next}";
+
+                    async function restoreSession() {
+                        const statusEl = document.getElementById('status');
+                        
+                        if (!accessToken || !refreshToken) {
+                            statusEl.textContent = "Session missing. Redirecting...";
+                            setTimeout(() => window.location.href = nextUrl, 1000);
+                            return;
+                        }
+
+                        try {
+                            const { createClient } = supabase;
+                            const client = createClient(supabaseUrl, supabaseKey);
+                            
+                            statusEl.textContent = "Setting session...";
+                            const { error } = await client.auth.setSession({
+                                access_token: accessToken,
+                                refresh_token: refreshToken
+                            });
+
+                            if (error) throw error;
+
+                            statusEl.textContent = "Success! Redirecting...";
+                            window.location.href = nextUrl;
+                        } catch (e) {
+                            console.error(e);
+                            statusEl.textContent = "Error setting session. Redirecting anyway...";
+                            // Fallback
+                            setTimeout(() => window.location.href = nextUrl, 2000);
+                        }
+                    }
+
+                    restoreSession();
                 </script>
             </body>
         </html>
