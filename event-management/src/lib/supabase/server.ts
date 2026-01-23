@@ -14,12 +14,13 @@ export async function createClient() {
                 },
                 setAll(cookiesToSet) {
                     try {
-                        cookiesToSet.forEach(({ name, value, options }) =>
-                            cookieStore.set(name, value, options)
-                        )
+                        cookiesToSet.forEach(({ name, value, options }) => {
+                            // Remove domain to fix Vercel/subdomain issues
+                            const { domain, ...rest } = options;
+                            cookieStore.set(name, value, rest);
+                        })
                     } catch (error) {
                         console.error('Cookie Set Error:', error)
-                        // The `setAll` method was called from a Server Component.
                     }
                 },
             },
