@@ -20,6 +20,24 @@ export async function GET(request: Request) {
         }
     }
 
-    // Redirect to the next URL or home
-    return NextResponse.redirect(new URL(next, request.url))
+    // Return an HTML page that handles the redirect via client-side
+    // This helps ensure cookies are set properly before navigating
+    return new NextResponse(`
+        <html>
+            <head>
+                <meta http-equiv="refresh" content="0;url=${next}" />
+                <title>Redirecting...</title>
+            </head>
+            <body>
+                <script>
+                    window.location.href = "${next}";
+                </script>
+                <p>Login successful. Redirecting to dashboard...</p>
+            </body>
+        </html>
+    `, {
+        headers: {
+            'Content-Type': 'text/html',
+        },
+    })
 }
