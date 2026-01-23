@@ -36,23 +36,24 @@ export async function GET(request: Request) {
     return new NextResponse(`
         <html>
             <head>
-                <title>Finalizing Login...</title>
+                <title>Login Successful</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1">
                 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
                 <style>
                     body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #f9fafb; }
                     .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 100%; }
                     h1 { color: #111827; margin-bottom: 1rem; font-size: 1.5rem; }
-                    .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #000; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 1rem; }
-                    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                    button.btn { display: inline-block; background: #000; color: white; padding: 0.75rem 1.5rem; border-radius: 4px; border: none; font-weight: bold; cursor: pointer; font-size: 1rem; }
+                    button.btn:hover { background: #374151; }
+                    button.btn:disabled { background: #9ca3af; cursor: not-allowed; }
                 </style>
             </head>
             <body>
                 <div class="card">
-                    <div class="spinner"></div>
-                    <h1>Finalizing Login...</h1>
-                    <p>Securing your session, please wait.</p>
-                    <div id="status" style="color: #666; font-size: 0.8rem;">Initializing...</div>
+                    <h1>Login Successful</h1>
+                    <p>Click the button below to secure your session and continue.</p>
+                    <button id="continue-btn" class="btn" onclick="restoreSessionAndRedirect()">Continue to Dashboard</button>
+                    <div id="status" style="margin-top: 1rem; color: #666; font-size: 0.8rem; min-height: 1.2em;"></div>
                 </div>
 
                 <script>
@@ -62,11 +63,15 @@ export async function GET(request: Request) {
                     const refreshToken = "${refreshToken || ''}";
                     const nextUrl = "${next}";
 
-                    async function restoreSession() {
+                    async function restoreSessionAndRedirect() {
+                        const btn = document.getElementById('continue-btn');
                         const statusEl = document.getElementById('status');
                         
+                        btn.disabled = true;
+                        btn.textContent = "Setting Session...";
+                        
                         if (!accessToken || !refreshToken) {
-                            statusEl.textContent = "Session missing. Redirecting...";
+                            statusEl.textContent = "Session missing. Check server logs.";
                             setTimeout(() => window.location.href = nextUrl, 1000);
                             return;
                         }
@@ -75,7 +80,6 @@ export async function GET(request: Request) {
                             const { createClient } = supabase;
                             const client = createClient(supabaseUrl, supabaseKey);
                             
-                            statusEl.textContent = "Setting session...";
                             const { error } = await client.auth.setSession({
                                 access_token: accessToken,
                                 refresh_token: refreshToken
@@ -87,13 +91,12 @@ export async function GET(request: Request) {
                             window.location.href = nextUrl;
                         } catch (e) {
                             console.error(e);
-                            statusEl.textContent = "Error setting session. Redirecting anyway...";
-                            // Fallback
-                            setTimeout(() => window.location.href = nextUrl, 2000);
+                            statusEl.textContent = "Error: " + e.message;
+                            btn.disabled = false;
+                            btn.textContent = "Try Continue Anyway";
+                            btn.onclick = () => window.location.href = nextUrl;
                         }
                     }
-
-                    restoreSession();
                 </script>
             </body>
         </html>
