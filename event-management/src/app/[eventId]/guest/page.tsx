@@ -79,7 +79,7 @@ export default function GuestPage() {
     const handleCheckIn = async () => {
         if (!foundParticipant) return;
 
-        const result = checkIn(foundParticipant.id, "v1", "self");
+        const result = await checkIn(foundParticipant.id, "v1", "self");
         if (result.success) {
             setSuccessMessage("チェックインが完了しました！");
 
@@ -89,10 +89,10 @@ export default function GuestPage() {
         }
     };
 
-    const handleCheckOut = () => {
+    const handleCheckOut = async () => {
         if (!foundParticipant) return;
 
-        const result = checkOut(foundParticipant.id, "v1", "self", "", "checkout");
+        const result = await checkOut(foundParticipant.id, "v1", "self", "", "checkout");
         if (result.success) {
             setSuccessMessage("チェックアウトが完了しました。またのご来場をお待ちしております！");
         } else {
@@ -100,10 +100,10 @@ export default function GuestPage() {
         }
     };
 
-    const handleTemporaryExit = () => {
+    const handleTemporaryExit = async () => {
         if (!foundParticipant) return;
 
-        const result = checkOut(foundParticipant.id, "v1", "self", "", "temporary_exit");
+        const result = await checkOut(foundParticipant.id, "v1", "self", "", "temporary_exit");
         if (result.success) {
             setSuccessMessage("途中退出を記録しました。お戻りの際は再度チェックインをお願いします。");
         } else {
