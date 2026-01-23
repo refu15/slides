@@ -51,7 +51,11 @@ export async function middleware(request: NextRequest) {
     const isGuestRoute = /^\/[^\/]+\/guest/.test(pathname)
 
     if (pathname === '/' && user) {
-        return NextResponse.redirect(new URL('/dashboard', request.url))
+        const redirectResponse = NextResponse.redirect(new URL('/dashboard', request.url))
+        // Copy cookies from response (which might have session updates) to redirectResponse
+        const cookies = response.cookies.getAll()
+        cookies.forEach(cookie => redirectResponse.cookies.set(cookie.name, cookie.value, cookie))
+        return redirectResponse
     }
 
     if (isPublicRoute || isGuestRoute) {
@@ -60,7 +64,11 @@ export async function middleware(request: NextRequest) {
 
     if (pathname === '/dashboard' || pathname.startsWith('/dashboard')) {
         if (!user) {
-            return NextResponse.redirect(new URL('/', request.url))
+            const redirectResponse = NextResponse.redirect(new URL('/', request.url))
+            // Copy cookies to ensure proper state (e.g. if logging out)
+            const cookies = response.cookies.getAll()
+            cookies.forEach(cookie => redirectResponse.cookies.set(cookie.name, cookie.value, cookie))
+            return redirectResponse
         }
         return response;
     }
@@ -68,7 +76,10 @@ export async function middleware(request: NextRequest) {
     const adminMatch = pathname.match(/^\/([^\/]+)\/admin/)
     if (adminMatch) {
         if (!user) {
-            return NextResponse.redirect(new URL('/', request.url))
+            const redirectResponse = NextResponse.redirect(new URL('/', request.url))
+            const cookies = response.cookies.getAll()
+            cookies.forEach(cookie => redirectResponse.cookies.set(cookie.name, cookie.value, cookie))
+            return redirectResponse
         }
         return response;
     }
@@ -76,7 +87,10 @@ export async function middleware(request: NextRequest) {
     const staffMatch = pathname.match(/^\/([^\/]+)\/staff/)
     if (staffMatch) {
         if (!user) {
-            return NextResponse.redirect(new URL('/', request.url))
+            const redirectResponse = NextResponse.redirect(new URL('/', request.url))
+            const cookies = response.cookies.getAll()
+            cookies.forEach(cookie => redirectResponse.cookies.set(cookie.name, cookie.value, cookie))
+            return redirectResponse
         }
         return response;
     }
