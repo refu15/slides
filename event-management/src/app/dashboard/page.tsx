@@ -126,23 +126,14 @@ export default function DashboardPage() {
 
     if (!user) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+            <div className="min-h-screen flex items-center justify-center">
                 <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
-                <div className="bg-red-100 p-4 border border-red-400 rounded text-red-800 font-mono text-xs max-w-lg break-all">
-                    <strong>DEBUG INFO:</strong><br />
-                    {JSON.stringify(debugInfo, null, 2)}
-                </div>
-                <Link href="/" className="text-blue-600 underline">Back to Home</Link>
             </div>
         );
     }
 
     return (
         <div className="min-h-screen bg-gray-50 p-8 font-sans text-gray-900">
-            <div className="bg-red-100 p-2 border-b border-red-400 text-red-800 font-mono text-xs mb-4">
-                <strong>DEBUG MODE IS ON:</strong> Middleware redirects are DISABLED.<br />
-                Current User: {JSON.stringify(debugInfo)}
-            </div>
             <div className="max-w-4xl mx-auto space-y-12">
 
                 {/* Header with User Info */}
