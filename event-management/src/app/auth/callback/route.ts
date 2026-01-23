@@ -38,7 +38,15 @@ export async function GET(request: Request) {
                     <h1>Login Successful</h1>
                     <p>Click the button below to continue to the dashboard.</p>
                     <a href="${next}" class="btn">Continue to Dashboard</a>
+                    
+                    <div style="margin-top: 2rem; padding: 1rem; background: #eee; font-size: 0.8rem; word-break: break-all;">
+                        <strong>Debug: Current Cookies</strong>
+                        <div id="cookie-debug">Loading...</div>
+                    </div>
                 </div>
+                <script>
+                    document.getElementById('cookie-debug').textContent = document.cookie || '(No cookies found)';
+                </script>
             </body>
         </html>
     `, {
