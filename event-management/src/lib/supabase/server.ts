@@ -14,18 +14,9 @@ export async function createClient() {
                 },
                 setAll(cookiesToSet) {
                     try {
-                        cookiesToSet.forEach(({ name, value, options }) => {
-                            // Force strict settings for cross-site usage
-                            const cookieOptions = {
-                                ...options,
-                                sameSite: 'none' as const,
-                                secure: true,
-                            };
-                            // Remove domain just in case
-                            delete cookieOptions.domain;
-
-                            cookieStore.set(name, value, cookieOptions);
-                        })
+                        cookiesToSet.forEach(({ name, value, options }) =>
+                            cookieStore.set(name, value, options)
+                        )
                     } catch (error) {
                         console.error('Cookie Set Error:', error)
                     }
