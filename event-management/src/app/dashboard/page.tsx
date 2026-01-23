@@ -38,15 +38,17 @@ export default function DashboardPage() {
     useEffect(() => {
         // ユーザー情報取得
         getCurrentUser().then((u) => {
-            if (!u) {
-                // 未ログインならルートへリダイレクト
-                router.push('/');
-                return;
+            if (u) {
+                setUser(u);
+                fetchEvents();
+            } else {
+                // Middlewareによる保護があるため、通常ここは通過しない
+                // リダイレクトループを防ぐため、クライアント側でのリダイレクトは行わない
+                console.log("No user session found");
+                setIsLoading(false);
             }
-            setUser(u);
-            fetchEvents();
         });
-    }, [router]);
+    }, []);
 
     const handleSignOut = async () => {
         await signOut();
