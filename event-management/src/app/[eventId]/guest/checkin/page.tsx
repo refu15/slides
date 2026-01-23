@@ -52,12 +52,12 @@ export default function GuestCheckInPage() {
         setStep('confirm');
     };
 
-    const handleCheckIn = () => {
+    const handleCheckIn = async () => {
         if (!selectedParticipant) return;
 
         // すでにチェックイン済みか確認
         const venueId = venues[0]?.id || "v1"; // venuesから取得
-        const result = checkIn(selectedParticipant.id, venueId, 'self');
+        const result = await checkIn(selectedParticipant.id, venueId, 'self');
 
         if (result.success || result.isAlreadyIn || result.isReentry) {
             setStep('result');
