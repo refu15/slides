@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #333;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .nav-admin {
+            background: #9c27b0;
+            color: white;
+        }
+
+        .nav-checkin {
+            background: #4caf50;
+            color: white;
+        }
+
+        .nav-participants {
+            background: #ff9800;
+            color: white;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-refresh {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-refresh:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .auto-refresh {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .alert {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        .alert h3 {
+            color: #856404;
+            margin-bottom: 10px;
+        }
+
+        .venues {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .venue-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s;
+        }
+
+        .venue-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .venue-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .venue-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .status-badge {
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .status-green {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-yellow {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-orange {
+            background: #ffe5d0;
+            color: #d63384;
+        }
+
+        .status-red {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .main-number {
+            font-size: 5em;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .capacity {
+            font-size: 2em;
+            color: #999;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar {
+            height: 30px;
+            background: #e9ecef;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            transition: width 1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .stat-box {
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .stat-box h4 {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .stat-box .number {
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+
+        .summary {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .summary h2 {
+            font-size: 2em;
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .summary-card {
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+        }
+
+        .summary-card h3 {
+            font-size: 0.9em;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        .summary-card .big-number {
+            font-size: 3em;
+            font-weight: bold;
+        }
+
+        .last-update {
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+            font-size: 0.9em;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .venues {
+                grid-template-columns: 1fr;
+            }
+
+            .main-number {
+                font-size: 3em;
+            }
+
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>📊 ダッシュボード</h1>
+                <p id="eventNameDisplay" style="color: #666; margin-top: 10px;"></p>
+            </div>
+            <div class="nav-menu">
+                <button class="nav-btn nav-admin" onclick="goTo('admin')">⚙️ 管理画面</button>
+                <button class="nav-btn nav-checkin" onclick="goTo('checkin')">✅ チェックイン</button>
+                <button class="nav-btn nav-participants" onclick="goTo('participants')">👥 参加者管理</button>
+            </div>
+            <div class="controls">
+                <div style="color: #666; font-size: 0.9em;">🕐 更新: <span id="lastUpdate">--:--:--</span></div>
+                <button class="btn btn-refresh" onclick="refreshData()">🔄 更新</button>
+                <label class="auto-refresh">
+                    <input type="checkbox" id="autoRefresh" checked onchange="toggleAutoRefresh()">
+                    <span>自動更新</span>
+                </label>
+            </div>
+        </div>
+
+        <div id="alertBox" class="alert" style="display: none;">
+            <h3>⚠️ 混雑アラート</h3>
+            <p id="alertMessage"></p>
+        </div>
+
+        <div class="venues" id="venuesContainer"></div>
+
+        <div class="summary">
+            <h2>📈 全体サマリー</h2>
+            <div class="summary-grid">
+                <div class="summary-card" style="background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);">
+                    <h3>全体入場者数</h3>
+                    <div class="big-number" id="totalCurrent" style="color: #1976d2;">0</div>
+                </div>
+                <div class="summary-card" style="background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);">
+                    <h3>全体累計</h3>
+                    <div class="big-number" id="totalCheckins" style="color: #388e3c;">0</div>
+                </div>
+                <div class="summary-card" style="background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);">
+                    <h3>総定員</h3>
+                    <div class="big-number" id="totalCapacity" style="color: #7b1fa2;">180</div>
+                </div>
+                <div class="summary-card" style="background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);">
+                    <h3>全体使用率</h3>
+                    <div class="big-number" id="totalUsage" style="color: #f57c00;">0%</div>
+                </div>
+            </div>
+        </div>
+        <div class="last-update">自動更新: 30秒ごと</div>
+    </div>
+
+    <script>
+        const GAS_URL = '<?= gasUrl ?>';
+        let autoRefreshInterval = null;
+        let settings = {};
+        let venues = [
+            { id: 'main', name: '本編会場', capacity: 100 },
+            { id: 'party', name: '懇親会場', capacity: 80 }
+        ];
+
+        window.onload = async () => {
+            await loadSettings();
+            renderVenueCards();
+            refreshData();
+            startAutoRefresh();
+        };
+
+        async function loadSettings() {
+            google.script.run
+                .withSuccessHandler(function (data) {
+                    settings = data;
+                    document.getElementById('eventNameDisplay').textContent = settings['イベント名'] || '';
+                })
+                .withFailureHandler(function (error) {
+                    console.error('設定読み込みエラー:', error);
+                })
+                .getEventSettingsForClient();
+        }
+
+        function renderVenueCards() {
+            const container = document.getElementById('venuesContainer');
+            container.innerHTML = '';
+
+            venues.forEach((venue, index) => {
+                const colors = [
+                    { main: '#667eea', gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' },
+                    { main: '#e91e63', gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)' }
+                ];
+                const color = colors[index % colors.length];
+
+                const card = document.createElement('div');
+                card.className = 'venue-card';
+                card.innerHTML = `
+                    <div class="venue-header">
+                        <div class="venue-title">${index === 0 ? '🏢' : '🍷'} ${venue.name}</div>
+                        <div class="status-badge status-green" id="${venue.id}Status">✅ 余裕あり</div>
+                    </div>
+                    <div class="main-number" id="${venue.id}Current" style="color: ${color.main};">0</div>
+                    <div class="capacity">/ <span>${venue.capacity}</span>名</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="${venue.id}Progress" style="width: 0%; background: ${color.gradient};">0%</div>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-box" style="background: #e3f2fd;">
+                            <h4>累計チェックイン</h4>
+                            <div class="number" id="${venue.id}Total" style="color: #1976d2;">0</div>
+                        </div>
+                        <div class="stat-box" style="background: #f3e5f5;">
+                            <h4>残り枠</h4>
+                            <div class="number" id="${venue.id}Remaining" style="color: #7b1fa2;">0</div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function startAutoRefresh() {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            if (document.getElementById('autoRefresh').checked) {
+                autoRefreshInterval = setInterval(refreshData, 30000);
+            }
+        }
+
+        function toggleAutoRefresh() {
+            startAutoRefresh();
+        }
+
+        async function refreshData() {
+            try {
+                let totalCurrent = 0;
+                let totalCheckins = 0;
+                let totalCapacity = 0;
+
+                for (const venue of venues) {
+                    const response = await fetch(`${GAS_URL}?action=getCount&venue=${venue.id}`);
+                    const data = await response.json();
+
+                    const current = data.current || 0;
+                    const total = data.total || 0;
+
+                    updateVenue(venue.id, current, total, venue.capacity);
+
+                    totalCurrent += current;
+                    totalCheckins += total;
+                    totalCapacity += venue.capacity;
+                }
+
+                updateSummary(totalCurrent, totalCheckins, totalCapacity);
+                checkAlerts();
+
+                const now = new Date();
+                document.getElementById('lastUpdate').textContent = now.toLocaleTimeString('ja-JP');
+
+            } catch (error) {
+                console.error('データ取得エラー:', error);
+            }
+        }
+
+        function updateVenue(venueId, current, total, capacity) {
+            const percentage = Math.round((current / capacity) * 100);
+            const remaining = capacity - current;
+
+            document.getElementById(`${venueId}Current`).textContent = current;
+            document.getElementById(`${venueId}Total`).textContent = total;
+            document.getElementById(`${venueId}Remaining`).textContent = remaining;
+
+            const progressBar = document.getElementById(`${venueId}Progress`);
+            progressBar.style.width = percentage + '%';
+            progressBar.textContent = percentage + '%';
+
+            const statusBadge = document.getElementById(`${venueId}Status`);
+            const ratio = current / capacity;
+
+            if (ratio >= 0.9) {
+                statusBadge.textContent = '⚠️ ほぼ満員';
+                statusBadge.className = 'status-badge status-red';
+            } else if (ratio >= 0.8) {
+                statusBadge.textContent = '⚠️ 混雑';
+                statusBadge.className = 'status-badge status-orange';
+            } else if (ratio >= 0.6) {
+                statusBadge.textContent = '🟡 やや混雑';
+                statusBadge.className = 'status-badge status-yellow';
+            } else {
+                statusBadge.textContent = '✅ 余裕あり';
+                statusBadge.className = 'status-badge status-green';
+            }
+        }
+
+        function updateSummary(totalCurrent, totalCheckins, totalCapacity) {
+            const totalUsage = Math.round((totalCurrent / totalCapacity) * 100);
+
+            document.getElementById('totalCurrent').textContent = totalCurrent;
+            document.getElementById('totalCheckins').textContent = totalCheckins;
+            document.getElementById('totalCapacity').textContent = totalCapacity;
+            document.getElementById('totalUsage').textContent = totalUsage + '%';
+        }
+
+        function checkAlerts() {
+            let alertMessages = [];
+
+            venues.forEach(venue => {
+                const current = parseInt(document.getElementById(`${venue.id}Current`).textContent);
+                const ratio = current / venue.capacity;
+
+                if (ratio >= 0.8) {
+                    alertMessages.push(`${venue.name}が混雑しています（現在${current}名、${Math.round(ratio * 100)}%）`);
+                }
+            });
+
+            const alertBox = document.getElementById('alertBox');
+            const alertMessage = document.getElementById('alertMessage');
+
+            if (alertMessages.length > 0) {
+                alertMessage.textContent = alertMessages.join(' / ') + ' - スタッフの追加配置を検討してください。';
+                alertBox.style.display = 'block';
+            } else {
+                alertBox.style.display = 'none';
+            }
+        }
+
+        function goTo(page) {
+            window.location.href = `${GAS_URL}?page=${page}`;
+        }
+    </script>
+</body>
+
+</html>

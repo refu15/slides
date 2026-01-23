@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2em;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .nav-admin {
+            background: #9c27b0;
+            color: white;
+        }
+
+        .nav-checkin {
+            background: #4caf50;
+            color: white;
+        }
+
+        .nav-dashboard {
+            background: #2196f3;
+            color: white;
+        }
+
+        .tabs {
+            background: white;
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #ddd;
+            background: white;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: #667eea;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 0.9em;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-family: monospace;
+            resize: vertical;
+            min-height: 200px;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .participant-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .participant-table th {
+            background: #667eea;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: bold;
+        }
+
+        .participant-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .participant-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+        }
+
+        .status-checked {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-unchecked {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .vip-badge {
+            background: #ffd700;
+            color: #333;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        .search-box {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            width: 100%;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+
+        .stat-card .label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .tab-buttons {
+                flex-direction: column;
+            }
+
+            .participant-table {
+                font-size: 0.9em;
+            }
+
+            .participant-table th,
+            .participant-table td {
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👥 参加者管理</h1>
+            <div class="nav-menu">
+                <button class="nav-btn nav-admin" onclick="goTo('admin')">⚙️ 管理画面</button>
+                <button class="nav-btn nav-checkin" onclick="goTo('checkin')">✅ チェックイン</button>
+                <button class="nav-btn nav-dashboard" onclick="goTo('dashboard')">📊 ダッシュボード</button>
+                <button class="nav-btn" style="background: #dc3545; color: white;" onclick="logout()">🚪 ログアウト</button>
+            </div>
+        </div>
+
+        <div id="messageBox" class="message"></div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="number" id="totalParticipants">0</div>
+                <div class="label">総参加者数</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="checkedInCount">0</div>
+                <div class="label">チェックイン済み</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="uncheckedCount">0</div>
+                <div class="label">未チェックイン</div>
+            </div>
+        </div>
+
+        <div class="tabs">
+            <div class="tab-buttons">
+                <button class="tab-btn active" onclick="switchTab('list')">📋 参加者リスト</button>
+                <button class="tab-btn" onclick="switchTab('add')">➕ 個別登録</button>
+                <button class="tab-btn" onclick="switchTab('bulk')">📝 一括登録</button>
+            </div>
+
+            <!-- タブ1: 参加者リスト -->
+            <div id="listTab" class="tab-content active">
+                <input type="text" class="search-box" id="searchBox" placeholder="🔍 検索: 氏名、ID、メール...">
+                <div style="overflow-x: auto;">
+                    <table class="participant-table">
+                        <thead>
+                            <tr>
+                                <th>状態</th>
+                                <th>参加者ID</th>
+                                <th>氏名</th>
+                                <th>フリガナ</th>
+                                <th>メール</th>
+                                <th>電話</th>
+                                <th>所属</th>
+                                <th>区分</th>
+                            </tr>
+                        </thead>
+                        <tbody id="participantListBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- タブ2: 個別登録 -->
+            <div id="addTab" class="tab-content">
+                <form id="addParticipantForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>参加者ID *</label>
+                            <input type="text" id="participantId" required placeholder="例: QR_001">
+                        </div>
+                        <div class="form-group">
+                            <label>氏名 *</label>
+                            <input type="text" id="participantName" required placeholder="山田太郎">
+                        </div>
+                        <div class="form-group">
+                            <label>フリガナ</label>
+                            <input type="text" id="participantFurigana" placeholder="ヤマダタロウ">
+                        </div>
+                        <div class="form-group">
+                            <label>メールアドレス</label>
+                            <input type="email" id="participantEmail" placeholder="example@example.com">
+                        </div>
+                        <div class="form-group">
+                            <label>電話番号</label>
+                            <input type="tel" id="participantPhone" placeholder="090-1234-5678">
+                        </div>
+                        <div class="form-group">
+                            <label>所属</label>
+                            <input type="text" id="participantOrg" placeholder="株式会社○○">
+                        </div>
+                        <div class="form-group">
+                            <label>参加区分</label>
+                            <select id="participantCategory">
+                                <option value="一般">一般</option>
+                                <option value="スタッフ">スタッフ</option>
+                                <option value="スピーカー">スピーカー</option>
+                                <option value="スポンサー">スポンサー</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="participantVip">
+                                VIP（入場時に通知）
+                            </label>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="margin-top: 20px;">➕ 参加者を追加</button>
+                </form>
+            </div>
+
+            <!-- タブ3: 一括登録 -->
+            <div id="bulkTab" class="tab-content">
+                <p style="margin-bottom: 15px; color: #666;">
+                    <strong>フォーマット:</strong> 1行に1人、カンマ区切り<br>
+                    <code>ID,氏名,フリガナ,メール,電話,所属,区分,VIP(true/false)</code>
+                </p>
+                <textarea id="bulkInput"
+                    placeholder="例:&#10;QR_001,山田太郎,ヤマダタロウ,yamada@example.com,090-1234-5678,株式会社A,一般,false&#10;QR_002,佐藤花子,サトウハナコ,sato@example.com,080-9876-5432,株式会社B,スポンサー,true"></textarea>
+                <button class="btn btn-success" onclick="bulkAdd()" style="margin-top: 15px;">📝 一括追加</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GAS_URL = '<?= gasUrl ?>';
+        let participants = [];
+        let checkInStatus = [];
+
+        // セッションストレージで認証状態を保持
+        window.onload = () => {
+            // 管理者またはスタッフのいずれかでログインしていればOK
+            if (sessionStorage.getItem('staffAuth') === 'true' || sessionStorage.getItem('adminAuth') === 'true') {
+                loadParticipants();
+                loadCheckInStatus();
+            } else {
+                // 認証されていない場合はログイン画面へ
+                alert('この画面にアクセスするにはログインが必要です。');
+                window.location.href = '<?= gasUrl ?>?page=checkin';
+            }
+        };
+
+        function logout() {
+            if (confirm('ログアウトしますか？')) {
+                sessionStorage.removeItem('staffAuth');
+                sessionStorage.removeItem('adminAuth');
+                window.location.href = GAS_URL + '?page=checkin';
+            }
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+            event.target.classList.add('active');
+            document.getElementById(tab + 'Tab').classList.add('active');
+        }
+
+        async function loadParticipants() {
+            google.script.run
+                .withSuccessHandler(function (data) {
+                    participants = data;
+                    updateStats();
+                    renderParticipantList();
+                })
+                .withFailureHandler(function (error) {
+                    console.error('参加者リスト取得エラー:', error);
+                })
+                .getParticipantsForClient();
+        }
+
+        async function loadCheckInStatus() {
+            google.script.run
+                .withSuccessHandler(function (data) {
+                    checkInStatus = data;
+                    updateStats();
+                    renderParticipantList();
+                })
+                .withFailureHandler(function (error) {
+                    console.error('チェックイン状態取得エラー:', error);
+                })
+                .getCheckInStatusForClient();
+        }
+
+        function updateStats() {
+            document.getElementById('totalParticipants').textContent = participants.length;
+
+            const checkedIn = checkInStatus.filter(s => s.checkedIn).length;
+            document.getElementById('checkedInCount').textContent = checkedIn;
+            document.getElementById('uncheckedCount').textContent = participants.length - checkedIn;
+        }
+
+        function renderParticipantList() {
+            const tbody = document.getElementById('participantListBody');
+            tbody.innerHTML = '';
+
+            participants.forEach(p => {
+                const status = checkInStatus.find(s => s.id === p.id);
+                const isCheckedIn = status && status.checkedIn;
+
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>
+                        <span class="status-badge ${isCheckedIn ? 'status-checked' : 'status-unchecked'}">
+                            ${isCheckedIn ? '✅ 済' : '⏳ 未'}
+                        </span>
+                    </td>
+                    <td>${p.id}</td>
+                    <td>
+                        ${p.name}
+                        ${p.isVip ? '<span class="vip-badge">VIP</span>' : ''}
+                    </td>
+                    <td>${p.furigana || '-'}</td>
+                    <td>${p.email || '-'}</td>
+                    <td>${p.phone || '-'}</td>
+                    <td>${p.organization || '-'}</td>
+                    <td>${p.category}</td>
+                `;
+            });
+        }
+
+        document.getElementById('searchBox').addEventListener('input', function (e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#participantListBody tr');
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        document.getElementById('addParticipantForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const data = {
+                id: document.getElementById('participantId').value,
+                name: document.getElementById('participantName').value,
+                furigana: document.getElementById('participantFurigana').value,
+                email: document.getElementById('participantEmail').value,
+                phone: document.getElementById('participantPhone').value,
+                organization: document.getElementById('participantOrg').value,
+                category: document.getElementById('participantCategory').value,
+                isVip: document.getElementById('participantVip').checked
+            };
+
+            google.script.run
+                .withSuccessHandler(function (result) {
+                    if (result.success) {
+                        showMessage('✅ 参加者を追加しました', 'success');
+                        document.getElementById('addParticipantForm').reset();
+                        loadParticipants();
+                    } else {
+                        showMessage('❌ エラー: ' + result.message, 'error');
+                    }
+                })
+                .withFailureHandler(function (error) {
+                    showMessage('❌ 通信エラー', 'error');
+                })
+                .addParticipantFromClient(data);
+        });
+
+        async function bulkAdd() {
+            const input = document.getElementById('bulkInput').value.trim();
+            if (!input) {
+                showMessage('❌ データを入力してください', 'error');
+                return;
+            }
+
+            const lines = input.split('\n').filter(l => l.trim());
+            const participants = [];
+
+            lines.forEach(line => {
+                const parts = line.split(',').map(s => s.trim());
+                if (parts.length >= 2) {
+                    participants.push({
+                        id: parts[0],
+                        name: parts[1],
+                        furigana: parts[2] || '',
+                        email: parts[3] || '',
+                        phone: parts[4] || '',
+                        organization: parts[5] || '',
+                        category: parts[6] || '一般',
+                        isVip: parts[7] === 'true'
+                    });
+                }
+            });
+
+            if (participants.length === 0) {
+                showMessage('❌ 有効なデータがありません', 'error');
+                return;
+            }
+
+            google.script.run
+                .withSuccessHandler(function (result) {
+                    if (result.success) {
+                        showMessage(`✅ ${participants.length}名の参加者を追加しました`, 'success');
+                        document.getElementById('bulkInput').value = '';
+                        loadParticipants();
+                    } else {
+                        showMessage('❌ エラー: ' + result.message, 'error');
+                    }
+                })
+                .withFailureHandler(function (error) {
+                    showMessage('❌ 通信エラー', 'error');
+                })
+                .bulkAddParticipantsFromClient(participants);
+        }
+
+        function goTo(page) {
+            window.location.href = `${GAS_URL}?page=${page}`;
+        }
+
+        function showMessage(text, type) {
+            const msg = document.getElementById('messageBox');
+            msg.textContent = text;
+            msg.className = 'message ' + type;
+            setTimeout(() => msg.className = 'message', 3000);
+        }
+    </script>
+</body>
+
+</html>

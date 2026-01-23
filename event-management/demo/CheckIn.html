@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .login-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .login-box { background: white; padding: 40px; border-radius: 20px; max-width: 400px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+        .login-box h2 { margin-bottom: 20px; color: #333; text-align: center; }
+        .login-box input { width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 8px; margin-bottom: 20px; font-size: 16px; }
+        .login-box button { width: 100%; padding: 15px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        .message { padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; font-weight: bold; display: none; }
+        .message.error { background: #f8d7da; color: #721c24; display: block; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: white; border-radius: 20px; padding: 30px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; }
+        h1 { color: #333; font-size: 2em; }
+        .nav-menu { display: flex; gap: 10px; flex-wrap: wrap; }
+        .nav-btn { padding: 10px 20px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+        .nav-btn:hover { transform: translateY(-2px); }
+        .nav-admin { background: #9c27b0; color: white; }
+        .nav-participants { background: #ff9800; color: white; }
+        .nav-dashboard { background: #2196f3; color: white; }
+        .venue-selector { margin-top: 20px; display: flex; gap: 10px; }
+        .venue-btn { flex: 1; padding: 15px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+        .venue-btn.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .venue-btn:not(.active) { background: #e0e0e0; color: #666; }
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px; }
+        .stat-card { background: white; border-radius: 15px; padding: 25px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .stat-card h3 { font-size: 0.9em; color: #666; margin-bottom: 10px; }
+        .stat-card .number { font-size: 3em; font-weight: bold; color: #667eea; }
+        .message { padding: 15px; border-radius: 10px; margin-bottom: 20px; font-weight: bold; text-align: center; display: none; }
+        .message.success { background: #d4edda; color: #155724; display: block; }
+        .message.error { background: #f8d7da; color: #721c24; display: block; }
+        .message.warning { background: #fff3cd; color: #856404; display: block; }
+        .main-menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
+        .menu-btn { background: white; border: none; border-radius: 15px; padding: 40px 20px; cursor: pointer; transition: all 0.3s; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .menu-btn:hover { transform: translateY(-5px); box-shadow: 0 10px 25px rgba(0,0,0,0.2); }
+        .menu-btn .icon { font-size: 3em; margin-bottom: 15px; }
+        .menu-btn h2 { font-size: 1.3em; color: #333; margin-bottom: 5px; }
+        .menu-btn p { color: #666; font-size: 0.9em; }
+        .screen { background: white; border-radius: 20px; padding: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); display: none; }
+        .screen.active { display: block; }
+        .screen h2 { font-size: 2em; color: #333; margin-bottom: 30px; }
+        .qr-scanner { width: 100%; max-width: 500px; margin: 0 auto 20px; }
+        #reader, #reader2 { border-radius: 10px; overflow: hidden; }
+        .input-group { margin-bottom: 25px; }
+        .input-group label { display: block; font-weight: bold; color: #333; margin-bottom: 10px; }
+        .input-group input { width: 100%; padding: 15px; border: 2px solid #ddd; border-radius: 10px; font-size: 16px; }
+        .input-group input:focus { outline: none; border-color: #667eea; }
+        .button-group { display: flex; gap: 15px; margin-top: 30px; }
+        .btn { flex: 1; padding: 18px; border: none; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+        .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+        .btn-secondary { background: #6c757d; color: white; }
+        .btn-warning { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+        .participant-info { background: #e7f3ff; border: 2px solid #2196f3; border-radius: 10px; padding: 20px; margin: 20px 0; }
+        .participant-info h3 { color: #1976d2; margin-bottom: 10px; }
+        .participant-info p { color: #333; margin: 5px 0; }
+        .vip-alert { background: #fff3cd; border: 2px solid #ffc107; border-radius: 10px; padding: 15px; margin: 20px 0; }
+        .vip-alert h3 { color: #856404; }
+        @media (max-width: 768px) {
+            .header { flex-direction: column; }
+            .stat-card .number { font-size: 2em; }
+            .menu-btn { padding: 30px 15px; }
+            .screen { padding: 20px; }
+            .button-group { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    <!-- スタッフログイン画面 -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-box">
+            <h2>🔐 スタッフログイン</h2>
+            <div id="loginMessage" class="message"></div>
+            <input type="password" id="staffPassword" placeholder="スタッフパスワード">
+            <button onclick="staffLogin()">ログイン</button>
+        </div>
+    </div>
+    
+    <!-- メインコンテンツ -->
+    <div id="mainContent" style="display: none;">
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>✅ チェックイン</h1>
+                <p id="eventNameDisplay" style="color: #666; margin-top: 5px;"></p>
+            </div>
+            <div class="nav-menu">
+                <button class="nav-btn nav-admin" onclick="goTo('admin')">⚙️ 管理画面</button>
+                <button class="nav-btn nav-participants" onclick="goTo('participants')">👥 参加者管理</button>
+                <button class="nav-btn nav-dashboard" onclick="goTo('dashboard')">📊 ダッシュボード</button>
+                <button class="nav-btn" style="background: #dc3545; color: white;" onclick="logout()">🚪 ログアウト</button>
+            </div>
+            <div class="venue-selector" id="venueSelector"></div>
+        </div>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <h3>現在の入場者数</h3>
+                <div class="number" id="currentCount">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>累計チェックイン</h3>
+                <div class="number" id="totalCheckins">0</div>
+            </div>
+        </div>
+        
+        <div id="messageBox" class="message"></div>
+        
+        <div id="mainMenu" class="main-menu">
+            <button class="menu-btn" onclick="showScreen('checkin')">
+                <div class="icon">📥</div>
+                <h2>入場受付</h2>
+                <p>QRコードをスキャン</p>
+            </button>
+            <button class="menu-btn" onclick="showScreen('checkout')">
+                <div class="icon">📤</div>
+                <h2>退場受付</h2>
+                <p>QRコードをスキャン</p>
+            </button>
+            <button class="menu-btn" onclick="showScreen('manual')">
+                <div class="icon">✍️</div>
+                <h2>手動入力</h2>
+                <p>参加者リストから選択</p>
+            </button>
+            <button class="menu-btn" onclick="refreshData()">
+                <div class="icon">🔄</div>
+                <h2>更新</h2>
+                <p>人数を再取得</p>
+            </button>
+        </div>
+        
+        <div id="checkinScreen" class="screen">
+            <h2>📥 入場受付</h2>
+            <div class="qr-scanner"><div id="reader"></div></div>
+            <div class="input-group">
+                <label>または参加者IDを入力</label>
+                <input type="text" id="checkinId" placeholder="例: QR_001">
+            </div>
+            <div id="participantInfoCheckin"></div>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="handleCheckin()">入場を記録</button>
+                <button class="btn btn-secondary" onclick="showScreen('home')">戻る</button>
+            </div>
+        </div>
+        
+        <div id="checkoutScreen" class="screen">
+            <h2>📤 退場受付</h2>
+            <div class="qr-scanner"><div id="reader2"></div></div>
+            <div class="input-group">
+                <label>または参加者IDを入力</label>
+                <input type="text" id="checkoutId" placeholder="例: QR_001">
+            </div>
+            <div id="participantInfoCheckout"></div>
+            <div class="button-group">
+                <button class="btn btn-warning" onclick="handleCheckout()">退場を記録</button>
+                <button class="btn btn-secondary" onclick="showScreen('home')">戻る</button>
+            </div>
+        </div>
+        
+        <div id="manualScreen" class="screen">
+            <h2>✍️ 手動入力</h2>
+            <div class="input-group">
+                <label>参加者を選択</label>
+                <input type="text" id="manualSearch" placeholder="🔍 検索: 氏名、IDで検索..." style="margin-bottom: 15px;">
+                <select id="participantSelect" size="10" style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
+                </select>
+            </div>
+            <div id="participantInfoManual"></div>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="handleManualCheckin()">入場を記録</button>
+                <button class="btn btn-warning" onclick="handleManualCheckout()">退場を記録</button>
+            </div>
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="showScreen('home')">戻る</button>
+            </div>
+        </div>
+    </div>
+    </div>
+    
+    <script>
+        const GAS_URL = '<?= gasUrl ?>';
+        let currentVenue = 'main';
+        let html5QrCode = null;
+        let venues = [];
+        let participants = [];
+        let settings = {};
+        let isAuthenticated = false;
+        
+        // セッションストレージで認証状態を保持
+        window.onload = async () => {
+            if (sessionStorage.getItem('staffAuth') === 'true') {
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                isAuthenticated = true;
+                await initializeApp();
+            }
+        };
+        
+        async function staffLogin() {
+            const password = document.getElementById('staffPassword').value;
+            
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        sessionStorage.setItem('staffAuth', 'true');
+                        document.getElementById('loginOverlay').style.display = 'none';
+                        document.getElementById('mainContent').style.display = 'block';
+                        isAuthenticated = true;
+                        initializeApp();
+                    } else {
+                        showLoginMessage('❌ パスワードが間違っています');
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showLoginMessage('❌ エラー: ' + error.message);
+                })
+                .verifyStaffPassword(password);
+        }
+        
+        function showLoginMessage(text) {
+            const msg = document.getElementById('loginMessage');
+            msg.textContent = text;
+            msg.className = 'message error';
+            setTimeout(() => {
+                msg.className = 'message';
+            }, 3000);
+        }
+        
+        async function initializeApp() {
+            await loadSettings();
+            await loadVenues();
+            await loadParticipants();
+            refreshData();
+        }
+        
+        // Enterキーでログイン
+        document.getElementById('staffPassword')?.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                staffLogin();
+            }
+        });
+        
+        async function loadSettings() {
+            try {
+                const response = await fetch(`${GAS_URL}?action=getSettings`);
+                const result = await response.json();
+                if (result.success) {
+                    settings = result.data;
+                    document.getElementById('eventNameDisplay').textContent = settings['イベント名'] || '';
+                }
+            } catch (error) {
+                console.error('設定読み込みエラー:', error);
+            }
+        }
+        
+        async function loadVenues() {
+            // 簡略化: デフォルト会場を使用
+            venues = [
+                { id: 'main', name: '本編会場', capacity: 100 },
+                { id: 'party', name: '懇親会場', capacity: 80 }
+            ];
+            renderVenueSelector();
+        }
+        
+        function renderVenueSelector() {
+            const selector = document.getElementById('venueSelector');
+            selector.innerHTML = '';
+            venues.forEach(v => {
+                const btn = document.createElement('button');
+                btn.className = 'venue-btn' + (v.id === currentVenue ? ' active' : '');
+                btn.textContent = v.name;
+                btn.onclick = () => selectVenue(v.id);
+                selector.appendChild(btn);
+            });
+        }
+        
+        function selectVenue(venueId) {
+            currentVenue = venueId;
+            renderVenueSelector();
+            refreshData();
+        }
+        
+        async function loadParticipants() {
+            try {
+                const response = await fetch(`${GAS_URL}?action=getParticipants`);
+                const result = await response.json();
+                if (result.success) {
+                    participants = result.data;
+                    renderParticipantSelect();
+                }
+            } catch (error) {
+                console.error('参加者リスト読み込みエラー:', error);
+            }
+        }
+        
+        function renderParticipantSelect() {
+            const select = document.getElementById('participantSelect');
+            select.innerHTML = '';
+            participants.forEach(p => {
+                const option = document.createElement('option');
+                option.value = p.id;
+                option.textContent = `${p.id} - ${p.name}`;
+                select.appendChild(option);
+            });
+        }
+        
+        document.getElementById('manualSearch').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const options = document.querySelectorAll('#participantSelect option');
+            options.forEach(opt => {
+                opt.style.display = opt.textContent.toLowerCase().includes(searchTerm) ? '' : 'none';
+            });
+        });
+        
+        async function verifyParticipant(userId, displayElement) {
+            try {
+                const response = await fetch(`${GAS_URL}?action=verifyParticipant&userId=${userId}`);
+                const result = await response.json();
+                
+                if (result.success && result.data.exists) {
+                    const p = result.data;
+                    displayElement.innerHTML = `
+                        <div class="participant-info">
+                            <h3>✅ 参加者情報</h3>
+                            <p><strong>氏名:</strong> ${p.name}</p>
+                            <p><strong>区分:</strong> ${p.category || '一般'}</p>
+                            ${p.isVip ? '<div class="vip-alert"><h3>🌟 VIP参加者</h3></div>' : ''}
+                        </div>
+                    `;
+                    return true;
+                } else {
+                    displayElement.innerHTML = `
+                        <div class="message warning">
+                            ⚠️ この参加者IDは登録されていません<br>
+                            <small>手動入力で記録することもできます</small>
+                        </div>
+                    `;
+                    return false;
+                }
+            } catch (error) {
+                return false;
+            }
+        }
+        
+        document.getElementById('checkinId').addEventListener('input', async function(e) {
+            const userId = e.target.value.trim();
+            if (userId) {
+                await verifyParticipant(userId, document.getElementById('participantInfoCheckin'));
+            } else {
+                document.getElementById('participantInfoCheckin').innerHTML = '';
+            }
+        });
+        
+        document.getElementById('checkoutId').addEventListener('input', async function(e) {
+            const userId = e.target.value.trim();
+            if (userId) {
+                await verifyParticipant(userId, document.getElementById('participantInfoCheckout'));
+            } else {
+                document.getElementById('participantInfoCheckout').innerHTML = '';
+            }
+        });
+        
+        document.getElementById('participantSelect').addEventListener('change', async function(e) {
+            const userId = e.target.value;
+            if (userId) {
+                await verifyParticipant(userId, document.getElementById('participantInfoManual'));
+            }
+        });
+        
+        function showScreen(screen) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('mainMenu').style.display = 'none';
+            if (screen === 'home') {
+                document.getElementById('mainMenu').style.display = 'grid';
+                stopQRScanner();
+            } else if (screen === 'checkin') {
+                document.getElementById('checkinScreen').classList.add('active');
+                startQRScanner('reader', handleQRScan);
+            } else if (screen === 'checkout') {
+                document.getElementById('checkoutScreen').classList.add('active');
+                startQRScanner('reader2', handleQRScanCheckout);
+            } else if (screen === 'manual') {
+                document.getElementById('manualScreen').classList.add('active');
+            }
+        }
+        
+        function startQRScanner(elementId, callback) {
+            stopQRScanner();
+            html5QrCode = new Html5Qrcode(elementId);
+            html5QrCode.start({facingMode: "environment"},{fps: 10, qrbox: {width: 250, height: 250}}, callback, () => {}).catch(() => showMessage('カメラが使えません。IDを手動入力してください。', 'error'));
+        }
+        
+        function stopQRScanner() {
+            if (html5QrCode) html5QrCode.stop().then(() => html5QrCode = null).catch(() => {});
+        }
+        
+        function handleQRScan(decodedText) {
+            document.getElementById('checkinId').value = decodedText;
+            verifyParticipant(decodedText, document.getElementById('participantInfoCheckin'));
+        }
+        
+        function handleQRScanCheckout(decodedText) {
+            document.getElementById('checkoutId').value = decodedText;
+            verifyParticipant(decodedText, document.getElementById('participantInfoCheckout'));
+        }
+        
+        async function refreshData() {
+            try {
+                const response = await fetch(`${GAS_URL}?action=getCount&venue=${currentVenue}`);
+                const data = await response.json();
+                document.getElementById('currentCount').textContent = data.current || 0;
+                document.getElementById('totalCheckins').textContent = data.total || 0;
+            } catch (error) {
+                showMessage('データの取得に失敗しました', 'error');
+            }
+        }
+        
+        async function handleCheckin() {
+            const userId = document.getElementById('checkinId').value.trim();
+            if (!userId) {
+                showMessage('❌ IDを入力してください', 'error');
+                return;
+            }
+            await sendData('checkin', userId);
+            document.getElementById('checkinId').value = '';
+            document.getElementById('participantInfoCheckin').innerHTML = '';
+        }
+        
+        async function handleCheckout() {
+            const userId = document.getElementById('checkoutId').value.trim();
+            if (!userId) {
+                showMessage('❌ IDを入力してください', 'error');
+                return;
+            }
+            await sendData('checkout', userId);
+            document.getElementById('checkoutId').value = '';
+            document.getElementById('participantInfoCheckout').innerHTML = '';
+        }
+        
+        async function handleManualCheckin() {
+            const userId = document.getElementById('participantSelect').value;
+            if (!userId) {
+                showMessage('❌ 参加者を選択してください', 'error');
+                return;
+            }
+            await sendData('checkin', userId);
+        }
+        
+        async function handleManualCheckout() {
+            const userId = document.getElementById('participantSelect').value;
+            if (!userId) {
+                showMessage('❌ 参加者を選択してください', 'error');
+                return;
+            }
+            await sendData('checkout', userId);
+        }
+        
+        async function sendData(action, userId) {
+            const data = {
+                userId: userId,
+                action: action,
+                venue: currentVenue,
+                timestamp: new Date().toISOString()
+            };
+            
+            google.script.run
+                .withSuccessHandler(function(result) {
+                    if (result.success) {
+                        showMessage(`✅ ${action === 'checkin' ? '入場' : '退場'}完了: ${result.participantName || userId}`, 'success');
+                        refreshData();
+                    } else {
+                        showMessage(`❌ ${result.message}`, 'error');
+                    }
+                })
+                .withFailureHandler(function(error) {
+                    showMessage('❌ 送信エラーが発生しました: ' + error.message, 'error');
+                })
+                .processCheckInOutFromClient(data);
+        }
+        
+        function goTo(page) {
+            window.location.href = `${GAS_URL}?page=${page}`;
+        }
+        
+        function showMessage(text, type) {
+            const messageBox = document.getElementById('messageBox');
+            messageBox.textContent = text;
+            messageBox.className = 'message ' + type;
+            setTimeout(() => messageBox.className = 'message', 3000);
+        }
+    </script>
+</body>
+</html>

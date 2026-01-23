@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2em;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .nav-dashboard {
+            background: #2196f3;
+            color: white;
+        }
+
+        .nav-checkin {
+            background: #4caf50;
+            color: white;
+        }
+
+        .nav-participants {
+            background: #ff9800;
+            color: white;
+        }
+
+        .nav-qr {
+            background: #9c27b0;
+            color: white;
+        }
+
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .login-box h2 {
+            margin-bottom: 20px;
+            color: #333;
+            text-align: center;
+        }
+
+        .login-box input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 16px;
+        }
+
+        .login-box button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .content {
+            display: none;
+        }
+
+        .content.active {
+            display: block;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .menu-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .menu-card .icon {
+            font-size: 4em;
+            margin-bottom: 15px;
+        }
+
+        .menu-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.5em;
+        }
+
+        .menu-card p {
+            color: #666;
+        }
+
+        .event-info {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .info-item {
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .info-item label {
+            font-weight: bold;
+            color: #666;
+            font-size: 0.9em;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .info-item .value {
+            color: #333;
+            font-size: 1.2em;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .nav-menu {
+                width: 100%;
+            }
+
+            .nav-btn {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- ログイン画面 -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-box">
+            <h2>🔐 管理者ログイン</h2>
+            <div id="loginMessage" class="message"></div>
+            <input type="password" id="adminPassword" placeholder="管理者パスワード">
+            <button onclick="login()">ログイン</button>
+        </div>
+    </div>
+
+    <!-- メインコンテンツ -->
+    <div id="mainContent" class="content">
+        <div class="container">
+            <div class="header">
+                <div>
+                    <h1>⚙️ 管理画面</h1>
+                    <p id="eventNameDisplay" style="color: #666; margin-top: 5px;"></p>
+                </div>
+                <div class="nav-menu">
+                    <button class="nav-btn nav-dashboard" onclick="goTo('dashboard')">📊 ダッシュボード</button>
+                    <button class="nav-btn nav-checkin" onclick="goTo('checkin')">📝 チェックイン</button>
+                    <button class="nav-btn nav-participants" onclick="goTo('participants')">👥 参加者管理</button>
+                    <button class="nav-btn" style="background: #dc3545; color: white;" onclick="logout()">🚪
+                        ログアウト</button>
+                </div>
+            </div>
+
+            <div class="event-info">
+                <h2 style="margin-bottom: 20px;">📅 イベント情報</h2>
+                <div class="info-grid" id="eventInfo"></div>
+            </div>
+
+            <div class="menu-grid">
+                <div class="menu-card" onclick="goTo('participants')">
+                    <div class="icon">👥</div>
+                    <h3>参加者管理</h3>
+                    <p>事前登録リストの管理・編集</p>
+                </div>
+
+                <div class="menu-card" onclick="goTo('checkin')">
+                    <div class="icon">✅</div>
+                    <h3>チェックイン</h3>
+                    <p>入退場受付・チェックリスト</p>
+                </div>
+
+                <div class="menu-card" onclick="goTo('dashboard')">
+                    <div class="icon">📊</div>
+                    <h3>ダッシュボード</h3>
+                    <p>リアルタイム人数監視</p>
+                </div>
+
+                <div class="menu-card" onclick="goTo('qr')">
+                    <div class="icon">🎫</div>
+                    <h3>QRコード生成</h3>
+                    <p>参加者用QRコードの発行</p>
+                </div>
+
+                <div class="menu-card" onclick="showSettings()">
+                    <div class="icon">⚙️</div>
+                    <h3>設定変更</h3>
+                    <p>イベント情報・会場設定</p>
+                </div>
+
+                <div class="menu-card" onclick="exportData()">
+                    <div class="icon">📥</div>
+                    <h3>データエクスポート</h3>
+                    <p>スプレッドシートを開く</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GAS_URL = '<?= gasUrl ?>';
+        const SS_URL = '<?= ssUrl ?>';
+        let settings = {};
+
+        // ページ読み込み時に認証状態を確認
+        window.onload = function () {
+            if (sessionStorage.getItem('adminAuth') === 'true') {
+                // すでにログイン済み
+                document.getElementById('loginOverlay').style.display = 'none';
+                document.getElementById('mainContent').classList.add('active');
+                loadEventInfo();
+            }
+        };
+
+        async function login() {
+            const password = document.getElementById('adminPassword').value;
+
+            google.script.run
+                .withSuccessHandler(function (result) {
+                    if (result.success) {
+                        // 認証成功をsessionStorageに保存
+                        sessionStorage.setItem('adminAuth', 'true');
+                        document.getElementById('loginOverlay').style.display = 'none';
+                        document.getElementById('mainContent').classList.add('active');
+                        loadEventInfo();
+                    } else {
+                        showLoginMessage('❌ パスワードが間違っています');
+                    }
+                })
+                .withFailureHandler(function (error) {
+                    showLoginMessage('❌ エラー: ' + error.message);
+                })
+                .verifyAdminPassword(password);
+        }
+
+        async function loadEventInfo() {
+            google.script.run
+                .withSuccessHandler(function (data) {
+                    settings = data;
+                    displayEventInfo();
+                })
+                .withFailureHandler(function (error) {
+                    console.error('イベント情報の取得エラー:', error);
+                })
+                .getEventSettingsForClient();
+        }
+
+        function displayEventInfo() {
+            document.getElementById('eventNameDisplay').textContent = settings['イベント名'] || '';
+
+            const infoDiv = document.getElementById('eventInfo');
+            infoDiv.innerHTML = `
+                <div class="info-item">
+                    <label>イベント名</label>
+                    <div class="value">${settings['イベント名'] || '-'}</div>
+                </div>
+                <div class="info-item">
+                    <label>開催日</label>
+                    <div class="value">${settings['開催日'] || '-'}</div>
+                </div>
+                <div class="info-item">
+                    <label>時間</label>
+                    <div class="value">${settings['開始時間'] || '-'} 〜 ${settings['終了時間'] || '-'}</div>
+                </div>
+                <div class="info-item">
+                    <label>会場</label>
+                    <div class="value">${settings['会場'] || '-'}</div>
+                </div>
+            `;
+        }
+
+        function goTo(page) {
+            window.location.href = `${GAS_URL}?page=${page}`;
+        }
+
+        function showSettings() {
+            alert('設定変更機能は近日実装予定です。\n現在はスプレッドシートから直接編集してください。');
+            exportData();
+        }
+
+        function exportData() {
+            window.open(SS_URL, '_blank');
+        }
+
+        function showLoginMessage(text) {
+            const msg = document.getElementById('loginMessage');
+            msg.textContent = text;
+            msg.className = 'message error';
+            setTimeout(() => {
+                msg.className = 'message';
+            }, 3000);
+        }
+
+        // Enterキーでログイン
+        document.getElementById('adminPassword').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                login();
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 40px;
+            font-size: 1.1em;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .venue-list {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .venue-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .venue-item input {
+            flex: 1;
+        }
+
+        .btn-add-venue {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        .btn-add-venue:hover {
+            background: #218838;
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 30px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196f3;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 30px;
+        }
+
+        .info-box p {
+            color: #0d47a1;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🎉 イベント管理システム</h1>
+        <p class="subtitle">初期設定 - イベント情報を登録してください</p>
+
+        <div class="info-box">
+            <p><strong>📝 このシステムでできること:</strong></p>
+            <p>✅ 事前参加者リストの管理</p>
+            <p>✅ QRコード認証による入退場管理</p>
+            <p>✅ リアルタイムダッシュボード</p>
+            <p>✅ 複数会場の同時管理</p>
+        </div>
+
+        <div id="messageBox" class="message"></div>
+
+        <form id="setupForm">
+            <div class="form-group">
+                <label>イベント名 *</label>
+                <input type="text" id="eventName" required placeholder="例: CROSS B PLUS 2026">
+            </div>
+
+            <div class="form-group">
+                <label>開催日 *</label>
+                <input type="date" id="eventDate" required>
+            </div>
+
+            <div class="form-group">
+                <label>開始時間</label>
+                <input type="time" id="startTime" placeholder="13:00">
+            </div>
+
+            <div class="form-group">
+                <label>終了時間</label>
+                <input type="time" id="endTime" placeholder="18:00">
+            </div>
+
+            <div class="form-group">
+                <label>会場名 *</label>
+                <input type="text" id="venueName" required placeholder="例: 山形市総合文化センター">
+            </div>
+
+            <div class="form-group">
+                <label>住所</label>
+                <input type="text" id="address" placeholder="例: 山形県山形市○○町1-1">
+            </div>
+
+            <div class="form-group">
+                <label>管理者パスワード *</label>
+                <input type="password" id="adminPassword" required placeholder="管理画面へのアクセスに必要です">
+                <small style="color: #666;">管理画面へのアクセスに使用</small>
+            </div>
+
+            <div class="form-group">
+                <label>スタッフパスワード *</label>
+                <input type="password" id="staffPassword" required placeholder="スタッフ用のパスワード">
+                <small style="color: #666;">チェックイン・参加者管理へのアクセスに使用</small>
+            </div>
+
+            <div class="form-group">
+                <label>会場設定</label>
+                <div class="venue-list" id="venueList">
+                    <div class="venue-item">
+                        <input type="text" class="venue-id" placeholder="会場ID (例: main)" value="main">
+                        <input type="text" class="venue-name" placeholder="会場名" value="本編会場">
+                        <input type="number" class="venue-capacity" placeholder="定員" value="100">
+                    </div>
+                    <div class="venue-item">
+                        <input type="text" class="venue-id" placeholder="会場ID (例: party)" value="party">
+                        <input type="text" class="venue-name" placeholder="会場名" value="懇親会場">
+                        <input type="number" class="venue-capacity" placeholder="定員" value="80">
+                    </div>
+                </div>
+                <button type="button" class="btn-add-venue" onclick="addVenue()">+ 会場を追加</button>
+            </div>
+
+            <button type="submit" class="btn-submit">🚀 システムを初期化</button>
+        </form>
+    </div>
+
+    <script>
+        const GAS_URL = '<?= gasUrl ?>';
+
+        function addVenue() {
+            const venueList = document.getElementById('venueList');
+            const venueItem = document.createElement('div');
+            venueItem.className = 'venue-item';
+            venueItem.innerHTML = `
+                <input type="text" class="venue-id" placeholder="会場ID">
+                <input type="text" class="venue-name" placeholder="会場名">
+                <input type="number" class="venue-capacity" placeholder="定員">
+            `;
+            venueList.appendChild(venueItem);
+        }
+
+        document.getElementById('setupForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const venues = [];
+            document.querySelectorAll('.venue-item').forEach(item => {
+                const id = item.querySelector('.venue-id').value.trim();
+                const name = item.querySelector('.venue-name').value.trim();
+                const capacity = parseInt(item.querySelector('.venue-capacity').value) || 0;
+
+                if (id && name && capacity > 0) {
+                    venues.push({ id, name, capacity });
+                }
+            });
+
+            const data = {
+                eventName: document.getElementById('eventName').value,
+                eventDate: document.getElementById('eventDate').value,
+                startTime: document.getElementById('startTime').value,
+                endTime: document.getElementById('endTime').value,
+                venueName: document.getElementById('venueName').value,
+                address: document.getElementById('address').value,
+                adminPassword: document.getElementById('adminPassword').value,
+                staffPassword: document.getElementById('staffPassword').value,
+                venues: venues
+            };
+
+            showMessage('初期化中...', 'success');
+
+            google.script.run
+                .withSuccessHandler(function (result) {
+                    if (result.success) {
+                        const adminUrl = '<?= gasUrl ?>?page=admin';
+                        showMessage('✅ 初期化完了しました！', 'success');
+
+                        // 管理画面へのリンクを表示
+                        const messageBox = document.getElementById('messageBox');
+                        messageBox.innerHTML = `
+                            ✅ 初期化完了しました！<br><br>
+                            <a href="${adminUrl}" style="color: #155724; text-decoration: underline; font-size: 1.2em;">
+                                👉 管理画面を開く
+                            </a>
+                        `;
+
+                        // 3秒後に自動で遷移を試みる
+                        setTimeout(() => {
+                            window.location.href = adminUrl;
+                        }, 3000);
+                    } else {
+                        showMessage('❌ エラー: ' + result.message, 'error');
+                    }
+                })
+                .withFailureHandler(function (error) {
+                    showMessage('❌ エラー: ' + error.message, 'error');
+                })
+                .initializeSystemFromClient(data);
+        });
+
+        function showMessage(text, type) {
+            const messageBox = document.getElementById('messageBox');
+            messageBox.textContent = text;
+            messageBox.className = 'message ' + type;
+        }
+    </script>
+</body>
+
+</html>

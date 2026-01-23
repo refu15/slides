@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <base target="_top">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #333;
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .nav-admin {
+            background: #9c27b0;
+            color: white;
+        }
+
+        .nav-checkin {
+            background: #4caf50;
+            color: white;
+        }
+
+        .nav-dashboard {
+            background: #2196f3;
+            color: white;
+        }
+
+        .controls {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 15px 30px;
+            font-size: 16px;
+            font-weight: bold;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-generate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            flex: 1;
+        }
+
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(245, 87, 108, 0.4);
+        }
+
+        .btn-clear {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background: #5a6268;
+        }
+
+        .qr-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .qr-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            transition: all 0.3s;
+            page-break-inside: avoid;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .qr-card:hover {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .qr-card h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .qr-card .participant-id {
+            color: #667eea;
+            font-weight: bold;
+            font-size: 1.1em;
+            margin: 10px 0;
+        }
+
+        .qr-card .participant-info {
+            color: #666;
+            font-size: 0.9em;
+            margin: 5px 0;
+        }
+
+        .qr-code {
+            margin: 20px auto;
+            display: inline-block;
+        }
+
+        .vip-badge {
+            background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+            color: #333;
+            padding: 5px 15px;
+            border-radius: 15px;
+            font-size: 0.85em;
+            font-weight: bold;
+            display: inline-block;
+            margin-top: 10px;
+        }
+
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+
+        .info-box h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+        }
+
+        .info-box p {
+            color: #0d47a1;
+            margin: 5px 0;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+        }
+
+        .stat-card .label {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .message {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: bold;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            display: block;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            display: block;
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .header,
+            .controls,
+            .button-group,
+            .nav-menu,
+            .search-box,
+            .stats,
+            .message {
+                display: none;
+            }
+
+            .qr-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 20px;
+            }
+
+            .qr-card {
+                border: 1px solid #333;
+                box-shadow: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .qr-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>🎫 QRコード生成</h1>
+                <p id="eventNameDisplay" style="color: #666; margin-top: 10px;"></p>
+            </div>
+            <div class="nav-menu">
+                <button class="nav-btn nav-admin" onclick="goTo('admin')">⚙️ 管理画面</button>
+                <button class="nav-btn nav-checkin" onclick="goTo('checkin')">✅ チェックイン</button>
+                <button class="nav-btn nav-dashboard" onclick="goTo('dashboard')">📊 ダッシュボード</button>
+            </div>
+        </div>
+
+        <div id="messageBox" class="message"></div>
+
+        <div class="stats" id="statsContainer" style="display: none;">
+            <div class="stat-card">
+                <div class="number" id="totalParticipants">0</div>
+                <div class="label">総参加者数</div>
+            </div>
+            <div class="stat-card">
+                <div class="number" id="qrGenerated">0</div>
+                <div class="label">QRコード生成数</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="info-box">
+                <h3>📝 使い方</h3>
+                <p>1. 「参加者リストから生成」ボタンをクリック</p>
+                <p>2. 登録済みの参加者全員のQRコードが自動生成されます</p>
+                <p>3. 「印刷/PDF保存」で配布用に出力できます</p>
+            </div>
+
+            <input type="text" class="search-box" id="searchBox" placeholder="🔍 検索: 氏名、IDで絞り込み..."
+                style="display: none;">
+
+            <div class="button-group">
+                <button class="btn-generate" onclick="generateFromParticipants()">🔄 参加者リストから生成</button>
+                <button class="btn-download" onclick="window.print()">📥 印刷/PDF保存</button>
+                <button class="btn-clear" onclick="clearAll()">🗑️ クリア</button>
+            </div>
+        </div>
+
+        <div id="qrContainer" class="qr-grid"></div>
+    </div>
+
+    <script>
+        const GAS_URL = '<?= gasUrl ?>';
+        let participants = [];
+        let settings = {};
+
+        window.onload = async () => {
+            await loadSettings();
+            await loadParticipants();
+        };
+
+        async function loadSettings() {
+            google.script.run
+                .withSuccessHandler(function (data) {
+                    settings = data;
+                    document.getElementById('eventNameDisplay').textContent = settings['イベント名'] || '';
+                })
+                .withFailureHandler(function (error) {
+                    console.error('設定読み込みエラー:', error);
+                })
+                .getEventSettingsForClient();
+        }
+
+        async function loadParticipants() {
+            google.script.run
+                .withSuccessHandler(function (data) {
+                    participants = data;
+                    if (participants.length === 0) {
+                        showMessage('❌ 参加者が登録されていません。先に参加者管理から登録してください。', 'error');
+                    }
+                })
+                .withFailureHandler(function (error) {
+                    showMessage('❌ 参加者リストの取得に失敗しました', 'error');
+                })
+                .getParticipantsForClient();
+        }
+
+        function generateFromParticipants() {
+            if (participants.length === 0) {
+                showMessage('❌ 参加者が登録されていません', 'error');
+                return;
+            }
+
+            const container = document.getElementById('qrContainer');
+            container.innerHTML = '';
+
+            participants.forEach((p, index) => {
+                const card = document.createElement('div');
+                card.className = 'qr-card';
+                card.setAttribute('data-search', `${p.id} ${p.name} ${p.furigana || ''}`.toLowerCase());
+
+                card.innerHTML = `
+                    <h3>${p.name}</h3>
+                    <div class="participant-id">ID: ${p.id}</div>
+                    ${p.furigana ? `<div class="participant-info">${p.furigana}</div>` : ''}
+                    ${p.organization ? `<div class="participant-info">${p.organization}</div>` : ''}
+                    ${p.category ? `<div class="participant-info">区分: ${p.category}</div>` : ''}
+                    <div id="qr-${index}" class="qr-code"></div>
+                    ${p.isVip ? '<div class="vip-badge">⭐ VIP</div>' : ''}
+                    <div style="color: #999; font-size: 0.8em; margin-top: 15px;">
+                        ${settings['イベント名'] || 'イベント'}<br>
+                        ${settings['開催日'] || ''}
+                    </div>
+                `;
+
+                container.appendChild(card);
+
+                // QRコード生成
+                new QRCode(document.getElementById(`qr-${index}`), {
+                    text: p.id,
+                    width: 180,
+                    height: 180,
+                    colorDark: '#000000',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+            });
+
+            // 統計表示
+            document.getElementById('statsContainer').style.display = 'grid';
+            document.getElementById('totalParticipants').textContent = participants.length;
+            document.getElementById('qrGenerated').textContent = participants.length;
+
+            // 検索ボックス表示
+            document.getElementById('searchBox').style.display = 'block';
+
+            showMessage(`✅ ${participants.length}件のQRコードを生成しました！`, 'success');
+        }
+
+        // 検索機能
+        document.getElementById('searchBox').addEventListener('input', function (e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.qr-card');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const searchData = card.getAttribute('data-search');
+                const isVisible = searchData.includes(searchTerm);
+                card.style.display = isVisible ? '' : 'none';
+                if (isVisible) visibleCount++;
+            });
+
+            document.getElementById('qrGenerated').textContent = visibleCount;
+        });
+
+        function clearAll() {
+            if (confirm('すべてのQRコードをクリアしますか？')) {
+                document.getElementById('qrContainer').innerHTML = '';
+                document.getElementById('searchBox').value = '';
+                document.getElementById('searchBox').style.display = 'none';
+                document.getElementById('statsContainer').style.display = 'none';
+                showMessage('🗑️ クリアしました', 'success');
+            }
+        }
+
+        function goTo(page) {
+            window.location.href = `${GAS_URL}?page=${page}`;
+        }
+
+        function showMessage(text, type) {
+            const messageBox = document.getElementById('messageBox');
+            messageBox.textContent = text;
+            messageBox.className = 'message ' + type;
+            setTimeout(() => {
+                messageBox.className = 'message';
+            }, 3000);
+        }
+    </script>
+</body>
+
+</html>
