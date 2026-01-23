@@ -37,6 +37,10 @@ export async function middleware(request: NextRequest) {
         return response;
     }
 
+    if (pathname === '/auth/callback') {
+        return response;
+    }
+
     const { data: { user } } = await supabase.auth.getUser()
 
     const publicRoutes = ['/', '/login', '/auth/callback', '/auth/error', '/signup', '/invite']
