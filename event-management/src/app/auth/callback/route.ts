@@ -20,16 +20,6 @@ export async function GET(request: Request) {
         }
     }
 
-    // Return debug info instead of redirecting
-    return NextResponse.json({
-        message: "Auth Callback Reached",
-        next,
-        codeProvided: !!code,
-        sessionData: sessionData ? {
-            user: sessionData.user ? { id: sessionData.user.id, email: sessionData.user.email } : null,
-            session: sessionData.session ? "Session exists" : "No session"
-        } : null,
-        sessionError,
-        timestamp: new Date().toISOString()
-    })
+    // Redirect to the next URL or home
+    return NextResponse.redirect(new URL(next, request.url))
 }
