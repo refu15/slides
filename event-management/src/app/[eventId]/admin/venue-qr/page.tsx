@@ -4,14 +4,18 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Printer } from "lucide-react";
 
+import { useParams } from "next/navigation";
+
 export default function VenueQRCodePage() {
+    const params = useParams();
+    const eventId = params.eventId as string;
     const [qrUrl, setQrUrl] = useState("");
     const [checkinUrl, setCheckinUrl] = useState("");
 
     useEffect(() => {
         // クライアントサイドでのみ実行
         const origin = window.location.origin;
-        const url = `${origin}/guest/checkin`;
+        const url = `${origin}/${eventId}/guest/checkin`;
         setCheckinUrl(url);
         // QR Code APIを使用
         setQrUrl(`https://api.qrserver.com/v1/create-qr-code/?size=400x400&data=${encodeURIComponent(url)}`);

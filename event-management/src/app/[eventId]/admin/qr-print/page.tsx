@@ -8,15 +8,19 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { QrCode, Printer, Search, Download, Check } from "lucide-react";
 
+import { useParams } from "next/navigation";
+
 export default function QRPrintPage() {
     const { settings } = useDemo();
+    const params = useParams();
+    const eventId = params.eventId as string;
     const [checkInUrl, setCheckInUrl] = useState("");
     const [qrDataUrl, setQrDataUrl] = useState("");
 
     // URL generation on client-side only
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            setCheckInUrl(`${window.location.protocol}//${window.location.host}/guest/checkin`);
+            setCheckInUrl(`${window.location.protocol}//${window.location.host}/${eventId}/guest/checkin`);
         }
     }, []);
 

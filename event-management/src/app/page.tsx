@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getCurrentUser, signInWithGoogle } from "@/lib/auth/google-auth";
+import { signInWithGoogle } from "@/lib/auth/google-auth";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 
@@ -13,16 +13,11 @@ export default function HomePage() {
 
   useEffect(() => {
     async function checkAuth() {
-      const user = await getCurrentUser();
-      if (user) {
-        // ログイン済みならダッシュボードへリダイレクト
-        router.push('/dashboard');
-        return;
-      }
+      // Just check loading state, relying on middleware for protection/redirection
       setLoading(false);
     }
     checkAuth();
-  }, [router]);
+  }, []);
 
   const handleGoogleSignIn = async () => {
     setSigningIn(true);

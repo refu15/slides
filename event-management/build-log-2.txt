@@ -1,0 +1,93 @@
+﻿
+> event-management@0.1.0 build
+> next build
+
+  笆ｲ Next.js 14.2.35
+  - Environments: .env.local
+
+   Creating an optimized production build ...
+node.exe : <w> [webpa
+ck.cache.PackFileCach
+eStrategy] Serializin
+g big strings (131kiB
+) impacts deserializa
+tion performance (con
+sider using Buffer in
+stead and decode when
+ needed)
+発生場所 C:\Program Files
+\nodejs\npm.ps1:29 文字
+:3
++   & $NODE_EXE $NPM_
+CLI_JS $args
++   ~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~
+    + CategoryInfo   
+           : NotSpe  
+  cified: (<w> [we   
+ bpack.ca...de wh    
+en needed):Strin    g
+) [], RemoteExc    ep
+tion
+    + FullyQualified 
+   ErrorId : Native  
+  CommandError
+ 
+ 笨・Compiled successfully
+   Linting and checking validity of types ...
+Failed to compile.
+
+./src/middleware.ts:1
+9:78
+Type error: Cannot fi
+nd name 'CookieOption
+s'.
+
+[0m [90m 17 |[39m 
+                    
+[36mreturn[39m reque
+st[33m.[39mcookies
+[33m.[39mgetAll()[0
+m
+[0m [90m 18 |[39m 
+                }[33
+m,[39m[0m
+[0m[31m[1m>[22m[
+39m[90m 19 |[39m   
+              setAll(
+cookiesToSet[33m:[3
+9m { name[33m:[39m 
+string[33m,[39m val
+ue[33m:[39m string
+[33m,[39m options[3
+3m:[39m [33mCookieO
+ptions[39m }[]) {[0
+m
+[0m [90m    |[39m 
+                     
+                     
+                     
+              [31m[
+1m^[22m[39m[0m
+[0m [90m 20 |[39m 
+                    c
+ookiesToSet[33m.[39
+mforEach(({ name[33m
+,[39m value[33m,[3
+9m options }) [33m=>
+[39m request[33m.[
+39mcookies[33m.[39m
+[36mset[39m(name[3
+3m,[39m value))[0m
+[0m [90m 21 |[39m 
+                    r
+esponse [33m=[39m 
+[33mNextResponse[39m
+[33m.[39mnext({[0m
+[0m [90m 22 |[39m 
+                     
+   request[33m:[39m
+ {[0m
+Next.js build worker 
+exited with code: 1 a
+nd signal: null

@@ -1,4 +1,4 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
@@ -13,26 +13,19 @@ export async function middleware(request: NextRequest) {
         process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
         {
             cookies: {
-                get(name: string) {
-                    return request.cookies.get(name)?.value
+                getAll() {
+                    return request.cookies.getAll()
                 },
-                set(name: string, value: string, options: CookieOptions) {
-                    request.cookies.set({ name, value, ...options })
+                setAll(cookiesToSet: { name: string, value: string, options: any }[]) {
+                    cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value))
                     response = NextResponse.next({
                         request: {
                             headers: request.headers,
                         },
                     })
-                    response.cookies.set({ name, value, ...options })
-                },
-                remove(name: string, options: CookieOptions) {
-                    request.cookies.set({ name, value: '', ...options })
-                    response = NextResponse.next({
-                        request: {
-                            headers: request.headers,
-                        },
-                    })
-                    response.cookies.set({ name, value: '', ...options })
+                    cookiesToSet.forEach(({ name, value, options }) =>
+                        response.cookies.set(name, value, options)
+                    )
                 },
             },
         }
@@ -40,53 +33,47 @@ export async function middleware(request: NextRequest) {
 
     const pathname = request.nextUrl.pathname;
 
-    // 静的ファイル、API、_nextは除外
     if (pathname.startsWith('/api') || pathname.startsWith('/_next') || pathname.includes('.')) {
         return response;
     }
 
-    // Supabaseセッションを取得
-    const { data: { session } } = await supabase.auth.getSession()
+    const { data: { user } } = await supabase.auth.getUser()
 
-    // 公開ルート（認証不要）
     const publicRoutes = ['/', '/login', '/auth/callback', '/auth/error', '/signup', '/invite']
     const isPublicRoute = publicRoutes.some(route =>
         pathname === route || pathname.startsWith('/invite/')
     )
 
-    // ゲストルートも公開（/[eventId]/guest）
     const isGuestRoute = /^\/[^\/]+\/guest/.test(pathname)
 
+    if (pathname === '/' && user) {
+        return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+
     if (isPublicRoute || isGuestRoute) {
-        // 未認証でも許可
         return response;
     }
 
-    // /dashboard へのアクセスは認証必須
     if (pathname === '/dashboard' || pathname.startsWith('/dashboard')) {
-        if (!session) {
+        if (!user) {
             return NextResponse.redirect(new URL('/', request.url))
         }
         return response;
     }
 
-    // /[eventId]/admin/* へのアクセス
     const adminMatch = pathname.match(/^\/([^\/]+)\/admin/)
     if (adminMatch) {
-        if (!session) {
+        if (!user) {
             return NextResponse.redirect(new URL('/', request.url))
         }
-        // TODO: event_roles テーブルでadminロールをチェック（将来実装）
         return response;
     }
 
-    // /[eventId]/staff/* へのアクセス
     const staffMatch = pathname.match(/^\/([^\/]+)\/staff/)
     if (staffMatch) {
-        if (!session) {
+        if (!user) {
             return NextResponse.redirect(new URL('/', request.url))
         }
-        // TODO: event_roles テーブルでstaff/adminロールをチェック（将来実装）
         return response;
     }
 
@@ -95,13 +82,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
     matcher: [
-        /*
-         * Match all request paths except for the ones starting with:
-         * - _next/static (static files)
-         * - _next/image (image optimization files)
-         * - favicon.ico (favicon file)
-         * - images - .svg, .png, .jpg, .jpeg, .gif, .webp
-         */
         '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
     ],
 }
