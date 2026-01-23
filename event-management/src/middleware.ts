@@ -50,6 +50,11 @@ export async function middleware(request: NextRequest) {
 
     const isGuestRoute = /^\/[^\/]+\/guest/.test(pathname)
 
+    // Logging for debug
+    console.log(`Middleware: ${pathname}, User: ${!!user}`);
+
+    // DISABLE REDIRECTS FOR DEBUGGING
+    /*
     if (pathname === '/' && user) {
         const redirectResponse = NextResponse.redirect(new URL('/dashboard', request.url))
         // Copy cookies from response (which might have session updates) to redirectResponse
@@ -57,11 +62,13 @@ export async function middleware(request: NextRequest) {
         cookies.forEach(cookie => redirectResponse.cookies.set(cookie.name, cookie.value, cookie))
         return redirectResponse
     }
+    */
 
     if (isPublicRoute || isGuestRoute) {
         return response;
     }
 
+    /*
     if (pathname === '/dashboard' || pathname.startsWith('/dashboard')) {
         if (!user) {
             const redirectResponse = NextResponse.redirect(new URL('/', request.url))
@@ -94,6 +101,7 @@ export async function middleware(request: NextRequest) {
         }
         return response;
     }
+    */
 
     return response
 }
