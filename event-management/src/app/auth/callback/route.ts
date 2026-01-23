@@ -17,6 +17,11 @@ export async function GET(request: Request) {
             console.error('Auth callback error:', error)
             // Error handling page (optional) or let the user try again
         }
+        if (data?.session) {
+            // Test setting a manual cookie to verify cookie mechanism
+            const cookieStore = await import('next/headers').then(m => m.cookies())
+            cookieStore.set('test-cookie', 'manual-set-success', { path: '/', secure: true, sameSite: 'lax' })
+        }
     }
 
     // Return an HTML page that requires manual interaction to complete manual redirect
@@ -30,7 +35,7 @@ export async function GET(request: Request) {
                     body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background: #f9fafb; }
                     .card { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; max-width: 400px; width: 100%; }
                     h1 { color: #111827; margin-bottom: 1rem; font-size: 1.5rem; }
-                    p { color: #6b7280; margin-bottom: 2rem; }
+                    pre { text-align: left; background: #eee; padding: 0.5rem; overflow-x: auto; }
                     a.btn { display: inline-block; background: #000; color: white; padding: 0.75rem 1.5rem; border-radius: 4px; text-decoration: none; font-weight: bold; }
                     a.btn:hover { background: #374151; }
                 </style>
@@ -44,6 +49,12 @@ export async function GET(request: Request) {
                     <div style="margin-top: 2rem; padding: 1rem; background: #eee; font-size: 0.8rem; word-break: break-all;">
                         <strong>Debug: Current Cookies</strong>
                         <div id="cookie-debug">Loading...</div>
+                    </div>
+
+                    <div style="margin-top: 1rem; padding: 1rem; background: #eef; font-size: 0.8rem; border: 1px solid #ccf;">
+                        <strong>Session Check:</strong>
+                        <pre>${sessionData?.session ? 'Session Exists ✅' : 'No Session ❌'}</pre>
+                        <pre>User: ${sessionData?.user?.email || 'None'}</pre>
                     </div>
 
                     ${sessionError ? `
