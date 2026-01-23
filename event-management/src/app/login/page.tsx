@@ -23,7 +23,7 @@ export default function LoginPage() {
                     window.location.href = inviteRedirect
                     return
                 }
-                router.push('/')
+                router.push('/dashboard')
             }
             setLoading(false)
         }
