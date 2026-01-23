@@ -45,6 +45,13 @@ export async function GET(request: Request) {
                         <strong>Debug: Current Cookies</strong>
                         <div id="cookie-debug">Loading...</div>
                     </div>
+
+                    ${sessionError ? `
+                        <div style="margin-top: 1rem; padding: 1rem; background: #fee; color: #c00; font-size: 0.8rem; border: 1px solid #fcc;">
+                            <strong>Auth Error:</strong>
+                            <pre>${JSON.stringify(sessionError, null, 2)}</pre>
+                        </div>
+                    ` : ''}
                 </div>
                 <script>
                     document.getElementById('cookie-debug').textContent = document.cookie || '(No cookies found)';
