@@ -81,7 +81,7 @@ export default function CheckInScanner() {
 
         try {
             if (mode === 'checkin') {
-                const res = checkIn(id, selectedVenue, method, operatorName || "Staff");
+                const res = await checkIn(id, selectedVenue, method, operatorName || "Staff");
                 actionRes = res;
 
                 if (res.success && res.participant) {
@@ -152,7 +152,7 @@ export default function CheckInScanner() {
                 }
             } else {
                 // チェックアウト
-                const res = checkOut(id, selectedVenue, method, operatorName || "Staff");
+                const res = await checkOut(id, selectedVenue, method, operatorName || "Staff");
                 actionRes = res;
 
                 if (res.success && res.participant) {
@@ -235,9 +235,9 @@ export default function CheckInScanner() {
                             `}>
                                 <div className="flex items-start gap-4">
                                     <div className={`p-3 border-2 border-black text-black ${lastAction.type === 'error' ? 'bg-red-100' :
-                                            lastAction.type === 'vip' ? 'bg-yellow-100' :
-                                                lastAction.type === 'warning' ? 'bg-orange-100' :
-                                                    'bg-green-100'
+                                        lastAction.type === 'vip' ? 'bg-yellow-100' :
+                                            lastAction.type === 'warning' ? 'bg-orange-100' :
+                                                'bg-green-100'
                                         }`}>
                                         {lastAction.type === 'vip' ? <Wine className="w-8 h-8" /> :
                                             lastAction.type === 'warning' ? <Check className="w-8 h-8" /> :
@@ -246,9 +246,9 @@ export default function CheckInScanner() {
                                     </div>
                                     <div>
                                         <h3 className={`font-black text-2xl uppercase tracking-tighter ${lastAction.type === 'error' ? 'text-red-600' :
-                                                lastAction.type === 'vip' ? 'text-yellow-600' :
-                                                    lastAction.type === 'warning' ? 'text-orange-600' :
-                                                        'text-green-600'
+                                            lastAction.type === 'vip' ? 'text-yellow-600' :
+                                                lastAction.type === 'warning' ? 'text-orange-600' :
+                                                    'text-green-600'
                                             }`}>{lastAction.msg}</h3>
 
                                         {lastAction.p && (
@@ -268,8 +268,8 @@ export default function CheckInScanner() {
                         <button
                             onClick={() => setMode('checkin')}
                             className={`py-4 border-2 border-black font-black uppercase tracking-widest text-lg transition-all ${mode === 'checkin'
-                                    ? 'bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] translate-x-1 translate-y-1'
-                                    : 'bg-white text-gray-400 hover:text-black hover:bg-gray-50'
+                                ? 'bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] translate-x-1 translate-y-1'
+                                : 'bg-white text-gray-400 hover:text-black hover:bg-gray-50'
                                 }`}
                         >
                             CHECK-IN
@@ -277,8 +277,8 @@ export default function CheckInScanner() {
                         <button
                             onClick={() => setMode('checkout')}
                             className={`py-4 border-2 border-black font-black uppercase tracking-widest text-lg transition-all ${mode === 'checkout'
-                                    ? 'bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] translate-x-1 translate-y-1'
-                                    : 'bg-white text-gray-400 hover:text-black hover:bg-gray-50'
+                                ? 'bg-black text-white shadow-[4px_4px_0px_0px_rgba(0,0,0,0.5)] translate-x-1 translate-y-1'
+                                : 'bg-white text-gray-400 hover:text-black hover:bg-gray-50'
                                 }`}
                         >
                             CHECK-OUT
@@ -337,8 +337,8 @@ export default function CheckInScanner() {
                                                 key={p.id}
                                                 onClick={() => handleAction(p.id)}
                                                 className={`p-3 border-2 cursor-pointer transition-all flex items-center justify-between group ${isCheckedIn
-                                                        ? 'bg-green-50 border-green-500 hover:bg-green-100'
-                                                        : 'bg-white border-gray-200 hover:border-black hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                                                    ? 'bg-green-50 border-green-500 hover:bg-green-100'
+                                                    : 'bg-white border-gray-200 hover:border-black hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
                                                     }`}
                                             >
                                                 <div className="flex items-center gap-3">
