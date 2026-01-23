@@ -15,9 +15,16 @@ export async function createClient() {
                 setAll(cookiesToSet) {
                     try {
                         cookiesToSet.forEach(({ name, value, options }) => {
-                            // Remove domain to fix Vercel/subdomain issues
-                            const { domain, ...rest } = options;
-                            cookieStore.set(name, value, rest);
+                            // Force strict settings for cross-site usage
+                            const cookieOptions = {
+                                ...options,
+                                sameSite: 'none' as const,
+                                secure: true,
+                            };
+                            // Remove domain just in case
+                            delete cookieOptions.domain;
+
+                            cookieStore.set(name, value, cookieOptions);
                         })
                     } catch (error) {
                         console.error('Cookie Set Error:', error)
