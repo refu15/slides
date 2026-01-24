@@ -439,11 +439,7 @@ export default function GuestPage() {
                     <Calendar className="w-4 h-4 inline mr-1" />
                     {settings.eventDate || new Date().toLocaleDateString("ja-JP")}
                 </div>
-                <div className="text-center">
-                    <a href="/guest/schedule" className="text-red-600 font-bold uppercase tracking-widest text-sm hover:underline">
-                        タイムテーブルを見る →
-                    </a>
-                </div>
+
             </footer>
         </div>
     );
