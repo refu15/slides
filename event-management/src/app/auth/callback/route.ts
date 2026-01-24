@@ -51,51 +51,27 @@ export async function GET(request: Request) {
             <body>
                 <div class="card">
                     <h1>Login Successful</h1>
-                    <p>Click the button below to secure your session and continue.</p>
-                    <button id="continue-btn" class="btn" onclick="restoreSessionAndRedirect()">Continue to Dashboard</button>
+                    <button id="continue-btn" class="btn" onclick="continueToSync()">Continue to Dashboard</button>
                     <div id="status" style="margin-top: 1rem; color: #666; font-size: 0.8rem; min-height: 1.2em;"></div>
                 </div>
 
                 <script>
-                    const supabaseUrl = "${supabaseUrl}";
-                    const supabaseKey = "${supabaseKey}";
                     const accessToken = "${accessToken || ''}";
                     const refreshToken = "${refreshToken || ''}";
                     const nextUrl = "${next}";
 
-                    async function restoreSessionAndRedirect() {
+                    function continueToSync() {
                         const btn = document.getElementById('continue-btn');
-                        const statusEl = document.getElementById('status');
-                        
                         btn.disabled = true;
-                        btn.textContent = "Setting Session...";
+                        btn.textContent = "Redirecting...";
                         
-                        if (!accessToken || !refreshToken) {
-                            statusEl.textContent = "Session missing. Check server logs.";
-                            setTimeout(() => window.location.href = nextUrl, 1000);
-                            return;
-                        }
-
-                        try {
-                            const { createClient } = supabase;
-                            const client = createClient(supabaseUrl, supabaseKey);
-                            
-                            const { error } = await client.auth.setSession({
-                                access_token: accessToken,
-                                refresh_token: refreshToken
-                            });
-
-                            if (error) throw error;
-
-                            statusEl.textContent = "Success! Redirecting...";
-                            window.location.href = nextUrl;
-                        } catch (e) {
-                            console.error(e);
-                            statusEl.textContent = "Error: " + e.message;
-                            btn.disabled = false;
-                            btn.textContent = "Try Continue Anyway";
-                            btn.onclick = () => window.location.href = nextUrl;
-                        }
+                        // Pass tokens via hash to avoid server logging in history
+                        // /auth/sync#access_token=...&refresh_token=...&next=...
+                        const target = "/auth/sync#access_token=" + encodeURIComponent(accessToken) + 
+                                     "&refresh_token=" + encodeURIComponent(refreshToken) + 
+                                     "&next=" + encodeURIComponent(nextUrl);
+                        
+                        window.location.href = target;
                     }
                 </script>
             </body>
