@@ -97,8 +97,6 @@ export default function DashboardClient({ user }: DashboardClientProps) {
         try {
             const res = await fetch(`/api/events/${deleteTarget.id}`, {
                 method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ password: deletePassword })
             });
 
             if (!res.ok) {
@@ -247,17 +245,7 @@ export default function DashboardClient({ user }: DashboardClientProps) {
                         </div>
 
                         <form onSubmit={confirmDelete} className="space-y-4">
-                            <div className="space-y-2 text-left">
-                                <label className="text-xs font-black uppercase tracking-widest">管理者パスワード確認</label>
-                                <input
-                                    type="password"
-                                    value={deletePassword}
-                                    onChange={(e) => setDeletePassword(e.target.value)}
-                                    placeholder="パスワードを入力"
-                                    className="w-full border-2 border-black px-4 py-3 font-bold focus:outline-none focus:ring-2 focus:ring-red-600 text-lg"
-                                    autoFocus
-                                />
-                            </div>
+
 
                             {deleteError && (
                                 <div className="bg-red-50 text-red-600 text-xs font-bold p-3 border border-red-200 flex items-center gap-2">
@@ -276,7 +264,7 @@ export default function DashboardClient({ user }: DashboardClientProps) {
                                 </Button>
                                 <Button
                                     type="submit"
-                                    disabled={isDeleting || !deletePassword}
+                                    disabled={isDeleting}
                                     className="bg-red-600 text-white border-2 border-black hover:bg-red-700 font-bold h-12 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] transition-all"
                                 >
                                     {isDeleting ? <Loader2 className="animate-spin" /> : "完全に削除"}

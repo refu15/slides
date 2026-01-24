@@ -3,15 +3,30 @@ import { getDB, createEvent } from '@/lib/server/db';
 import { createClient } from '@/lib/supabase/server';
 
 export async function GET() {
-    const db = getDB();
-    // Return summary list (exclude potentially heavy details if needed, but for now return all)
-    const summary = db.events.map(e => ({
-        id: e.id,
-        name: e.name,
-        createdAt: e.createdAt,
-        participantCount: e.participants?.length || 0,
-        settings: e.settings
+    const supabase = await createClient();
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+        return NextResponse.json([], { status: 401 });
+    }
+
+    // 自分がロールを持っているイベントを取得
+    const { data: roles } = await supabase
+        .from('event_roles')
+        .select('event_id, role, events (id, name, created_at)')
+        .eq('user_id', user.id);
+
+    if (!roles) return NextResponse.json([]);
+
+    const summary = roles.map((r: any) => ({
+        id: r.events.id,
+        name: r.events.name,
+        createdAt: r.events.created_at,
+        participantCount: 0, // TODO: Get real count via simpler query or subquery
+        settings: {},
+        role: r.role
     }));
+
     return NextResponse.json(summary);
 }
 

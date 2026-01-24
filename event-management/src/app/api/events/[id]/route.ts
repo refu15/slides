@@ -44,26 +44,21 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
-    const event = getEvent(id);
-    if (!event) {
-        return NextResponse.json({ error: "Event not found" }, { status: 404 });
+
+    // Supabase RLS will handle permission checks (must be owner)
+    // But we need to call delete on the 'events' table
+    const { createClient } = await import('@/lib/supabase/server');
+    const supabase = await createClient();
+
+    const { error } = await supabase
+        .from('events')
+        .delete()
+        .eq('id', id);
+
+    if (error) {
+        console.error('Delete error', error);
+        return NextResponse.json({ error: error.message }, { status: 400 });
     }
 
-    try {
-        const body = await request.json();
-        const { password } = body;
-
-        // If event is initialized, check password. If not initialized, maybe allow delete without?
-        // Safe bet: always require password if it exists, or "admin" default.
-        const currentPassword = event.settings?.adminPassword || "admin";
-
-        if (password !== currentPassword) {
-            return NextResponse.json({ error: "Incorrect password" }, { status: 403 });
-        }
-
-        deleteEvent(id);
-        return NextResponse.json({ success: true });
-    } catch (e) {
-        return NextResponse.json({ error: "Invalid request body" }, { status: 400 });
-    }
+    return NextResponse.json({ success: true });
 }
