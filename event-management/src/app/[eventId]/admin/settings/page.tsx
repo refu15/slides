@@ -260,6 +260,7 @@ export default function SettingsPage() {
                                     <option value="{prefix}{emoji} {label}のお客様が{action}\n\n👤 {name}{company_brackets} 様">標準 (メンションなし)</option>
                                     <option value="{prefix}{emoji} {name} 様 ({label}) が{action}">シンプル</option>
                                     <option value="@everyone\n----------------\n{prefix}{emoji} **{label} 通知**\n----------------\n会社名: {company}\n氏名: {name} 様\n\n{action}\n----------------">詳細 (強調スタイル)</option>
+                                    <option value="@everyone\n----------------\n⭐ VIP 通知\n----------------\n会社名: {company}\n氏名: {name} 様\n\n{action}\n----------------">イベント専用フォーマット</option>
                                 </select>
                             </div>
 

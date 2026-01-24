@@ -119,7 +119,10 @@ export async function notifyVipArrival(
     const actionText = isReentry ? "再入場されました" : "ご来場されました";
     const prefix = isReentry ? "🔄 " : "";
 
-    const messageTemplate = template || "@everyone\n{prefix}{emoji} {label}のお客様が{action}\n\n👤 {name}{company_brackets} 様";
+    let messageTemplate = template || "@everyone\n{prefix}{emoji} {label}のお客様が{action}\n\n👤 {name}{company_brackets} 様";
+
+    // エスケープされた改行文字を実際の改行に変換
+    messageTemplate = messageTemplate.replace(/\\n/g, '\n');
 
     const message = messageTemplate
         .replace("{prefix}", prefix)
