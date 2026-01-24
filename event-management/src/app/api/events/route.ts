@@ -18,14 +18,38 @@ export async function GET() {
 
     if (!roles) return NextResponse.json([]);
 
-    const summary = roles.map((r: any) => ({
-        id: r.events.id,
-        name: r.events.name,
-        createdAt: r.events.created_at,
-        participantCount: 0, // TODO: Get real count via simpler query or subquery
-        settings: {},
-        role: r.role
-    }));
+    // イベントIDリストを取得
+    const eventIds = roles.map((r: any) => r.events.id);
+
+    // event_dataから参加者数と設定を取得
+    const { data: eventDataList } = await supabase
+        .from('event_data')
+        .select('event_id, participants, settings')
+        .in('event_id', eventIds);
+
+    // event_idをキーにしたマップを作成
+    const eventDataMap = new Map<string, { participantCount: number; settings: any }>();
+    if (eventDataList) {
+        for (const ed of eventDataList) {
+            const participants = ed.participants || [];
+            eventDataMap.set(ed.event_id, {
+                participantCount: Array.isArray(participants) ? participants.length : 0,
+                settings: ed.settings || {}
+            });
+        }
+    }
+
+    const summary = roles.map((r: any) => {
+        const eventData = eventDataMap.get(r.events.id) || { participantCount: 0, settings: {} };
+        return {
+            id: r.events.id,
+            name: r.events.name,
+            createdAt: r.events.created_at,
+            participantCount: eventData.participantCount,
+            settings: eventData.settings,
+            role: r.role
+        };
+    });
 
     return NextResponse.json(summary);
 }
