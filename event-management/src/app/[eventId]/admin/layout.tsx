@@ -14,7 +14,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     const eventId = params.eventId as string;
     const { settings, isLoading } = useDemo();
     const pathname = usePathname();
-    const [userRole, setUserRole] = useState<string>("");
     const [isAuthorized, setIsAuthorized] = useState(false);
     const [isChecking, setIsChecking] = useState(false);
     const hasCheckedAuth = useRef(false);
@@ -44,8 +43,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     .eq('user_id', user.id)
                     .single();
 
-                if (role && ['owner', 'admin', 'staff'].includes(role.role)) {
-                    setUserRole(role.role);
+                if (role && ['owner', 'admin'].includes(role.role)) {
                     hasCheckedAuth.current = true;
                     setIsAuthorized(true);
                     setIsChecking(false);
@@ -55,20 +53,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
             // Google認証がない場合、旧パスワード認証をチェック
             if (document.cookie.includes(`auth_${eventId}=admin`)) {
-                setUserRole('admin');
                 hasCheckedAuth.current = true;
                 setIsAuthorized(true);
                 setIsChecking(false);
                 return;
             }
 
-            if (document.cookie.includes(`auth_${eventId}=employee`)) {
-                setUserRole('staff');
-                hasCheckedAuth.current = true;
-                setIsAuthorized(true);
-                setIsChecking(false);
-                return;
-            }
+
 
             // 認証なし
             hasCheckedAuth.current = true;
@@ -85,7 +76,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
     const isActive = (path: string) => pathname === path;
     const adminPath = (path: string) => `/${eventId}/admin${path}`;
-    const isAdmin = ['owner', 'admin'].includes(userRole);
 
     if (isChecking) {
         return (
@@ -114,9 +104,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             </div>
                         </Link>
                         <div>
-                            <h1 className="text-xl md:text-2xl font-black uppercase tracking-tight">
-                                {isAdmin ? "ADMIN" : "STAFF"}<span className="text-red-600">PANEL</span>
-                            </h1>
+                            <h1 className="text-xl md:text-2xl font-black uppercase tracking-tight">ADMIN<span className="text-red-600">PANEL</span></h1>
                             <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">{settings.eventName || eventId}</div>
                         </div>
                     </div>
@@ -132,75 +120,71 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             </Button>
                         </Link>
 
-                        {isAdmin && (
-                            <>
-                                <Link href={adminPath('/participants')}>
-                                    <Button
-                                        variant="ghost"
-                                        className={`h-12 px-6 rounded-none font-bold uppercase tracking-wider transition-colors ${isActive(adminPath('/participants')) ? 'bg-black text-white hover:bg-black' : 'hover:bg-red-50 text-gray-500 hover:text-red-600'}`}
-                                    >
-                                        <Users className="w-5 h-5 mr-2" />
-                                        参加者一覧
-                                    </Button>
-                                </Link>
-                                <Link href={adminPath('/sessions')}>
-                                    <Button
-                                        variant="ghost"
-                                        className={`h-12 px-6 rounded-none font-bold uppercase tracking-wider transition-colors ${isActive(adminPath('/sessions')) ? 'bg-black text-white hover:bg-black' : 'hover:bg-red-50 text-gray-500 hover:text-red-600'}`}
-                                    >
-                                        <CheckCircle className="w-5 h-5 mr-2" />
-                                        セッション
-                                    </Button>
-                                </Link>
-                                <Link href={adminPath('/import')}>
-                                    <Button
-                                        variant="ghost"
-                                        className={`h-12 px-6 rounded-none font-bold uppercase tracking-wider transition-colors ${isActive(adminPath('/import')) ? 'bg-black text-white hover:bg-black' : 'hover:bg-red-50 text-gray-500 hover:text-red-600'}`}
-                                    >
-                                        <CheckCircle className="w-5 h-5 mr-2" />
-                                        インポート
-                                    </Button>
-                                </Link>
+                        <Link href={adminPath('/participants')}>
+                            <Button
+                                variant="ghost"
+                                className={`h-12 px-6 rounded-none font-bold uppercase tracking-wider transition-colors ${isActive(adminPath('/participants')) ? 'bg-black text-white hover:bg-black' : 'hover:bg-red-50 text-gray-500 hover:text-red-600'}`}
+                            >
+                                <Users className="w-5 h-5 mr-2" />
+                                参加者一覧
+                            </Button>
+                        </Link>
+                        <Link href={adminPath('/sessions')}>
+                            <Button
+                                variant="ghost"
+                                className={`h-12 px-6 rounded-none font-bold uppercase tracking-wider transition-colors ${isActive(adminPath('/sessions')) ? 'bg-black text-white hover:bg-black' : 'hover:bg-red-50 text-gray-500 hover:text-red-600'}`}
+                            >
+                                <CheckCircle className="w-5 h-5 mr-2" />
+                                セッション
+                            </Button>
+                        </Link>
+                        <Link href={adminPath('/import')}>
+                            <Button
+                                variant="ghost"
+                                className={`h-12 px-6 rounded-none font-bold uppercase tracking-wider transition-colors ${isActive(adminPath('/import')) ? 'bg-black text-white hover:bg-black' : 'hover:bg-red-50 text-gray-500 hover:text-red-600'}`}
+                            >
+                                <CheckCircle className="w-5 h-5 mr-2" />
+                                インポート
+                            </Button>
+                        </Link>
 
-                                <Link href={adminPath('/qr-print')}>
-                                    <Button
-                                        variant="ghost"
-                                        className={`h-12 px-6 rounded-none font-bold uppercase tracking-wider transition-colors ${isActive(adminPath('/qr-print')) ? 'bg-black text-white hover:bg-black' : 'hover:bg-red-50 text-gray-500 hover:text-red-600'}`}
-                                    >
-                                        <CheckCircle className="w-5 h-5 mr-2" />
-                                        QR印刷
-                                    </Button>
-                                </Link>
-                                <Link href={adminPath('/statistics')}>
-                                    <Button
-                                        variant="ghost"
-                                        className={`h-12 px-6 rounded-none font-bold uppercase tracking-wider transition-colors ${isActive(adminPath('/statistics')) ? 'bg-black text-white hover:bg-black' : 'hover:bg-red-50 text-gray-500 hover:text-red-600'}`}
-                                    >
-                                        <CheckCircle className="w-5 h-5 mr-2" />
-                                        統計
-                                    </Button>
-                                </Link>
-                                <Link href={adminPath('/notifications')}>
-                                    <Button
-                                        variant="ghost"
-                                        className={`h-12 px-6 rounded-none font-bold uppercase tracking-wider transition-colors ${isActive(adminPath('/notifications')) ? 'bg-black text-white hover:bg-black' : 'hover:bg-red-50 text-gray-500 hover:text-red-600'}`}
-                                    >
-                                        <Bell className="w-5 h-5 mr-2" />
-                                        通知ログ
-                                    </Button>
-                                </Link>
+                        <Link href={adminPath('/qr-print')}>
+                            <Button
+                                variant="ghost"
+                                className={`h-12 px-6 rounded-none font-bold uppercase tracking-wider transition-colors ${isActive(adminPath('/qr-print')) ? 'bg-black text-white hover:bg-black' : 'hover:bg-red-50 text-gray-500 hover:text-red-600'}`}
+                            >
+                                <CheckCircle className="w-5 h-5 mr-2" />
+                                QR印刷
+                            </Button>
+                        </Link>
+                        <Link href={adminPath('/statistics')}>
+                            <Button
+                                variant="ghost"
+                                className={`h-12 px-6 rounded-none font-bold uppercase tracking-wider transition-colors ${isActive(adminPath('/statistics')) ? 'bg-black text-white hover:bg-black' : 'hover:bg-red-50 text-gray-500 hover:text-red-600'}`}
+                            >
+                                <CheckCircle className="w-5 h-5 mr-2" />
+                                統計
+                            </Button>
+                        </Link>
+                        <Link href={adminPath('/notifications')}>
+                            <Button
+                                variant="ghost"
+                                className={`h-12 px-6 rounded-none font-bold uppercase tracking-wider transition-colors ${isActive(adminPath('/notifications')) ? 'bg-black text-white hover:bg-black' : 'hover:bg-red-50 text-gray-500 hover:text-red-600'}`}
+                            >
+                                <Bell className="w-5 h-5 mr-2" />
+                                通知ログ
+                            </Button>
+                        </Link>
 
-                                <Link href={adminPath('/settings')}>
-                                    <Button
-                                        variant="ghost"
-                                        className={`h-12 px-6 rounded-none font-bold uppercase tracking-wider transition-colors ${isActive(adminPath('/settings')) ? 'bg-black text-white hover:bg-black' : 'hover:bg-red-50 text-gray-500 hover:text-red-600'}`}
-                                    >
-                                        <SettingsIcon className="w-5 h-5 mr-2" />
-                                        設定
-                                    </Button>
-                                </Link>
-                            </>
-                        )}
+                        <Link href={adminPath('/settings')}>
+                            <Button
+                                variant="ghost"
+                                className={`h-12 px-6 rounded-none font-bold uppercase tracking-wider transition-colors ${isActive(adminPath('/settings')) ? 'bg-black text-white hover:bg-black' : 'hover:bg-red-50 text-gray-500 hover:text-red-600'}`}
+                            >
+                                <SettingsIcon className="w-5 h-5 mr-2" />
+                                設定
+                            </Button>
+                        </Link>
 
                         <div className="w-px h-8 bg-gray-200 mx-2"></div>
                         <Button
