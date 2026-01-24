@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Trash2, ArrowRight, Loader2, X, AlertTriangle, LogOut, User } from "lucide-react";
+import { Plus, Trash2, ArrowRight, Loader2, X, AlertTriangle, LogOut, User, Menu } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { signOut } from "@/lib/auth/google-auth";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
@@ -27,6 +27,7 @@ export default function DashboardClient({ user }: DashboardClientProps) {
     const [isLoading, setIsLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
     const [newEventName, setNewEventName] = useState("");
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const fetchEvents = () => {
         setIsLoading(true);
@@ -114,11 +115,51 @@ export default function DashboardClient({ user }: DashboardClientProps) {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8 font-sans text-gray-900">
-            <div className="max-w-4xl mx-auto space-y-12">
+        <div className="min-h-screen bg-gray-50 font-sans text-gray-900">
+            {/* モバイルヘッダー */}
+            <header className="md:hidden bg-white border-b-2 border-black sticky top-0 z-40">
+                <div className="flex items-center justify-between p-4">
+                    <h1 className="text-xl font-black uppercase tracking-tight">イベントポータル</h1>
+                    <button
+                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        className="p-2 hover:bg-gray-100 rounded transition-colors"
+                        aria-label="メニュー"
+                    >
+                        {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+                    </button>
+                </div>
 
-                {/* Header with User Info */}
-                <div className="flex justify-between items-start">
+                {/* モバイルメニュー */}
+                {mobileMenuOpen && (
+                    <div className="border-t-2 border-black bg-white p-4 space-y-4 animate-in slide-in-from-top duration-200">
+                        <div className="flex items-center gap-3 p-3 bg-gray-50 border-2 border-black">
+                            {user.user_metadata?.avatar_url ? (
+                                <img src={user.user_metadata.avatar_url} alt="Avatar" className="w-10 h-10 rounded-full border-2 border-black" />
+                            ) : (
+                                <div className="w-10 h-10 rounded-full border-2 border-black bg-gray-200 flex items-center justify-center">
+                                    <User className="w-5 h-5" />
+                                </div>
+                            )}
+                            <div className="flex-1">
+                                <div className="font-bold text-sm">{user.user_metadata?.full_name || user.email}</div>
+                                <div className="text-xs text-gray-500">{user.email}</div>
+                            </div>
+                        </div>
+                        <button
+                            onClick={handleSignOut}
+                            className="w-full flex items-center justify-center gap-2 p-3 bg-black text-white font-bold hover:bg-gray-800 transition-colors"
+                        >
+                            <LogOut className="w-4 h-4" />
+                            ログアウト
+                        </button>
+                    </div>
+                )}
+            </header>
+
+            <div className="p-4 md:p-8 max-w-4xl mx-auto space-y-6 md:space-y-12">
+
+                {/* デスクトップヘッダー */}
+                <div className="hidden md:flex justify-between items-start">
                     <div className="text-center flex-1 space-y-4">
                         <h1 className="text-4xl font-black uppercase tracking-tighter">イベントポータル</h1>
                         <p className="text-gray-500 font-bold uppercase tracking-widest text-sm">イベントを選択・作成してください</p>
@@ -146,16 +187,16 @@ export default function DashboardClient({ user }: DashboardClientProps) {
                     </div>
                 </div>
 
-                {/* Create Form */}
-                <div className="bg-white border-2 border-black p-6 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
-                    <form onSubmit={handleCreate} className="flex gap-4">
+                {/* Create Form - Responsive */}
+                <div className="bg-white border-2 border-black p-4 md:p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] md:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                    <form onSubmit={handleCreate} className="flex flex-col md:flex-row gap-3 md:gap-4">
                         <input
                             value={newEventName}
                             onChange={(e) => setNewEventName(e.target.value)}
                             placeholder="新規イベント名..."
-                            className="flex-1 border-2 border-black px-4 py-2 font-bold focus:outline-none focus:ring-2 focus:ring-black"
+                            className="flex-1 border-2 border-black px-4 py-3 md:py-2 font-bold focus:outline-none focus:ring-2 focus:ring-black text-base"
                         />
-                        <Button type="submit" disabled={isCreating} className="bg-black text-white hover:bg-gray-800 border-2 border-black rounded-none font-bold uppercase tracking-wide">
+                        <Button type="submit" disabled={isCreating} className="bg-black text-white hover:bg-gray-800 border-2 border-black rounded-none font-bold uppercase tracking-wide h-12 md:h-auto">
                             {isCreating ? <Loader2 className="animate-spin" /> : <Plus className="mr-2 h-4 w-4" />}
                             イベント作成
                         </Button>
@@ -163,7 +204,7 @@ export default function DashboardClient({ user }: DashboardClientProps) {
                 </div>
 
                 {/* Event List */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                     {isLoading ? (
                         <div className="col-span-2 text-center py-12 text-gray-400 font-bold">イベントを読み込み中...</div>
                     ) : events.length === 0 ? (
@@ -172,10 +213,10 @@ export default function DashboardClient({ user }: DashboardClientProps) {
                         </div>
                     ) : (
                         events.map(event => (
-                            <div key={event.id} className="group relative bg-white border-2 border-black p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
+                            <div key={event.id} className="group relative bg-white border-2 border-black p-4 md:p-6 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] md:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-1 hover:translate-y-1 hover:shadow-none transition-all">
                                 <div className="flex justify-between items-start mb-4">
                                     <div>
-                                        <h2 className="text-2xl font-black uppercase tracking-tight">{event.name}</h2>
+                                        <h2 className="text-lg md:text-2xl font-black uppercase tracking-tight">{event.name}</h2>
                                         <div className="text-xs font-mono text-gray-500 mt-1">ID: {event.id}</div>
                                     </div>
                                     <button
@@ -225,7 +266,7 @@ export default function DashboardClient({ user }: DashboardClientProps) {
             {/* Delete Modal */}
             {deleteTarget && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
-                    <div className="bg-white border-2 border-black p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-md w-full relative animate-in zoom-in-95 duration-200">
+                    <div className="bg-white border-2 border-black p-6 md:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] md:shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-md w-full relative animate-in zoom-in-95 duration-200">
                         <button
                             onClick={closeDeleteModal}
                             className="absolute top-4 right-4 text-gray-400 hover:text-black transition-colors"
