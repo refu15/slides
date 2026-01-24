@@ -247,7 +247,7 @@ export default function ParticipantsPage() {
                                     <div className="space-y-2">
                                         <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1">
                                             <input type="checkbox" checked={visibleColumns.email} onChange={() => setVisibleColumns(prev => ({ ...prev, email: !prev.email }))} className="w-4 h-4 accent-black" />
-                                            <span className="text-sm font-bold">Email</span>
+                                            <span className="text-sm font-bold">メールアドレス</span>
                                         </label>
                                         <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1">
                                             <input type="checkbox" checked={visibleColumns.phone} onChange={() => setVisibleColumns(prev => ({ ...prev, phone: !prev.phone }))} className="w-4 h-4 accent-black" />
@@ -450,7 +450,7 @@ export default function ParticipantsPage() {
                             <th className="p-4 text-sm font-bold uppercase tracking-widest">ID</th>
                             <th className="p-4 text-sm font-bold uppercase tracking-widest">名前 / 所属</th>
                             <th className="p-4 text-sm font-bold uppercase tracking-widest">ステータス</th>
-                            {visibleColumns.email && <th className="p-4 text-sm font-bold uppercase tracking-widest">Email</th>}
+                            {visibleColumns.email && <th className="p-4 text-sm font-bold uppercase tracking-widest">メールアドレス</th>}
                             {visibleColumns.phone && <th className="p-4 text-sm font-bold uppercase tracking-widest">電話番号</th>}
                             {visibleColumns.notes && <th className="p-4 text-sm font-bold uppercase tracking-widest">備考</th>}
                             {visibleColumns.internalNote && <th className="p-4 text-sm font-bold uppercase tracking-widest">内部メモ</th>}
@@ -597,7 +597,7 @@ export default function ParticipantsPage() {
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-bold uppercase mb-1">Email</label>
+                                    <label className="block text-sm font-bold uppercase mb-1">メールアドレス</label>
                                     <Input
                                         value={editingParticipant.email}
                                         onChange={e => editingParticipant && setEditingParticipant({ ...editingParticipant, email: e.target.value })}

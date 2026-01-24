@@ -14,7 +14,9 @@ const STATUS_CONFIG: Record<ParticipantStatus, { label: string; color: string }>
     gold: { label: "ゴールド", color: "bg-yellow-500" },
     silver: { label: "シルバー", color: "bg-gray-400" },
     media: { label: "メディア", color: "bg-green-500" },
+    speaker: { label: "登壇者", color: "bg-indigo-500" },
     sponsor: { label: "スポンサー", color: "bg-orange-500" },
+    guest: { label: "招待・関係者", color: "bg-teal-500" },
     online: { label: "オンライン", color: "bg-cyan-500" },
 };
 
