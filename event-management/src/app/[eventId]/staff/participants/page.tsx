@@ -17,10 +17,10 @@ export default function StaffParticipantsPage() {
 
     // Helper to get latest status for a participant
     const getStatus = (id: string): ParticipantStatus => {
-        const logs = checkInLogs.filter(log => log.participantId === id);
+        const logs = checkInLogs.filter(log => log.userId === id);
         if (logs.length === 0) return 'not_checked_in';
         const lastLog = logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
-        return lastLog.type === 'check_in' ? 'checked_in' : 'checked_out';
+        return lastLog.action === 'checkin' ? 'checked_in' : 'checked_out';
     };
 
     // 現在会場内人数
@@ -39,7 +39,7 @@ export default function StaffParticipantsPage() {
             (p.furigana || '').toLowerCase().includes(search.toLowerCase()) ||
             p.email.toLowerCase().includes(search.toLowerCase()) ||
             p.organization.toLowerCase().includes(search.toLowerCase());
-        const matchesCategory = categoryFilter === 'all' || p.categoryId === categoryFilter;
+        const matchesCategory = categoryFilter === 'all' || p.category === categoryFilter;
         return matchesSearch && matchesCategory;
     });
 
@@ -153,7 +153,7 @@ export default function StaffParticipantsPage() {
                                 ) : (
                                     filtered.map((p) => {
                                         const status = getStatus(p.id);
-                                        const category = categories.find(c => c.id === p.categoryId);
+                                        const category = categories.find(c => c.id === p.category);
                                         return (
                                             <tr key={p.id} className="border-t-2 border-gray-200 hover:bg-gray-50">
                                                 <td className="p-2 md:p-3">
