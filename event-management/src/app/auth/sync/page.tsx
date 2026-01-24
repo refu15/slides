@@ -36,6 +36,14 @@ export default function AuthSyncPage() {
 
                 setStatus("Session synced! Redirecting...");
 
+                // Check for invite redirect first
+                const inviteRedirect = localStorage.getItem('invite_redirect');
+                if (inviteRedirect) {
+                    localStorage.removeItem('invite_redirect');
+                    window.location.href = inviteRedirect;
+                    return;
+                }
+
                 // Force a hard reload to ensure cookies are sent to server
                 window.location.href = next;
 
