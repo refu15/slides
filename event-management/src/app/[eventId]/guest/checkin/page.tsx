@@ -1,16 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useDemo, Participant, ParticipantStatus } from "@/lib/demo-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, CheckCircle, User, AlertCircle, Wifi, LogOut, Coffee, LogIn, ArrowLeft } from "lucide-react";
+import { Search, CheckCircle, User, AlertCircle, Wifi, LogOut, Coffee, LogIn, ArrowLeft, RefreshCw, XCircle } from "lucide-react";
 
 export default function GuestCheckInPage() {
-    const { findParticipants, checkIn, checkOut, checkInLogs, settings, venues } = useDemo();
+    const { findParticipants, checkIn, checkOut, checkInLogs, settings, venues, participants, eventId } = useDemo();
 
     // Steps: menu -> search -> select -> confirm -> result
-    const [step, setStep] = useState<'menu' | 'search' | 'email_search' | 'select' | 'confirm' | 'result'>('menu');
+    // New Step: quick_action (for returning users)
+    const [step, setStep] = useState<'menu' | 'quick_action' | 'search' | 'email_search' | 'select' | 'confirm' | 'result'>('menu');
     const [mode, setMode] = useState<'checkin' | 'checkout' | 'temporary_exit' | null>(null);
 
     const [searchName, setSearchName] = useState("");
@@ -18,6 +19,7 @@ export default function GuestCheckInPage() {
     const [candidates, setCandidates] = useState<Participant[]>([]);
     const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
     const [errorMsg, setErrorMsg] = useState("");
+    const [savedUserId, setSavedUserId] = useState<string | null>(null);
 
     const [resultData, setResultData] = useState<{
         success: boolean;
@@ -25,6 +27,31 @@ export default function GuestCheckInPage() {
         isReentry?: boolean;
         isAlreadyIn?: boolean;
     } | null>(null);
+
+    // Initial load: Check LocalStorage
+    useEffect(() => {
+        if (!eventId) return;
+        const savedId = localStorage.getItem(`event_${eventId}_guest_id`);
+        if (savedId) {
+            const p = participants.find(p => p.id === savedId);
+            if (p) {
+                setSavedUserId(savedId);
+                setSelectedParticipant(p);
+                setStep('quick_action');
+            } else {
+                // Invalid ID or participant removed
+                localStorage.removeItem(`event_${eventId}_guest_id`);
+            }
+        }
+    }, [participants, eventId]);
+
+    // Helper to get latest status for a participant
+    const getStatus = (id: string): ParticipantStatus => {
+        const logs = checkInLogs.filter(log => log.userId === id);
+        if (logs.length === 0) return 'not_checked_in';
+        const lastLog = logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+        return lastLog.action === 'checkin' ? 'checked_in' : 'checked_out';
+    };
 
     // Initial Mode Selection
     const handleModeSelect = (m: 'checkin' | 'checkout' | 'temporary_exit') => {
@@ -74,25 +101,35 @@ export default function GuestCheckInPage() {
         setStep('confirm');
     };
 
-    const handleExecute = async () => {
-        if (!selectedParticipant || !mode) return;
+    const handleExecute = async (overrideMode?: 'checkin' | 'checkout' | 'temporary_exit') => {
+        // Use overrideMode if provided (for quick_action), otherwise use state mode
+        const targetMode = overrideMode || mode;
+        if (!selectedParticipant || !targetMode) return;
 
         const venueId = venues[0]?.id || "v1";
         let res;
 
-        if (mode === 'checkin') {
+        if (targetMode === 'checkin') {
             res = await checkIn(selectedParticipant.id, venueId, 'self');
         } else {
-            res = await checkOut(selectedParticipant.id, venueId, 'self', '', mode);
+            res = await checkOut(selectedParticipant.id, venueId, 'self', '', targetMode);
         }
 
-        if (res.success || (mode === 'checkin' && (res.isAlreadyIn || res.isReentry))) {
+        if (res.success || (targetMode === 'checkin' && (res.isAlreadyIn || res.isReentry))) {
+            // Save to LocalStorage on success
+            if (eventId) {
+                localStorage.setItem(`event_${eventId}_guest_id`, selectedParticipant.id);
+            }
+
             setResultData({
                 success: true,
                 message: res.message,
                 isReentry: res.isReentry,
                 isAlreadyIn: res.isAlreadyIn
             });
+            // Also need to set mode for Result screen logic if we used override
+            if (overrideMode) setMode(overrideMode);
+
             setStep('result');
         } else {
             setErrorMsg(res.message);
@@ -103,12 +140,38 @@ export default function GuestCheckInPage() {
         setSearchName("");
         setSearchEmail("");
         setCandidates([]);
-        setSelectedParticipant(null);
         setErrorMsg("");
-        setStep('menu');
+
+        // If we have saved user, go back to quick_action, else menu
+        if (eventId && localStorage.getItem(`event_${eventId}_guest_id`)) {
+            // Re-fetch logic or just reload? 
+            // Ideally we should re-read valid participant. 
+            // But since we didn't clear savedId, we can try to restore state.
+            const pId = localStorage.getItem(`event_${eventId}_guest_id`);
+            const p = participants.find(part => part.id === pId);
+            if (p) {
+                setSelectedParticipant(p);
+                setStep('quick_action');
+            } else {
+                setStep('menu');
+            }
+        } else {
+            setSelectedParticipant(null);
+            setStep('menu');
+        }
+
         setMode(null);
         setResultData(null);
     };
+
+    const handleSwitchUser = () => {
+        if (eventId) {
+            localStorage.removeItem(`event_${eventId}_guest_id`);
+        }
+        setSavedUserId(null);
+        setSelectedParticipant(null);
+        setStep('menu');
+    }
 
     const getModeLabel = () => {
         switch (mode) {
@@ -130,6 +193,58 @@ export default function GuestCheckInPage() {
 
     return (
         <div className="space-y-6">
+            {/* New Step: Quick Action (For saved users) */}
+            {step === 'quick_action' && selectedParticipant && (
+                <div className="space-y-8 animate-in fade-in zoom-in duration-500">
+                    <div className="text-center">
+                        <div className="w-24 h-24 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4 border-2 border-black">
+                            <User className="w-12 h-12 text-gray-500" />
+                        </div>
+                        <h2 className="text-3xl font-black mb-1">{selectedParticipant.name} 様</h2>
+                        <div className={`px-4 py-1 inline-block font-bold text-sm rounded-full mb-4 ${getStatus(selectedParticipant.id) === 'checked_in' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'
+                            }`}>
+                            ステータス: {getStatus(selectedParticipant.id) === 'checked_in' ? '入場中' : '退出済み/未入場'}
+                        </div>
+                        <p className="text-gray-500 font-bold mb-6">操作を選択してください</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4">
+                        {getStatus(selectedParticipant.id) !== 'checked_in' && (
+                            <Button
+                                onClick={() => handleExecute('checkin')}
+                                className="w-full h-20 bg-red-600 text-white font-bold text-xl uppercase tracking-widest rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none hover:bg-black transition-all flex flex-col gap-1 items-center justify-center"
+                            >
+                                <div className="flex items-center gap-2"><LogIn className="w-8 h-8" /> 入場 / 再入場</div>
+                            </Button>
+                        )}
+
+                        {getStatus(selectedParticipant.id) === 'checked_in' && (
+                            <>
+                                <Button
+                                    onClick={() => handleExecute('temporary_exit')}
+                                    className="w-full h-20 bg-blue-600 text-white font-bold text-lg rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none hover:bg-black transition-all flex flex-col gap-1 items-center justify-center"
+                                >
+                                    <div className="flex items-center gap-2"><Coffee className="w-6 h-6" /> 一時退出</div>
+                                </Button>
+
+                                <Button
+                                    onClick={() => handleExecute('checkout')}
+                                    className="w-full h-20 bg-gray-600 text-white font-bold text-lg rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none hover:bg-black transition-all flex flex-col gap-1 items-center justify-center"
+                                >
+                                    <div className="flex items-center gap-2"><LogOut className="w-6 h-6" /> 完全退場</div>
+                                </Button>
+                            </>
+                        )}
+
+                        <div className="pt-4 border-t border-gray-200 mt-4">
+                            <Button onClick={handleSwitchUser} variant="ghost" className="w-full text-gray-500 hover:text-red-600">
+                                <RefreshCw className="w-4 h-4 mr-2" /> 別のアカウントで操作する
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Step 0: Menu */}
             {step === 'menu' && (
                 <div className="space-y-6 animate-in fade-in zoom-in duration-500">
@@ -168,8 +283,8 @@ export default function GuestCheckInPage() {
                 </div>
             )}
 
-            {/* Header for steps after menu */}
-            {step !== 'menu' && step !== 'result' && mode && (
+            {/* Header for steps after menu (not visible in quick_action) */}
+            {step !== 'menu' && step !== 'result' && step !== 'quick_action' && mode && (
                 <div className="flex items-center justify-between border-b-2 border-gray-200 pb-4 mb-4">
                     <Button variant="ghost" size="sm" onClick={() => setStep('menu')} className="text-gray-500 hover:text-black -ml-2">
                         <ArrowLeft className="w-4 h-4 mr-1" /> メニューへ戻る
@@ -266,7 +381,7 @@ export default function GuestCheckInPage() {
                             >
                                 <div className="font-bold text-lg group-hover:text-red-600">{p.name}</div>
                                 <div className="text-sm text-gray-500">{p.organization || "所属なし"}</div>
-                                <div className="text-xs text-xs text-gray-400 mt-1 font-mono">{p.ticketType === 'online' ? 'オンライン' : p.ticketType === 'archive' ? 'アーカイブ' : '来場チケット'}</div>
+                                <div className="text-xs text-gray-400 mt-1 font-mono">{p.ticketType === 'online' ? 'オンライン' : p.ticketType === 'archive' ? 'アーカイブ' : '来場チケット'}</div>
                             </button>
                         ))}
                     </div>
@@ -302,7 +417,7 @@ export default function GuestCheckInPage() {
                     </div>
 
                     <div className="space-y-3">
-                        <Button onClick={handleExecute} className={`w-full h-14 text-white font-bold text-xl uppercase tracking-widest rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none hover:opacity-90 transition-all ${getModeColor()}`}>
+                        <Button onClick={() => handleExecute()} className={`w-full h-14 text-white font-bold text-xl uppercase tracking-widest rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none hover:opacity-90 transition-all ${getModeColor()}`}>
                             {getModeLabel()}
                         </Button>
                         <Button onClick={() => setStep('select')} variant="ghost" className="w-full">
