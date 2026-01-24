@@ -92,7 +92,7 @@ export default function StaffLayout({
                         <div className="hidden md:flex space-x-8 items-center">
 
                             <Link
-                                href={`/${eventId}/staff`}
+                                href={`/${eventId}/admin/dashboard`}
                                 className="bg-black text-white hover:bg-gray-800 px-4 py-2 font-bold uppercase tracking-widest text-sm transition-colors"
                             >
                                 ダッシュボード
@@ -121,7 +121,7 @@ export default function StaffLayout({
                         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
 
                             <Link
-                                href={`/${eventId}/staff`}
+                                href={`/${eventId}/admin/dashboard`}
                                 onClick={() => setIsMenuOpen(false)}
                                 className="block px-3 py-4 text-base font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50 uppercase tracking-widest"
                             >
