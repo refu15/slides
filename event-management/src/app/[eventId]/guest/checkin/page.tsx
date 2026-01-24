@@ -14,6 +14,7 @@ export default function GuestCheckInPage() {
     const [candidates, setCandidates] = useState<Participant[]>([]);
     const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
     const [errorMsg, setErrorMsg] = useState("");
+    const [checkInResult, setCheckInResult] = useState<{ isReentry: boolean; isAlreadyIn: boolean } | null>(null);
 
     const handleSearch = () => {
         if (!searchName.trim()) return;
@@ -64,6 +65,7 @@ export default function GuestCheckInPage() {
         const result = await checkIn(selectedParticipant.id, venueId, 'self');
 
         if (result.success || result.isAlreadyIn || result.isReentry) {
+            setCheckInResult({ isReentry: !!result.isReentry, isAlreadyIn: !!result.isAlreadyIn });
             setStep('result');
         } else {
             setErrorMsg(result.message);
@@ -77,6 +79,7 @@ export default function GuestCheckInPage() {
         setSelectedParticipant(null);
         setErrorMsg("");
         setStep('search');
+        setCheckInResult(null);
     };
 
     return (
@@ -211,13 +214,27 @@ export default function GuestCheckInPage() {
             {/* Step 4: Result */}
             {step === 'result' && selectedParticipant && (
                 <div className="space-y-8 animate-in zoom-in duration-500 text-center py-8">
-                    <div className="w-24 h-24 mx-auto bg-green-100 border-4 border-green-500 rounded-full flex items-center justify-center mb-6 animate-bounce">
-                        <CheckCircle className="w-12 h-12 text-green-600" />
+                    <div className={`w-24 h-24 mx-auto border-4 rounded-full flex items-center justify-center mb-6 animate-bounce ${checkInResult?.isReentry ? 'bg-blue-100 border-blue-500' :
+                        checkInResult?.isAlreadyIn ? 'bg-yellow-100 border-yellow-500' :
+                            'bg-green-100 border-green-500'
+                        }`}>
+                        <CheckCircle className={`w-12 h-12 ${checkInResult?.isReentry ? 'text-blue-600' :
+                            checkInResult?.isAlreadyIn ? 'text-yellow-600' :
+                                'text-green-600'
+                            }`} />
                     </div>
 
                     <div>
-                        <h2 className="text-3xl font-black text-black mb-2">Welcome!</h2>
-                        <p className="text-gray-600 text-lg">チェックインが完了しました。</p>
+                        <h2 className="text-3xl font-black text-black mb-2">
+                            {checkInResult?.isReentry ? 'おかえりなさい！' :
+                                checkInResult?.isAlreadyIn ? 'チェックイン済み' :
+                                    'Welcome!'}
+                        </h2>
+                        <p className="text-gray-600 text-lg">
+                            {checkInResult?.isReentry ? '再入場を記録しました。' :
+                                checkInResult?.isAlreadyIn ? 'すでにチェックインされています。' :
+                                    'チェックインが完了しました。'}
+                        </p>
                     </div>
 
                     {(settings.wifiSSID || settings.wifiPassword || settings.wifiNote) && (
