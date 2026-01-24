@@ -1,20 +1,32 @@
 "use client";
 
 import { useState } from "react";
-import { useDemo, Participant } from "@/lib/demo-context";
+import { useDemo, Participant, ParticipantStatus } from "@/lib/demo-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, CheckCircle, User, AlertCircle, Wifi } from "lucide-react";
+import { Search, CheckCircle, User, AlertCircle, Wifi, LogOut, Coffee, ArrowRight } from "lucide-react";
 
 export default function GuestCheckInPage() {
-    const { findParticipants, checkIn, settings, venues, participants } = useDemo();
-    const [step, setStep] = useState<'search' | 'email_search' | 'select' | 'confirm' | 'result'>('search');
+    const { findParticipants, checkIn, checkOut, checkInLogs, settings, venues, participants } = useDemo();
+    const [step, setStep] = useState<'search' | 'email_search' | 'select' | 'confirm' | 'select_action' | 'result'>('search');
     const [searchName, setSearchName] = useState("");
     const [searchEmail, setSearchEmail] = useState("");
     const [candidates, setCandidates] = useState<Participant[]>([]);
     const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
     const [errorMsg, setErrorMsg] = useState("");
-    const [checkInResult, setCheckInResult] = useState<{ isReentry: boolean; isAlreadyIn: boolean } | null>(null);
+    const [checkInResult, setCheckInResult] = useState<{
+        isReentry?: boolean;
+        isAlreadyIn?: boolean;
+        actionType?: 'checkin' | 'checkout' | 'temporary_exit'
+    } | null>(null);
+
+    // Helper to get latest status for a participant
+    const getStatus = (id: string): ParticipantStatus => {
+        const logs = checkInLogs.filter(log => log.userId === id);
+        if (logs.length === 0) return 'not_checked_in';
+        const lastLog = logs.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())[0];
+        return lastLog.action === 'checkin' ? 'checked_in' : 'checked_out';
+    };
 
     const handleSearch = () => {
         if (!searchName.trim()) return;
@@ -54,7 +66,13 @@ export default function GuestCheckInPage() {
 
     const handleSelect = (p: Participant) => {
         setSelectedParticipant(p);
-        setStep('confirm');
+        const currentStatus = getStatus(p.id);
+
+        if (currentStatus === 'checked_in') {
+            setStep('select_action');
+        } else {
+            setStep('confirm');
+        }
     };
 
     const handleCheckIn = async () => {
@@ -65,10 +83,30 @@ export default function GuestCheckInPage() {
         const result = await checkIn(selectedParticipant.id, venueId, 'self');
 
         if (result.success || result.isAlreadyIn || result.isReentry) {
-            setCheckInResult({ isReentry: !!result.isReentry, isAlreadyIn: !!result.isAlreadyIn });
+            setCheckInResult({
+                isReentry: !!result.isReentry,
+                isAlreadyIn: !!result.isAlreadyIn,
+                actionType: 'checkin'
+            });
             setStep('result');
         } else {
             setErrorMsg(result.message);
+        }
+    };
+
+    const handleCheckOut = async (type: 'checkout' | 'temporary_exit') => {
+        if (!selectedParticipant) return;
+
+        const venueId = venues[0]?.id || "v1";
+        const result = await checkOut(selectedParticipant.id, venueId, 'self', '', type);
+
+        if (result.success) {
+            setCheckInResult({
+                actionType: type
+            });
+            setStep('result');
+        } else {
+            setErrorMsg(result.message || "エラーが発生しました");
         }
     };
 
@@ -185,7 +223,45 @@ export default function GuestCheckInPage() {
                 </div>
             )}
 
-            {/* Step 3: Confirm */}
+            {/* Step 2.5: Action Selection (Checking out or Temporary Exit) */}
+            {step === 'select_action' && selectedParticipant && (
+                <div className="space-y-6 animate-in zoom-in duration-300">
+                    <div className="text-center">
+                        <div className="w-20 h-20 mx-auto bg-green-100 rounded-full flex items-center justify-center mb-4 border-2 border-green-500">
+                            <User className="w-10 h-10 text-green-700" />
+                        </div>
+                        <h2 className="text-2xl font-black mb-1">{selectedParticipant.name} 様</h2>
+                        <div className="bg-green-50 text-green-700 px-3 py-1 inline-block font-bold text-sm mb-2">
+                            現在 入場中
+                        </div>
+                        <p className="text-gray-600">操作を選択してください</p>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4">
+                        <Button
+                            onClick={() => handleCheckOut('temporary_exit')}
+                            className="w-full h-16 bg-white border-2 border-blue-600 text-blue-800 font-bold text-lg rounded-none hover:bg-blue-50 transition-all flex items-center justify-between px-6"
+                        >
+                            <span className="flex items-center gap-2"><Coffee className="w-6 h-6" /> 一時退出</span>
+                            <span className="text-xs bg-blue-100 px-2 py-1">再入場可能</span>
+                        </Button>
+
+                        <Button
+                            onClick={() => handleCheckOut('checkout')}
+                            className="w-full h-16 bg-white border-2 border-red-600 text-red-800 font-bold text-lg rounded-none hover:bg-red-50 transition-all flex items-center justify-between px-6"
+                        >
+                            <span className="flex items-center gap-2"><LogOut className="w-6 h-6" /> 完全退場</span>
+                            <span className="text-xs bg-red-100 px-2 py-1">終了</span>
+                        </Button>
+
+                        <Button onClick={() => setStep('search')} variant="ghost" className="w-full mt-2">
+                            キャンセル
+                        </Button>
+                    </div>
+                </div>
+            )}
+
+            {/* Step 3: Confirm Check-in */}
             {step === 'confirm' && selectedParticipant && (
                 <div className="space-y-6 animate-in zoom-in duration-300">
                     <div className="text-center">
@@ -202,7 +278,7 @@ export default function GuestCheckInPage() {
 
                     <div className="space-y-3">
                         <Button onClick={handleCheckIn} className="w-full h-14 bg-red-600 text-white font-bold text-xl uppercase tracking-widest rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none hover:bg-black transition-all">
-                            チェックイン
+                            チェックイン（入場）
                         </Button>
                         <Button onClick={() => setStep('select')} variant="ghost" className="w-full">
                             戻る
@@ -214,47 +290,59 @@ export default function GuestCheckInPage() {
             {/* Step 4: Result */}
             {step === 'result' && selectedParticipant && (
                 <div className="space-y-8 animate-in zoom-in duration-500 text-center py-8">
-                    <div className={`w-24 h-24 mx-auto border-4 rounded-full flex items-center justify-center mb-6 animate-bounce ${checkInResult?.isReentry ? 'bg-blue-100 border-blue-500' :
-                        checkInResult?.isAlreadyIn ? 'bg-yellow-100 border-yellow-500' :
-                            'bg-green-100 border-green-500'
+                    {/* Icon */}
+                    <div className={`w-24 h-24 mx-auto border-4 rounded-full flex items-center justify-center mb-6 animate-bounce ${checkInResult?.actionType === 'temporary_exit' ? 'bg-blue-100 border-blue-500' :
+                            checkInResult?.actionType === 'checkout' ? 'bg-gray-100 border-gray-500' :
+                                checkInResult?.isReentry ? 'bg-blue-100 border-blue-500' :
+                                    checkInResult?.isAlreadyIn ? 'bg-yellow-100 border-yellow-500' :
+                                        'bg-green-100 border-green-500'
                         }`}>
-                        <CheckCircle className={`w-12 h-12 ${checkInResult?.isReentry ? 'text-blue-600' :
-                            checkInResult?.isAlreadyIn ? 'text-yellow-600' :
-                                'text-green-600'
-                            }`} />
+                        {checkInResult?.actionType === 'temporary_exit' ? <Coffee className="w-12 h-12 text-blue-600" /> :
+                            checkInResult?.actionType === 'checkout' ? <LogOut className="w-12 h-12 text-gray-600" /> :
+                                <CheckCircle className={`w-12 h-12 ${checkInResult?.isReentry ? 'text-blue-600' :
+                                        checkInResult?.isAlreadyIn ? 'text-yellow-600' :
+                                            'text-green-600'
+                                    }`} />}
                     </div>
 
+                    {/* Message */}
                     <div>
                         <h2 className="text-3xl font-black text-black mb-2">
-                            {checkInResult?.isReentry ? 'おかえりなさい！' :
-                                checkInResult?.isAlreadyIn ? 'チェックイン済み' :
-                                    'Welcome!'}
+                            {checkInResult?.actionType === 'temporary_exit' ? 'いってらっしゃいませ' :
+                                checkInResult?.actionType === 'checkout' ? 'ありがとうございました' :
+                                    checkInResult?.isReentry ? 'おかえりなさい！' :
+                                        checkInResult?.isAlreadyIn ? 'チェックイン済み' :
+                                            'Welcome!'}
                         </h2>
                         <p className="text-gray-600 text-lg">
-                            {checkInResult?.isReentry ? '再入場を記録しました。' :
-                                checkInResult?.isAlreadyIn ? 'すでにチェックインされています。' :
-                                    'チェックインが完了しました。'}
+                            {checkInResult?.actionType === 'temporary_exit' ? '一時退出を記録しました。' :
+                                checkInResult?.actionType === 'checkout' ? '退場を記録しました。' :
+                                    checkInResult?.isReentry ? '再入場を記録しました。' :
+                                        checkInResult?.isAlreadyIn ? 'すでにチェックインされています。' :
+                                            'チェックインが完了しました。'}
                         </p>
                     </div>
 
-                    {(settings.wifiSSID || settings.wifiPassword || settings.wifiNote) && (
-                        <div className="bg-neutral-100 p-4 border-2 border-black text-left space-y-2">
-                            <div className="flex items-center justify-center gap-2 mb-2 text-gray-500 font-bold uppercase tracking-widest text-sm">
-                                <Wifi className="w-4 h-4" /> 会場WiFi
-                            </div>
-                            {settings.wifiSSID && (
-                                <p className="font-bold flex justify-between"><span>SSID:</span> <span>{settings.wifiSSID}</span></p>
-                            )}
-                            {settings.wifiPassword && (
-                                <p className="font-bold flex justify-between"><span>Password:</span> <span>{settings.wifiPassword}</span></p>
-                            )}
-                            {settings.wifiNote && (
-                                <div className="mt-2 text-sm text-gray-500 whitespace-pre-wrap border-t border-gray-200 pt-2">
-                                    {settings.wifiNote}
+                    {/* Wifi Info (Only show on checkin/reentry) */}
+                    {(checkInResult?.actionType === 'checkin' || (!checkInResult?.actionType)) &&
+                        (settings.wifiSSID || settings.wifiPassword || settings.wifiNote) && (
+                            <div className="bg-neutral-100 p-4 border-2 border-black text-left space-y-2">
+                                <div className="flex items-center justify-center gap-2 mb-2 text-gray-500 font-bold uppercase tracking-widest text-sm">
+                                    <Wifi className="w-4 h-4" /> 会場WiFi
                                 </div>
-                            )}
-                        </div>
-                    )}
+                                {settings.wifiSSID && (
+                                    <p className="font-bold flex justify-between"><span>SSID:</span> <span>{settings.wifiSSID}</span></p>
+                                )}
+                                {settings.wifiPassword && (
+                                    <p className="font-bold flex justify-between"><span>Password:</span> <span>{settings.wifiPassword}</span></p>
+                                )}
+                                {settings.wifiNote && (
+                                    <div className="mt-2 text-sm text-gray-500 whitespace-pre-wrap border-t border-gray-200 pt-2">
+                                        {settings.wifiNote}
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                     <Button onClick={handleReset} variant="outline" className="w-full border-2 border-black rounded-none hover:bg-black hover:text-white transition-colors">
                         トップへ戻る
