@@ -90,12 +90,7 @@ export default function StaffLayout({
 
                         {/* Desktop Menu */}
                         <div className="hidden md:flex space-x-8 items-center">
-                            <Link
-                                href={`/${eventId}/staff/scan`}
-                                className="text-gray-500 hover:text-black font-bold uppercase tracking-widest text-sm transition-colors"
-                            >
-                                チェックイン
-                            </Link>
+
                             <Link
                                 href={`/event/${eventId}/portal`}
                                 className="bg-black text-white hover:bg-gray-800 px-4 py-2 font-bold uppercase tracking-widest text-sm transition-colors"
@@ -124,13 +119,7 @@ export default function StaffLayout({
                 {isMenuOpen && (
                     <div className="md:hidden bg-white border-t-2 border-black absolute w-full left-0 shadow-lg">
                         <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-                            <Link
-                                href={`/${eventId}/staff/scan`}
-                                onClick={() => setIsMenuOpen(false)}
-                                className="block px-3 py-4 text-base font-bold text-gray-700 hover:text-black hover:bg-gray-50 uppercase tracking-widest border-b border-gray-100"
-                            >
-                                チェックイン画面
-                            </Link>
+
                             <Link
                                 href={`/event/${eventId}/portal`}
                                 onClick={() => setIsMenuOpen(false)}
