@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Search, CheckCircle, User, AlertCircle, Wifi, LogOut, Coffee, LogIn, ArrowLeft, RefreshCw, XCircle } from "lucide-react";
 
 export default function GuestCheckInPage() {
-    const { findParticipants, checkIn, checkOut, checkInLogs, settings, venues, participants, eventId } = useDemo();
+    const { findParticipants, checkIn, checkOut, checkInLogs, settings, venues, participants, eventId, isLoading } = useDemo();
 
     // Steps: menu -> search -> select -> confirm -> result
     // New Step: quick_action (for returning users)
@@ -30,7 +30,7 @@ export default function GuestCheckInPage() {
 
     // Initial load: Check LocalStorage
     useEffect(() => {
-        if (!eventId) return;
+        if (!eventId || isLoading) return;
         const savedId = localStorage.getItem(`event_${eventId}_guest_id`);
         if (savedId) {
             const p = participants.find(p => p.id === savedId);
@@ -39,11 +39,13 @@ export default function GuestCheckInPage() {
                 setSelectedParticipant(p);
                 setStep('quick_action');
             } else {
-                // Invalid ID or participant removed
-                localStorage.removeItem(`event_${eventId}_guest_id`);
+                // Invalid ID or participant removed (Only remove if participants are actually loaded)
+                if (participants.length > 0) {
+                    localStorage.removeItem(`event_${eventId}_guest_id`);
+                }
             }
         }
-    }, [participants, eventId]);
+    }, [participants, eventId, isLoading]);
 
     // Helper to get latest status for a participant
     const getStatus = (id: string): ParticipantStatus => {

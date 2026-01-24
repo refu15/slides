@@ -4,13 +4,13 @@ import { useState, useEffect } from "react";
 import { useDemo } from "@/lib/demo-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CheckCircle, LogOut, Clock, Users, Calendar, Wifi } from "lucide-react";
+import { CheckCircle, LogOut, Clock, Users, Calendar, Wifi, RefreshCw } from "lucide-react";
 
 
 type GuestStatus = "not_checked_in" | "checked_in" | "temporary_exit";
 
 export default function GuestPage() {
-    const { participants, checkInLogs, checkIn, checkOut, settings, findParticipants } = useDemo();
+    const { participants, checkInLogs, checkIn, checkOut, settings, findParticipants, eventId, isLoading } = useDemo();
     const [step, setStep] = useState<"identify" | "select" | "action" | "identify_email">("identify");
     const [searchName, setSearchName] = useState("");
     const [searchCompany, setSearchCompany] = useState("");
@@ -19,6 +19,23 @@ export default function GuestPage() {
     const [foundParticipant, setFoundParticipant] = useState<typeof participants[0] | null>(null);
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
+
+    // Restore from LocalStorage
+    useEffect(() => {
+        if (!eventId || isLoading) return;
+        const savedId = localStorage.getItem(`event_${eventId}_guest_id`);
+        if (savedId) {
+            const p = participants.find(p => p.id === savedId);
+            if (p) {
+                setFoundParticipant(p);
+                setStep("action");
+            } else {
+                if (participants.length > 0) {
+                    localStorage.removeItem(`event_${eventId}_guest_id`);
+                }
+            }
+        }
+    }, [eventId, isLoading, participants]);
 
     const getStatus = (id: string): GuestStatus => {
         const logs = checkInLogs
@@ -82,8 +99,7 @@ export default function GuestPage() {
         const result = await checkIn(foundParticipant.id, "v1", "self");
         if (result.success) {
             setSuccessMessage("チェックインが完了しました！");
-
-
+            if (eventId) localStorage.setItem(`event_${eventId}_guest_id`, foundParticipant.id);
         } else {
             setError(result.message);
         }
@@ -95,6 +111,9 @@ export default function GuestPage() {
         const result = await checkOut(foundParticipant.id, "v1", "self", "", "checkout");
         if (result.success) {
             setSuccessMessage("チェックアウトが完了しました。またのご来場をお待ちしております！");
+            // Check out doesn't necessarily clear local storage, but maybe we should keep it for re-entry?
+            // User might want to re-enter. Let's keep it.
+            if (eventId) localStorage.setItem(`event_${eventId}_guest_id`, foundParticipant.id);
         } else {
             setError(result.message);
         }
@@ -106,12 +125,14 @@ export default function GuestPage() {
         const result = await checkOut(foundParticipant.id, "v1", "self", "", "temporary_exit");
         if (result.success) {
             setSuccessMessage("途中退出を記録しました。お戻りの際は再度チェックインをお願いします。");
+            if (eventId) localStorage.setItem(`event_${eventId}_guest_id`, foundParticipant.id);
         } else {
             setError(result.message);
         }
     };
 
     const resetFlow = () => {
+        if (eventId) localStorage.removeItem(`event_${eventId}_guest_id`);
         setStep("identify");
         setSearchName("");
         setSearchCompany("");
@@ -421,12 +442,13 @@ export default function GuestPage() {
                                 </div>
                             )}
 
-                            {/* Back Button */}
+                            {/* Back Button -> Reset (Switch Account) */}
                             <button
                                 onClick={resetFlow}
-                                className="w-full text-center text-gray-400 font-bold uppercase tracking-widest hover:text-black transition-colors"
+                                className="w-full text-center text-gray-400 font-bold uppercase tracking-widest hover:text-black transition-colors flex items-center justify-center gap-2 mt-4"
                             >
-                                ← 別の方でチェックイン
+                                <RefreshCw className="w-4 h-4" />
+                                別の方でチェックイン（ログアウト）
                             </button>
                         </div>
                     )}
