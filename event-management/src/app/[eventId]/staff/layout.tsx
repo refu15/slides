@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { Menu, X } from "lucide-react";
 
 export default function StaffLayout({
     children,
@@ -15,6 +16,7 @@ export default function StaffLayout({
     const eventId = params.eventId as string;
     const [isAuthorized, setIsAuthorized] = useState(false);
     const [isChecking, setIsChecking] = useState(false);
+    const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     useEffect(() => {
         async function checkAuth() {
@@ -56,6 +58,8 @@ export default function StaffLayout({
         checkAuth();
     }, [eventId, router]);
 
+    const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
     if (isChecking) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-white">
@@ -72,36 +76,76 @@ export default function StaffLayout({
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col pb-20">
+        <div className="min-h-screen bg-gray-50 flex flex-col">
+            {/* Header / Nav */}
+            <header className="bg-white border-b-2 border-black sticky top-0 z-50">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between items-center h-16">
+                        {/* Logo / Title */}
+                        <div className="flex-shrink-0 flex items-center">
+                            <span className="font-black text-xl uppercase tracking-tighter">
+                                Staff Portal
+                            </span>
+                        </div>
+
+                        {/* Desktop Menu */}
+                        <div className="hidden md:flex space-x-8 items-center">
+                            <Link
+                                href={`/${eventId}/staff/scan`}
+                                className="text-gray-500 hover:text-black font-bold uppercase tracking-widest text-sm transition-colors"
+                            >
+                                スキャン
+                            </Link>
+                            <Link
+                                href={`/event/${eventId}/portal`}
+                                className="bg-black text-white hover:bg-gray-800 px-4 py-2 font-bold uppercase tracking-widest text-sm transition-colors"
+                            >
+                                イベントポータルへ
+                            </Link>
+                        </div>
+
+                        {/* Mobile Menu Button */}
+                        <div className="md:hidden flex items-center">
+                            <button
+                                onClick={toggleMenu}
+                                className="text-black hover:text-gray-600 focus:outline-none"
+                            >
+                                {isMenuOpen ? (
+                                    <X className="h-6 w-6" />
+                                ) : (
+                                    <Menu className="h-6 w-6" />
+                                )}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Mobile Menu Overlay */}
+                {isMenuOpen && (
+                    <div className="md:hidden bg-white border-t-2 border-black absolute w-full left-0 shadow-lg">
+                        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+                            <Link
+                                href={`/${eventId}/staff/scan`}
+                                onClick={() => setIsMenuOpen(false)}
+                                className="block px-3 py-4 text-base font-bold text-gray-700 hover:text-black hover:bg-gray-50 uppercase tracking-widest border-b border-gray-100"
+                            >
+                                スキャン画面
+                            </Link>
+                            <Link
+                                href={`/event/${eventId}/portal`}
+                                onClick={() => setIsMenuOpen(false)}
+                                className="block px-3 py-4 text-base font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50 uppercase tracking-widest"
+                            >
+                                イベントポータルへ移動
+                            </Link>
+                        </div>
+                    </div>
+                )}
+            </header>
+
             <main className="flex-1">
                 {children}
             </main>
-
-            <nav className="fixed bottom-0 left-0 right-0 bg-white border-t-2 border-black p-3 flex justify-around shadow-[0px_-4px_10px_rgba(0,0,0,0.1)] z-50">
-                <Link
-                    href={`/${eventId}/staff/scan`}
-                    className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-gray-500 hover:text-black transition-colors"
-                >
-                    <div className="bg-gray-100 p-2 rounded-full">
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                        </svg>
-                    </div>
-                    スキャン
-                </Link>
-
-                <Link
-                    href={`/event/${eventId}/portal`}
-                    className="flex flex-col items-center gap-1 text-[10px] font-bold uppercase tracking-widest text-blue-600 hover:text-blue-800 transition-colors"
-                >
-                    <div className="bg-blue-50 p-2 rounded-full">
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                        </svg>
-                    </div>
-                    ポータル
-                </Link>
-            </nav>
         </div>
     );
 }

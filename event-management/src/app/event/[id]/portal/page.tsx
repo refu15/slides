@@ -10,12 +10,39 @@ export default async function PortalPage({ params }: { params: Promise<{ id: str
     const { id: eventId } = await params;
     const cookieStore = await cookies();
     const attendeeId = cookieStore.get("attendee_id")?.value;
-
-    if (!attendeeId) {
-        redirect(`/event/${eventId}/register`);
-    }
-
     const supabase = await createClient();
+
+    let attendee = null;
+    let isStaff = false;
+
+    // Check for staff session if no attendee_id
+    if (!attendeeId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            const { data: role } = await supabase
+                .from('event_roles')
+                .select('role')
+                .eq('event_id', eventId)
+                .eq('user_id', user.id)
+                .single();
+
+            if (role && (role.role === 'owner' || role.role === 'admin' || role.role === 'staff')) {
+                isStaff = true;
+            }
+        }
+
+        if (!isStaff) {
+            redirect(`/event/${eventId}/register`);
+        }
+    } else {
+        // Fetch Attendee
+        const { data } = await supabase
+            .from("attendees")
+            .select("*")
+            .eq("id", attendeeId)
+            .single();
+        attendee = data;
+    }
 
     // Fetch Event
     const { data: event } = await supabase
@@ -25,13 +52,6 @@ export default async function PortalPage({ params }: { params: Promise<{ id: str
         .single();
 
     if (!event) return <div>Event not found</div>;
-
-    // Fetch Attendee
-    const { data: attendee } = await supabase
-        .from("attendees")
-        .select("*")
-        .eq("id", attendeeId)
-        .single();
 
     // Fetch Materials
     const { data: materials } = await supabase
