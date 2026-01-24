@@ -107,7 +107,13 @@ export default function GuestCheckInPage() {
         if (!selectedParticipant || !targetMode) return;
 
         const venueId = venues[0]?.id || "v1";
-        let res;
+        let res: {
+            success: boolean;
+            message: string;
+            participant?: Participant;
+            isReentry?: boolean;
+            isAlreadyIn?: boolean;
+        };
 
         if (targetMode === 'checkin') {
             res = await checkIn(selectedParticipant.id, venueId, 'self');
@@ -290,8 +296,8 @@ export default function GuestCheckInPage() {
                         <ArrowLeft className="w-4 h-4 mr-1" /> メニューへ戻る
                     </Button>
                     <div className={`px-3 py-1 text-xs font-bold rounded-full ${mode === 'checkin' ? 'bg-red-100 text-red-600' :
-                            mode === 'temporary_exit' ? 'bg-blue-100 text-blue-600' :
-                                'bg-gray-100 text-gray-600'
+                        mode === 'temporary_exit' ? 'bg-blue-100 text-blue-600' :
+                            'bg-gray-100 text-gray-600'
                         }`}>
                         {getModeLabel()}
                     </div>
@@ -408,8 +414,8 @@ export default function GuestCheckInPage() {
                     </div>
 
                     <div className={`p-4 border-2 text-sm text-center font-bold ${mode === 'checkin' ? 'bg-yellow-50 border-yellow-400 text-yellow-800' :
-                            mode === 'temporary_exit' ? 'bg-blue-50 border-blue-400 text-blue-800' :
-                                'bg-gray-100 border-gray-400 text-gray-800'
+                        mode === 'temporary_exit' ? 'bg-blue-50 border-blue-400 text-blue-800' :
+                            'bg-gray-100 border-gray-400 text-gray-800'
                         }`}>
                         {mode === 'checkin' ? 'チェックインを実行しますか？' :
                             mode === 'temporary_exit' ? '一時退出を記録しますか？' :
@@ -432,16 +438,16 @@ export default function GuestCheckInPage() {
                 <div className="space-y-8 animate-in zoom-in duration-500 text-center py-8">
                     {/* Icon */}
                     <div className={`w-24 h-24 mx-auto border-4 rounded-full flex items-center justify-center mb-6 animate-bounce ${mode === 'temporary_exit' ? 'bg-blue-100 border-blue-500' :
-                            mode === 'checkout' ? 'bg-gray-100 border-gray-500' :
-                                resultData.isReentry ? 'bg-blue-100 border-blue-500' :
-                                    resultData.isAlreadyIn ? 'bg-yellow-100 border-yellow-500' :
-                                        'bg-green-100 border-green-500'
+                        mode === 'checkout' ? 'bg-gray-100 border-gray-500' :
+                            resultData.isReentry ? 'bg-blue-100 border-blue-500' :
+                                resultData.isAlreadyIn ? 'bg-yellow-100 border-yellow-500' :
+                                    'bg-green-100 border-green-500'
                         }`}>
                         {mode === 'temporary_exit' ? <Coffee className="w-12 h-12 text-blue-600" /> :
                             mode === 'checkout' ? <LogOut className="w-12 h-12 text-gray-600" /> :
                                 <CheckCircle className={`w-12 h-12 ${resultData.isReentry ? 'text-blue-600' :
-                                        resultData.isAlreadyIn ? 'text-yellow-600' :
-                                            'text-green-600'
+                                    resultData.isAlreadyIn ? 'text-yellow-600' :
+                                        'text-green-600'
                                     }`} />}
                     </div>
 
