@@ -68,3 +68,67 @@ export function romajiToHiragana(str: string): string {
 
     return result;
 }
+
+/**
+ * Check if query has at least minChars consecutive characters matching in target
+ * @param query Search query (normalized)
+ * @param target Target string to match against (normalized)
+ * @param minChars Minimum consecutive characters required (default: 3)
+ */
+export function hasMinOverlap(query: string, target: string, minChars: number = 3): boolean {
+    if (query.length < minChars || target.length < minChars) {
+        // If query is shorter than minChars, require exact inclusion
+        return query.length > 0 && target.includes(query);
+    }
+
+    // Check if any consecutive substring of query exists in target
+    for (let i = 0; i <= query.length - minChars; i++) {
+        const sub = query.substring(i, i + minChars);
+        if (target.includes(sub)) return true;
+    }
+    return false;
+}
+
+/**
+ * Calculate match score for ranking search results
+ * Higher score = better match
+ */
+export function calculateMatchScore(query: string, name: string, furigana: string): number {
+    const normQuery = query.toLowerCase().replace(/\s+/g, '');
+    const normName = name.toLowerCase().replace(/\s+/g, '');
+    const normFurigana = furigana.toLowerCase().replace(/\s+/g, '');
+
+    let score = 0;
+
+    // Exact match (highest priority)
+    if (normName === normQuery || normFurigana === normQuery) {
+        score += 100;
+    }
+    // Starts with query (high priority)
+    else if (normName.startsWith(normQuery) || normFurigana.startsWith(normQuery)) {
+        score += 80;
+    }
+    // Contains query as substring (medium priority)
+    else if (normName.includes(normQuery) || normFurigana.includes(normQuery)) {
+        score += 60;
+    }
+    // Partial overlap (lower priority)
+    else {
+        // Count overlapping characters
+        const minChars = 3;
+        let maxOverlap = 0;
+        for (let len = Math.min(normQuery.length, normName.length); len >= minChars; len--) {
+            for (let i = 0; i <= normQuery.length - len; i++) {
+                const sub = normQuery.substring(i, i + len);
+                if (normName.includes(sub) || normFurigana.includes(sub)) {
+                    maxOverlap = Math.max(maxOverlap, len);
+                    break;
+                }
+            }
+            if (maxOverlap > 0) break;
+        }
+        score += maxOverlap * 10;
+    }
+
+    return score;
+}

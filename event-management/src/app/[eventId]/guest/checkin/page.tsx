@@ -22,12 +22,16 @@ export default function GuestCheckInPage() {
         const results = findParticipants(searchName, "");
 
         if (results.length === 0) {
-            setErrorMsg("参加者が見つかりませんでした。Peatixユーザー名やメールアドレス検索もお試しください。");
+            setErrorMsg("参加者が見つかりませんでした。恐れ入りますが、受付スタッフにお声がけください。メールアドレス検索もお試しいただけます。");
             return;
         }
 
         setErrorMsg("");
         setCandidates(results);
+        // 結果が多すぎる場合のフラグ
+        if (results.length >= 10) {
+            setErrorMsg("候補が多いため、もう少し詳しく入力いただくか、メールアドレス検索をお試しください。");
+        }
         setStep('select');
     };
 
@@ -144,6 +148,11 @@ export default function GuestCheckInPage() {
                         <p className="text-gray-600">あなたのアカウントを選択してください。</p>
                     </div>
 
+                    {errorMsg && (
+                        <div className="bg-yellow-50 border-2 border-yellow-400 p-3 text-sm text-yellow-800 text-center font-medium">
+                            <AlertCircle className="w-4 h-4 inline mr-1" />{errorMsg}
+                        </div>
+                    )}
                     <div className="space-y-3 max-h-[60vh] overflow-y-auto">
                         {candidates.map(p => (
                             <button
@@ -161,6 +170,10 @@ export default function GuestCheckInPage() {
                                 )}
                             </button>
                         ))}
+                    </div>
+
+                    <div className="bg-gray-100 border-2 border-gray-300 p-3 text-sm text-gray-600 text-center">
+                        お名前が見つからない場合は、<span className="font-bold text-black">受付スタッフ</span>にお声がけください。
                     </div>
 
                     <Button onClick={() => setStep('search')} variant="outline" className="w-full mt-4 border-2 border-black rounded-none">

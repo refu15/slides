@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 import { notifyVipArrival } from '@/lib/notifications';
-import { romajiToHiragana, toKatakana } from './kana';
+import { romajiToHiragana, toKatakana, hasMinOverlap, calculateMatchScore } from './kana';
 
 // --- Types (Matching Server Data Structure) ---
 
@@ -428,24 +428,57 @@ export function DemoProvider({ children, eventId = "" }: { children: ReactNode, 
 
     const findParticipants = (name: string, organization: string, email: string = ""): Participant[] => {
         if (!name && !organization && !email) return [];
+
+        const MAX_RESULTS = 15;
+        const MIN_CHARS = 3;
+
         const normEmail = email.trim().toLowerCase();
         const normName = name.trim().toLowerCase().replace(/\s+/g, '');
         const normNameKana = toKatakana(normName);
         const normNameRomaji = toKatakana(romajiToHiragana(normName));
         const normOrg = organization.trim().toLowerCase().replace(/\s+/g, '');
 
-        return participants.filter(p => {
-            if (normEmail) return p.email.toLowerCase() === normEmail;
+        // Email search: exact match only
+        if (normEmail) {
+            return participants.filter(p => p.email.toLowerCase() === normEmail);
+        }
+
+        // Name/Org fuzzy search with scoring
+        const scoredResults: { participant: Participant; score: number }[] = [];
+
+        for (const p of participants) {
             const pName = p.name.toLowerCase().replace(/\s+/g, '');
             const pKana = (p.furigana || '').toLowerCase().replace(/\s+/g, '');
-            // const pOrg = p.organization.toLowerCase().replace(/\s+/g, '');
+            const pKanaKatakana = toKatakana(pKana);
 
-            let nameMatch = true;
+            let nameMatch = false;
+            let score = 0;
+
             if (normName) {
-                nameMatch = pName.includes(normName) ||
-                    pKana.includes(normName) ||
-                    pKana.includes(normNameKana) ||
-                    pKana.includes(normNameRomaji);
+                // Check various matching conditions
+                const matchTargets = [pName, pKana, pKanaKatakana];
+                const queryVariants = [normName, normNameKana, normNameRomaji];
+
+                for (const target of matchTargets) {
+                    if (!target) continue;
+                    for (const query of queryVariants) {
+                        if (!query) continue;
+
+                        // Exact or substring match
+                        if (target.includes(query) || query.includes(target)) {
+                            nameMatch = true;
+                            score = Math.max(score, calculateMatchScore(query, pName, pKana));
+                        }
+                        // Fuzzy 3-char overlap match
+                        else if (hasMinOverlap(query, target, MIN_CHARS)) {
+                            nameMatch = true;
+                            score = Math.max(score, calculateMatchScore(query, pName, pKana));
+                        }
+                    }
+                }
+            } else {
+                nameMatch = true; // No name filter
+                score = 50;
             }
 
             let orgMatch = true;
@@ -455,8 +488,15 @@ export function DemoProvider({ children, eventId = "" }: { children: ReactNode, 
                 orgMatch = false;
             }
 
-            return nameMatch && orgMatch;
-        });
+            if (nameMatch && orgMatch && score > 0) {
+                scoredResults.push({ participant: p, score });
+            }
+        }
+
+        // Sort by score descending, then limit results
+        scoredResults.sort((a, b) => b.score - a.score);
+
+        return scoredResults.slice(0, MAX_RESULTS).map(r => r.participant);
     };
 
     const addNotificationLog = (data: Omit<NotificationLog, 'id' | 'timestamp'>) => {
