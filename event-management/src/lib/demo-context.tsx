@@ -349,7 +349,12 @@ export function DemoProvider({ children, eventId = "" }: { children: ReactNode, 
             memo
         };
 
-        setCheckInLogs(prev => [...prev, log]);
+        // Create new logs array
+        const newLogs = [...checkInLogs, log];
+        setCheckInLogs(newLogs);
+
+        // Immediate sync to prevent polling overwrite
+        sync({ checkInLogs: newLogs });
 
         // Notify
         if ((!isAlreadyIn || isReentry) && settings.discordWebhookUrl) {
@@ -385,7 +390,11 @@ export function DemoProvider({ children, eventId = "" }: { children: ReactNode, 
             staffName
         };
 
-        setCheckInLogs(prev => [...prev, log]);
+        const newLogs = [...checkInLogs, log];
+        setCheckInLogs(newLogs);
+
+        // Immediate sync
+        sync({ checkInLogs: newLogs });
         return { success: true, message: "Checked Out", participant };
     };
 
