@@ -401,10 +401,28 @@ export default function ParticipantsPage() {
                     {filteredParticipants.length} 名が見つかりました
                 </div>
                 {selectedIds.size > 0 && (
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 flex-wrap">
                         <span className="text-sm font-bold text-red-600">
                             {selectedIds.size}名選択中
                         </span>
+                        <div className="flex items-center gap-2">
+                            <select
+                                className="h-10 px-3 border-2 border-black rounded-none bg-white font-bold text-sm"
+                                defaultValue=""
+                                onChange={(e) => {
+                                    if (e.target.value) {
+                                        selectedIds.forEach(id => updateParticipant(id, { status: e.target.value }));
+                                        setSelectedIds(new Set());
+                                        e.target.value = "";
+                                    }
+                                }}
+                            >
+                                <option value="" disabled>カテゴリ変更...</option>
+                                {categories.map(c => (
+                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                ))}
+                            </select>
+                        </div>
                         <Button
                             onClick={() => setIsBulkDeleteModalOpen(true)}
                             className="h-10 px-4 bg-red-600 hover:bg-red-700 text-white font-bold uppercase text-sm rounded-none"

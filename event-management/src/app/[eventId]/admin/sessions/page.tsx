@@ -97,12 +97,12 @@ export default function SessionsPage() {
 
             {/* Form Modal */}
             {showForm && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white w-full max-w-2xl p-8 border-4 border-black">
-                        <h2 className="text-2xl font-black uppercase mb-6">
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-2 md:p-4">
+                    <div className="bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto p-4 md:p-8 border-4 border-black">
+                        <h2 className="text-xl md:text-2xl font-black uppercase mb-4 md:mb-6">
                             {editingId ? "セッション編集" : "新規セッション"}
                         </h2>
-                        <form onSubmit={handleSubmit} className="space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
                             <div className="space-y-2">
                                 <label className="text-sm font-bold uppercase tracking-widest text-gray-500">
                                     タイトル <span className="text-red-600">*</span>
@@ -124,7 +124,7 @@ export default function SessionsPage() {
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                     placeholder="セッションの概要を入力..."
-                                    rows={3}
+                                    rows={2}
                                     className="w-full p-3 border-2 border-gray-200 focus:border-black focus:outline-none rounded-none resize-none"
                                 />
                             </div>
@@ -141,9 +141,9 @@ export default function SessionsPage() {
                                 />
                             </div>
 
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-2 md:gap-4">
                                 <div className="space-y-2">
-                                    <label className="text-sm font-bold uppercase tracking-widest text-gray-500">
+                                    <label className="text-xs md:text-sm font-bold uppercase tracking-widest text-gray-500">
                                         開始時間
                                     </label>
                                     <Input
@@ -154,7 +154,7 @@ export default function SessionsPage() {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-bold uppercase tracking-widest text-gray-500">
+                                    <label className="text-xs md:text-sm font-bold uppercase tracking-widest text-gray-500">
                                         終了時間
                                     </label>
                                     <Input
@@ -197,18 +197,18 @@ export default function SessionsPage() {
                                 </label>
                             </div>
 
-                            <div className="flex gap-4 pt-4">
+                            <div className="flex flex-col md:flex-row gap-3 md:gap-4 pt-4">
                                 <Button
                                     type="button"
                                     onClick={resetForm}
                                     variant="outline"
-                                    className="flex-1 h-14 border-2 border-gray-200 text-gray-500 font-bold uppercase tracking-widest rounded-none hover:border-black hover:text-black"
+                                    className="h-12 md:h-14 md:flex-1 border-2 border-gray-200 text-gray-500 font-bold uppercase tracking-widest rounded-none hover:border-black hover:text-black"
                                 >
                                     キャンセル
                                 </Button>
                                 <Button
                                     type="submit"
-                                    className="flex-1 h-14 bg-black hover:bg-red-600 text-white font-bold uppercase tracking-widest rounded-none"
+                                    className="h-12 md:h-14 md:flex-1 bg-black hover:bg-red-600 text-white font-bold uppercase tracking-widest rounded-none"
                                 >
                                     {editingId ? "更新" : "登録"}
                                 </Button>
