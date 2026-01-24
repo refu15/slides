@@ -94,7 +94,7 @@ export default function StaffLayout({
                                 href={`/${eventId}/staff/scan`}
                                 className="text-gray-500 hover:text-black font-bold uppercase tracking-widest text-sm transition-colors"
                             >
-                                スキャン
+                                チェックイン
                             </Link>
                             <Link
                                 href={`/event/${eventId}/portal`}
@@ -129,7 +129,7 @@ export default function StaffLayout({
                                 onClick={() => setIsMenuOpen(false)}
                                 className="block px-3 py-4 text-base font-bold text-gray-700 hover:text-black hover:bg-gray-50 uppercase tracking-widest border-b border-gray-100"
                             >
-                                スキャン画面
+                                チェックイン画面
                             </Link>
                             <Link
                                 href={`/event/${eventId}/portal`}
