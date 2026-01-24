@@ -97,7 +97,11 @@ export default function InvitePage() {
 
             // リダイレクト
             setTimeout(() => {
-                router.push(`/${invite.event_id}/admin/dashboard`)
+                if (invite.role === 'staff') {
+                    router.push(`/event/${invite.event_id}/portal`)
+                } else {
+                    router.push(`/${invite.event_id}/admin/dashboard`)
+                }
             }, 2000)
         }
 
