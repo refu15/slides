@@ -285,86 +285,59 @@ export default function CheckInScanner() {
                         </button>
                     </div>
 
-                    {/* Main Input Box */}
-                    <div className={`bg-white border-2 border-black p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all ${mode === 'checkin' ? 'border-l-8 border-l-black' : 'border-r-8 border-r-black'}`}>
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="relative">
-                                <div className="absolute top-0 left-0 text-xs font-bold uppercase tracking-widest text-gray-400">Scanner ID Input</div>
-                                <Input
-                                    value={inputID}
-                                    onChange={(e) => setInputID(e.target.value)}
-                                    className="w-full h-24 text-center text-5xl font-black border-2 border-gray-200 focus:border-black focus:ring-0 focus:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] transition-all mt-4 font-mono uppercase bg-gray-50/50"
-                                    placeholder="ID / QR"
-                                    autoFocus
-                                />
-                            </div>
-
-                            <button
-                                type="submit"
-                                className="w-full bg-black text-white font-black h-16 text-xl hover:bg-gray-900 hover:scale-[1.01] active:scale-95 transition-all uppercase tracking-widest shadow-[4px_4px_0px_0px_rgba(0,0,0,0.3)]"
-                            >
-                                EXECUTE {mode}
-                            </button>
-                        </form>
+                    <div className="hidden">
+                        {/* Scanner input removed as per request */}
                     </div>
 
-                    {/* Manual Search Toggle */}
-                    <div>
-                        <button
-                            onClick={() => setShowSearch(!showSearch)}
-                            className="w-full py-4 border-2 border-dashed border-gray-300 text-gray-400 hover:text-black hover:border-black hover:bg-gray-50 transition-all font-bold uppercase tracking-wider flex items-center justify-center gap-2"
-                        >
-                            <Search className="w-5 h-5" />
-                            <span>Manual Search</span>
-                        </button>
+                    {/* Manual Search (Always Visible) */}
+                    <div className="w-full">
+                        {/* Search Toggle Button Removed */}
+                        <div className="mt-4 bg-white border-2 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate-in slide-in-from-top-2">
+                            <Input
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                placeholder="Search by Name or Organization..."
+                                className="bg-white border-2 border-black h-12 text-lg font-bold mb-4"
+                                autoFocus
+                            />
 
-                        {showSearch && (
-                            <div className="mt-4 bg-white border-2 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] animate-in slide-in-from-top-2">
-                                <Input
-                                    value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
-                                    placeholder="Search by Name or Organization..."
-                                    className="bg-white border-2 border-black h-12 text-lg font-bold mb-4"
-                                />
+                            <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-2">
+                                {searchResults.map(p => {
+                                    const statusInfo = STATUS_CONFIG[p.status || 'general'];
+                                    const isCheckedIn = getCheckInStatus(p.id);
 
-                                <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
-                                    {searchResults.map(p => {
-                                        const statusInfo = STATUS_CONFIG[p.status || 'general'];
-                                        const isCheckedIn = getCheckInStatus(p.id);
-
-                                        return (
-                                            <div
-                                                key={p.id}
-                                                onClick={() => handleAction(p.id)}
-                                                className={`p-3 border-2 cursor-pointer transition-all flex items-center justify-between group ${isCheckedIn
-                                                    ? 'bg-green-50 border-green-500 hover:bg-green-100'
-                                                    : 'bg-white border-gray-200 hover:border-black hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
-                                                    }`}
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div className={`w-8 h-8 flex items-center justify-center border-2 border-black font-bold text-xs ${isCheckedIn ? 'bg-green-500 text-white' : 'bg-gray-100'}`}>
-                                                        {p.name.charAt(0)}
-                                                    </div>
-                                                    <div>
-                                                        <div className="font-bold text-sm">{p.name}</div>
-                                                        <div className="text-xs text-gray-500 font-bold uppercase">{p.organization}</div>
-                                                    </div>
+                                    return (
+                                        <div
+                                            key={p.id}
+                                            onClick={() => handleAction(p.id)}
+                                            className={`p-3 border-2 cursor-pointer transition-all flex items-center justify-between group ${isCheckedIn
+                                                ? 'bg-green-50 border-green-500 hover:bg-green-100'
+                                                : 'bg-white border-gray-200 hover:border-black hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                                                }`}
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <div className={`w-8 h-8 flex items-center justify-center border-2 border-black font-bold text-xs ${isCheckedIn ? 'bg-green-500 text-white' : 'bg-gray-100'}`}>
+                                                    {p.name.charAt(0)}
                                                 </div>
-                                                <div className="flex items-center gap-2">
-                                                    {p.hasAfterParty && <Wine className="w-4 h-4 text-purple-600" />}
-                                                    <span className={`px-2 py-0.5 border ${statusInfo.borderColor} ${statusInfo.bgColor} ${statusInfo.textColor} text-[10px] font-bold uppercase`}>
-                                                        {statusInfo.label}
-                                                    </span>
+                                                <div>
+                                                    <div className="font-bold text-sm">{p.name}</div>
+                                                    <div className="text-xs text-gray-500 font-bold uppercase">{p.organization}</div>
                                                 </div>
                                             </div>
-                                        );
-                                    })}
-                                    {searchQuery && searchResults.length === 0 && (
-                                        <p className="text-gray-400 text-center py-4 font-bold">No participants found</p>
-                                    )}
-                                </div>
+                                            <div className="flex items-center gap-2">
+                                                {p.hasAfterParty && <Wine className="w-4 h-4 text-purple-600" />}
+                                                <span className={`px-2 py-0.5 border ${statusInfo.borderColor} ${statusInfo.bgColor} ${statusInfo.textColor} text-[10px] font-bold uppercase`}>
+                                                    {statusInfo.label}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                                {searchQuery && searchResults.length === 0 && (
+                                    <p className="text-gray-400 text-center py-4 font-bold">No participants found</p>
+                                )}
                             </div>
-                        )}
+                        </div>
                     </div>
                 </div>
 
