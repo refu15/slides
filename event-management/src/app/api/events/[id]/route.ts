@@ -1,13 +1,34 @@
 import { NextResponse } from 'next/server';
-import { getEvent, saveEvent, deleteEvent } from '@/lib/server/db';
+import { createClient } from '@/lib/supabase/server';
 
 export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
-    const event = getEvent(id);
-    if (!event) {
+    const supabase = await createClient();
+
+    // Fetch event data from Supabase
+    const { data, error } = await supabase
+        .from('event_data')
+        .select('*')
+        .eq('event_id', id)
+        .single();
+
+    if (error || !data) {
         return NextResponse.json({ error: "Event not found" }, { status: 404 });
     }
-    return NextResponse.json(event);
+
+    // Transform snake_case to camelCase for frontend compatibility
+    const eventData = {
+        id: id,
+        settings: data.settings || {},
+        venues: data.venues || [],
+        categories: data.categories || [],
+        participants: data.participants || [],
+        checkInLogs: data.check_in_logs || [],
+        sessions: data.sessions || [],
+        notificationLogs: data.notification_logs || [],
+    };
+
+    return NextResponse.json(eventData);
 }
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -20,36 +41,45 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             return NextResponse.json({ error: "ID mismatch" }, { status: 400 });
         }
 
-        const existing = getEvent(id);
-        if (!existing) {
-            return NextResponse.json({ error: "Event not found" }, { status: 404 });
-        }
+        const supabase = await createClient();
 
-        // Merge or Replace? 
-        // For sync simplicity, we'll replace the data structures provided in body
-        // But we preserve the ID and Name unless explicitly changed
-        const updatedEvent = {
-            ...existing,
-            ...body,
-            id: id // Security: preserve ID
+        // Transform camelCase to snake_case for Supabase
+        const updateData: Record<string, unknown> = {
+            event_id: id,
         };
 
-        saveEvent(updatedEvent);
-        return NextResponse.json({ success: true, event: updatedEvent });
+        if (body.settings !== undefined) updateData.settings = body.settings;
+        if (body.venues !== undefined) updateData.venues = body.venues;
+        if (body.categories !== undefined) updateData.categories = body.categories;
+        if (body.participants !== undefined) updateData.participants = body.participants;
+        if (body.checkInLogs !== undefined) updateData.check_in_logs = body.checkInLogs;
+        if (body.sessions !== undefined) updateData.sessions = body.sessions;
+        if (body.notificationLogs !== undefined) updateData.notification_logs = body.notificationLogs;
+        updateData.updated_at = new Date().toISOString();
+
+        // Upsert to Supabase
+        const { error } = await supabase
+            .from('event_data')
+            .upsert(updateData, { onConflict: 'event_id' });
+
+        if (error) {
+            console.error('Sync error:', error);
+            return NextResponse.json({ error: "Sync failed" }, { status: 500 });
+        }
+
+        return NextResponse.json({ success: true });
 
     } catch (e) {
+        console.error('POST error:', e);
         return NextResponse.json({ error: "Sync failed" }, { status: 500 });
     }
 }
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ id: string }> }) {
     const { id } = await params;
-
-    // Supabase RLS will handle permission checks (must be owner)
-    // But we need to call delete on the 'events' table
-    const { createClient } = await import('@/lib/supabase/server');
     const supabase = await createClient();
 
+    // Supabase RLS will handle permission checks (must be owner)
     const { error } = await supabase
         .from('events')
         .delete()
