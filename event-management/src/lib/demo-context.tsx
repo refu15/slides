@@ -125,6 +125,7 @@ type DemoContextType = {
     resetSystem: () => void;
     updateParticipant: (id: string, data: Partial<Participant>) => void;
     deleteParticipant: (id: string) => void;
+    bulkDeleteParticipants: (ids: string[]) => void;
     addSession: (s: Session) => void;
     updateSession: (id: string, data: Partial<Session>) => void;
     deleteSession: (id: string) => void;
@@ -294,6 +295,11 @@ export function DemoProvider({ children, eventId = "" }: { children: ReactNode, 
 
     const deleteParticipant = (id: string) => {
         setParticipants(prev => prev.filter(p => p.id !== id));
+    };
+
+    const bulkDeleteParticipants = (ids: string[]) => {
+        const idSet = new Set(ids);
+        setParticipants(prev => prev.filter(p => !idSet.has(p.id)));
     };
 
     const addCategory = (c: Category) => {
@@ -539,6 +545,7 @@ export function DemoProvider({ children, eventId = "" }: { children: ReactNode, 
             resetSystem,
             updateParticipant,
             deleteParticipant,
+            bulkDeleteParticipants,
             addSession,
             updateSession,
             deleteSession,

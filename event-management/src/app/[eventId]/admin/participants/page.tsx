@@ -7,10 +7,12 @@ import { Input } from "@/components/ui/input";
 import { Search, Plus, Download, Trash2, Check, Users, Wine, Ticket, Settings as SettingsIcon, X, Save, Trash, PlusCircle, Eye } from "lucide-react";
 
 export default function ParticipantsPage() {
-    const { participants, checkInLogs, addParticipant, deleteParticipant, updateParticipant, settings, categories, addCategory, updateCategory, deleteCategory } = useDemo();
+    const { participants, checkInLogs, addParticipant, deleteParticipant, updateParticipant, settings, categories, addCategory, updateCategory, deleteCategory, bulkDeleteParticipants } = useDemo();
     const [searchTerm, setSearchTerm] = useState("");
     const [filterCategory, setFilterCategory] = useState("すべて");
     const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [isBulkDeleteModalOpen, setIsBulkDeleteModalOpen] = useState(false);
 
     // Add New State
     const [isAdding, setIsAdding] = useState(false);
@@ -125,6 +127,39 @@ export default function ParticipantsPage() {
         if (confirm("本当にこの参加者を削除してもよろしいですか？")) {
             deleteParticipant(id);
         }
+    };
+
+    // Bulk selection handlers
+    const toggleSelect = (id: string) => {
+        setSelectedIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
+            return next;
+        });
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedIds.size === filteredParticipants.length) {
+            setSelectedIds(new Set());
+        } else {
+            setSelectedIds(new Set(filteredParticipants.map(p => p.id)));
+        }
+    };
+
+    const handleBulkDelete = () => {
+        if (selectedIds.size === 0) return;
+        if (bulkDeleteParticipants) {
+            bulkDeleteParticipants(Array.from(selectedIds));
+        } else {
+            // Fallback if bulkDeleteParticipants not available
+            selectedIds.forEach(id => deleteParticipant(id));
+        }
+        setSelectedIds(new Set());
+        setIsBulkDeleteModalOpen(false);
     };
 
     const filteredParticipants = participants.filter(p => {
@@ -361,8 +396,24 @@ export default function ParticipantsPage() {
                 </div>
             </div>
 
-            <div className="text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">
-                {filteredParticipants.length} 名が見つかりました
+            <div className="flex items-center justify-between mb-4">
+                <div className="text-sm font-bold text-gray-400 uppercase tracking-widest">
+                    {filteredParticipants.length} 名が見つかりました
+                </div>
+                {selectedIds.size > 0 && (
+                    <div className="flex items-center gap-4">
+                        <span className="text-sm font-bold text-red-600">
+                            {selectedIds.size}名選択中
+                        </span>
+                        <Button
+                            onClick={() => setIsBulkDeleteModalOpen(true)}
+                            className="h-10 px-4 bg-red-600 hover:bg-red-700 text-white font-bold uppercase text-sm rounded-none"
+                        >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            一括削除
+                        </Button>
+                    </div>
+                )}
             </div>
 
             {/* Table */}
@@ -370,6 +421,14 @@ export default function ParticipantsPage() {
                 <table className="w-full text-left border-collapse min-w-[900px]">
                     <thead>
                         <tr className="bg-black text-white">
+                            <th className="p-4 text-center">
+                                <input
+                                    type="checkbox"
+                                    checked={selectedIds.size === filteredParticipants.length && filteredParticipants.length > 0}
+                                    onChange={toggleSelectAll}
+                                    className="w-5 h-5 accent-red-600 cursor-pointer"
+                                />
+                            </th>
                             <th className="p-4 text-sm font-bold uppercase tracking-widest">ID</th>
                             <th className="p-4 text-sm font-bold uppercase tracking-widest">名前 / 所属</th>
                             <th className="p-4 text-sm font-bold uppercase tracking-widest">ステータス</th>
@@ -387,7 +446,7 @@ export default function ParticipantsPage() {
                     <tbody className="divide-y divide-gray-100">
                         {filteredParticipants.length === 0 ? (
                             <tr>
-                                <td colSpan={5 + (settings.enableAfterParty ? 1 : 0) + Object.values(visibleColumns).filter(Boolean).length} className="p-12 text-center text-gray-400 text-xl font-bold uppercase">参加者が見つかりません</td>
+                                <td colSpan={6 + (settings.enableAfterParty ? 1 : 0) + Object.values(visibleColumns).filter(Boolean).length} className="p-12 text-center text-gray-400 text-xl font-bold uppercase">参加者が見つかりません</td>
                             </tr>
                         ) : (
                             filteredParticipants.map((p) => {
@@ -396,7 +455,15 @@ export default function ParticipantsPage() {
                                 const label = cat ? cat.name : (p.status || p.category);
 
                                 return (
-                                    <tr key={p.id} className="group hover:bg-neutral-50 transition-colors">
+                                    <tr key={p.id} className={`group hover:bg-neutral-50 transition-colors ${selectedIds.has(p.id) ? 'bg-red-50' : ''}`}>
+                                        <td className="p-4 text-center">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedIds.has(p.id)}
+                                                onChange={() => toggleSelect(p.id)}
+                                                className="w-5 h-5 accent-red-600 cursor-pointer"
+                                            />
+                                        </td>
                                         <td className="p-4 font-mono font-bold text-gray-400 group-hover:text-black hover:underline cursor-pointer" onClick={() => setEditingParticipant(p)}>{p.id}</td>
                                         <td className="p-4">
                                             <div className="font-bold text-lg text-black cursor-pointer hover:underline" onClick={() => setEditingParticipant(p)}>{p.name}</div>
@@ -639,6 +706,43 @@ export default function ParticipantsPage() {
                                 className="h-12 px-8 bg-black hover:bg-red-600 text-white font-bold uppercase rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
                             >
                                 <Save className="w-5 h-5 mr-2" /> 変更を保存
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Bulk Delete Confirmation Modal */}
+            {isBulkDeleteModalOpen && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
+                    <div className="bg-white p-8 max-w-md w-full border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+                        <div className="text-center mb-6">
+                            <Trash2 className="w-16 h-16 mx-auto text-red-600 mb-4" />
+                            <h3 className="text-2xl font-black uppercase">一括削除の確認</h3>
+                        </div>
+
+                        <div className="bg-red-50 border-2 border-red-600 p-4 mb-6 text-center">
+                            <p className="text-lg font-bold text-red-600">
+                                {selectedIds.size}名の参加者を削除しますか？
+                            </p>
+                            <p className="text-sm text-red-500 mt-2">
+                                この操作は取り消せません。
+                            </p>
+                        </div>
+
+                        <div className="flex gap-4">
+                            <Button
+                                onClick={() => setIsBulkDeleteModalOpen(false)}
+                                variant="outline"
+                                className="flex-1 h-12 border-2 border-black font-bold uppercase rounded-none"
+                            >
+                                キャンセル
+                            </Button>
+                            <Button
+                                onClick={handleBulkDelete}
+                                className="flex-1 h-12 bg-red-600 hover:bg-red-700 text-white font-bold uppercase rounded-none shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-none transition-all"
+                            >
+                                削除する
                             </Button>
                         </div>
                     </div>
