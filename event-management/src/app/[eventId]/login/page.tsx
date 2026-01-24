@@ -45,7 +45,8 @@ export default function LoginPage() {
                         router.push(`/${eventId}/admin/dashboard`);
                         return;
                     } else if (role.role === 'staff') {
-                        router.push(`/${eventId}/staff/scan`);
+                        // User requested to redirect to portal by default
+                        router.push(`/event/${eventId}/portal`);
                         return;
                     }
                 }
@@ -84,7 +85,8 @@ export default function LoginPage() {
         await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: `${window.location.origin}/auth/callback?next=/${eventId}/login`,
+                // Redirect to Portal by default for staff
+                redirectTo: `${window.location.origin}/auth/callback?next=/event/${eventId}/portal`,
             },
         });
     };
