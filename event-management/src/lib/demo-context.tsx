@@ -185,6 +185,9 @@ export function DemoProvider({ children, eventId = "" }: { children: ReactNode, 
     const [sessions, setSessions] = useState<Session[]>([]);
     const [notificationLogs, setNotificationLogs] = useState<NotificationLog[]>([]);
 
+    // Track last local update to prevent polling overwrites
+    const lastLocalUpdate = React.useRef(0);
+
     // --- Sync Logic ---
 
     // Initial Load
@@ -216,6 +219,9 @@ export function DemoProvider({ children, eventId = "" }: { children: ReactNode, 
     useEffect(() => {
         if (!eventId) return;
         const interval = setInterval(() => {
+            // Skip polling if local update happened recently (within 5 seconds)
+            if (Date.now() - lastLocalUpdate.current < 5000) return;
+
             fetch(`/api/events/${eventId}`)
                 .then(res => {
                     if (res.status === 404) return null; // Gracefully handle not found
@@ -224,6 +230,9 @@ export function DemoProvider({ children, eventId = "" }: { children: ReactNode, 
                 })
                 .then(data => {
                     if (data && !data.error) {
+                        // Check again in case update happened during fetch
+                        if (Date.now() - lastLocalUpdate.current < 5000) return;
+
                         // Optimistic merge needed in production, but for simple sync we replace
                         // Note: This might overwrite local pending state in a real heavy app
                         setParticipants(data.participants || []);
@@ -352,6 +361,7 @@ export function DemoProvider({ children, eventId = "" }: { children: ReactNode, 
         // Create new logs array
         const newLogs = [...checkInLogs, log];
         setCheckInLogs(newLogs);
+        lastLocalUpdate.current = Date.now();
 
         // Immediate sync to prevent polling overwrite
         sync({ checkInLogs: newLogs });
@@ -392,6 +402,7 @@ export function DemoProvider({ children, eventId = "" }: { children: ReactNode, 
 
         const newLogs = [...checkInLogs, log];
         setCheckInLogs(newLogs);
+        lastLocalUpdate.current = Date.now();
 
         // Immediate sync
         sync({ checkInLogs: newLogs });
