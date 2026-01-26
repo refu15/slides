@@ -68,18 +68,145 @@ export default function ImportPage() {
     });
 
     const handleFileUpload = useCallback((file: File) => {
+        // First pass: Parse as array of arrays to find the header row
         Papa.parse(file, {
-            header: true,
-            skipEmptyLines: true,
+            header: false,
+            skipEmptyLines: "greedy",
             complete: (results) => {
-                const data = results.data as CsvRow[];
-                const headers = results.meta.fields || [];
-                setCsvData(data);
-                setCsvHeaders(headers);
+                const rawData = results.data as string[][];
 
-                // Auto-detect mapping based on header names
+                // 1. Find the header row
+                let headerRowIndex = -1;
+                let detectedHeaders: string[] = [];
+
+                for (let i = 0; i < Math.min(rawData.length, 20); i++) {
+                    const row = rawData[i];
+                    const rowStr = row.join("").toLowerCase();
+                    // Check for multiple keywords to be sure
+                    if ((rowStr.includes("名前") || rowStr.includes("name")) &&
+                        (rowStr.includes("mail") || rowStr.includes("メール") || rowStr.includes("チケット"))) {
+                        headerRowIndex = i;
+                        detectedHeaders = row.map(cell => cell.trim());
+                        break;
+                    }
+                }
+
+                if (headerRowIndex === -1) {
+                    // Fallback to first row if no header found
+                    headerRowIndex = 0;
+                    detectedHeaders = rawData[0];
+                    console.warn("Could not detect header row, using first row");
+                }
+
+                // 2. Process data rows with hybrid logic
+                const processedRows: CsvRow[] = [];
+
+                // Identify column indices for critical fields
+                const nameIndex = detectedHeaders.findIndex(h => h.includes("名前") || h.toLowerCase().includes("name"));
+
+                for (let i = headerRowIndex + 1; i < rawData.length; i++) {
+                    const row = rawData[i];
+                    if (row.length === 0) continue;
+
+                    let rowObj: CsvRow = {};
+
+                    // Pattern Check: Is first column empty but second column has data? (Pattern B)
+                    // And assume Standard Pattern A has data in first column
+                    const isPatternB = row[0] === "" && row[1] !== "" && row.length > 1;
+
+                    if (isPatternB) {
+                        // Shift processing: 
+                        // Empty Name col (0) -> Ignored
+                        // Actual Name is in col (1)
+                        // We need to map this carefully. 
+                        // If we use the standard headers, we need to map row[1] to "名前" header.
+
+                        // Strategy: Manually construct the object based on detected headers
+                        // We effectively shift the data array left by 1 for this row, OR just map explicitly
+
+                        // Let's look at the CSV structure from the user issue:
+                        // Header: 名前, 表示名, ...
+                        // Pattern B: [empty], [Name], ...
+                        // It seems the columns align from index 1 onwards? No, "チケット名" etc seems to align.
+                        // Let's assume standard Peatix format alignment for subsequent columns.
+
+                        // Re-mapping for Pattern B:
+                        // Header[0] ("名前") <= row[1]
+                        // Header[1] ("表示名") <= row[1] (duplicate name as display name?) or row[2]?
+                        // Looking at the sample:
+                        // 259: ,残間彩香,2025/11/25,参加（リアル）,1
+                        // Header: 名前, 表示名, 申込日, チケット名, 枚数...
+                        // It seems row[1] aligns with "名前"? No, "名前" is index 0.
+                        // So row[1] is "残間彩香". row[2] is date.
+                        // Headers:
+                        // 0: 名前
+                        // 1: 表示名
+                        // 2: 申込日
+                        // 3: チケット名
+                        //
+                        // Data (Pattern B):
+                        // 0: ""
+                        // 1: "残間彩香"
+                        // 2: "2025/11/25"
+                        // 3: "参加（リアル）"
+
+                        // It seems explicitly shifted by 1 OR the "名前" column is empty and "表示名" has the name?
+                        // Actually, looking at line 10 (Standard):
+                        // ソウマ コトコ(0), soma(1), 2025-...(2)
+                        //
+                        // Line 259 (Pattern B):
+                        // [empty](0), 残間彩香(1), 2025/...(2)
+
+                        // So for Pattern B, the Name is in index 1.
+                        // Date is in index 2.
+
+                        // Construction:
+                        detectedHeaders.forEach((header, colIndex) => {
+                            if (colIndex === nameIndex) {
+                                // For name column, take value from current index + 1?
+                                // OR is it that index 1 IS "表示名" header, and we just want to use it as Name?
+                                // Let's populate normally first
+                                rowObj[header] = row[colIndex];
+                            } else {
+                                rowObj[header] = row[colIndex];
+                            }
+                        });
+
+                        // Patching Name:
+                        if (nameIndex !== -1) {
+                            // If name is empty, try taking from col 1 (which aligns with "表示名" usually)
+                            if (!rowObj[detectedHeaders[nameIndex]] && row[nameIndex + 1]) {
+                                rowObj[detectedHeaders[nameIndex]] = row[nameIndex + 1];
+                            }
+                        }
+
+                    } else {
+                        // Standard Pattern A
+                        detectedHeaders.forEach((header, colIndex) => {
+                            rowObj[header] = row[colIndex] || "";
+                        });
+                    }
+
+                    // Filter out rows with absolutely no valid data
+                    if (!rowObj[detectedHeaders[nameIndex]] && !rowObj[detectedHeaders[nameIndex + 1]]) {
+                        // Double check: if name is empty, skip.
+                        // But we just patched it.
+                        continue;
+                    }
+
+                    // Additional Safety: Skip if "名前" column value is literally "名前" (repeated header)
+                    const nameVal = rowObj[detectedHeaders[nameIndex]];
+                    if (nameVal === "名前" || nameVal === "Name") continue;
+
+                    processedRows.push(rowObj);
+                }
+
+                setCsvData(processedRows);
+                setCsvHeaders(detectedHeaders);
+
+                // Init mapping logic (same as before)
                 const newMapping: Record<string, string> = {};
-                headers.forEach(h => {
+                detectedHeaders.forEach(h => {
                     const lower = h.toLowerCase();
                     let field = "ignore";
 
@@ -87,17 +214,26 @@ export default function ImportPage() {
                     else if (lower.includes("ふりがな") || lower.includes("フリガナ")) field = "furigana";
                     else if (lower.includes("mail") || lower.includes("メール")) field = "email";
                     else if (lower.includes("電話") || lower.includes("phone") || lower.includes("tel")) field = "phone";
-                    else if (lower.includes("会社") || lower.includes("組織") || lower.includes("所属") || lower.includes("company")) field = "organization";
+
+                    // Organization: Be strict to avoid "Company Industry" or "Company Position"
+                    else if (lower.includes("会社名") || lower.includes("company name")) field = "organization";
+                    else if (lower.includes("organization") || lower.includes("所属")) field = "organization";
+                    else if (lower.includes("会社") && !lower.includes("業種") && !lower.includes("役職")) field = "organization";
+
                     else if (lower.includes("ステータス") || lower.includes("status") || lower.includes("種別")) field = "status";
                     else if (lower.includes("チケット") || lower.includes("ticket") || lower.includes("参加形態")) field = "ticketType";
                     else if (lower.includes("懇親会") || lower.includes("after") || lower.includes("パーティ")) field = "hasAfterParty";
                     else if (lower.includes("注文") || lower.includes("order") || lower.includes("購入者") || lower.includes("ptx")) field = "ptxOrderKey";
-                    else if (lower.includes("流入") || lower.includes("source") || lower.includes("経路")) field = "source";
+
+                    // Source: Add more keywords
+                    else if (lower.includes("流入") || lower.includes("source") || lower.includes("経路") || lower.includes("申し込み元") || lower.includes("きっかけ") || lower.includes("紹介")) field = "source";
+
                     else if (lower.includes("内訳") || lower.includes("detail") || lower.includes("詳細")) field = "ticketDetails";
                     else if (lower.includes("備考") || lower.includes("note") || lower.includes("メモ")) field = "notes";
 
                     newMapping[h] = field;
                 });
+
                 setMapping(newMapping);
                 setStep("preview");
             },
