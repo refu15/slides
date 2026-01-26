@@ -69,7 +69,11 @@ async function importAttendance() {
         return -1;
     };
 
-    const idxName = findIdx(['名前', 'Name']);
+    const idxDisplayName = findIdx(['表示名', 'Display Name']);
+    const idxNameRaw = findIdx(['名前', 'Name']);
+    // Prefer Display Name (Kanji) if available, otherwise fallback to Name (Kana)
+    const idxName = idxDisplayName > -1 ? idxDisplayName : idxNameRaw;
+
     const idxEmail = findIdx(['メール', 'Email', 'Mail']);
     const idxTicket = findIdx(['チケット', 'Ticket']);
     const idxStatus = findIdx(['ステータス', 'Status']);

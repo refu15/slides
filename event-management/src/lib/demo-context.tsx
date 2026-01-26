@@ -287,40 +287,49 @@ export function DemoProvider({ children, eventId = "" }: { children: ReactNode, 
     const initializeSystem = (data: Partial<Settings> & { venues: Venue[] }) => {
         setSettings(prev => ({ ...prev, ...data, isInitialized: true }));
         setVenues(data.venues);
+        lastLocalUpdate.current = Date.now();
     };
 
     const addParticipant = (p: Participant) => {
         setParticipants(prev => [...prev, { ...p, registeredAt: new Date().toISOString() }]);
+        lastLocalUpdate.current = Date.now();
     };
 
     const bulkAddParticipants = (ps: Participant[]) => {
         const newParticipants = ps.map(p => ({ ...p, registeredAt: new Date().toISOString() }));
         setParticipants(prev => [...prev, ...newParticipants]);
+        lastLocalUpdate.current = Date.now();
     };
 
     const updateParticipant = (id: string, data: Partial<Participant>) => {
         setParticipants(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
+        lastLocalUpdate.current = Date.now();
     };
 
     const deleteParticipant = (id: string) => {
         setParticipants(prev => prev.filter(p => p.id !== id));
+        lastLocalUpdate.current = Date.now();
     };
 
     const bulkDeleteParticipants = (ids: string[]) => {
         const idSet = new Set(ids);
         setParticipants(prev => prev.filter(p => !idSet.has(p.id)));
+        lastLocalUpdate.current = Date.now();
     };
 
     const addCategory = (c: Category) => {
         setCategories(prev => [...prev, c]);
+        lastLocalUpdate.current = Date.now();
     };
 
     const updateCategory = (id: string, data: Partial<Category>) => {
         setCategories(prev => prev.map(c => c.id === id ? { ...c, ...data } : c));
+        lastLocalUpdate.current = Date.now();
     };
 
     const deleteCategory = (id: string) => {
         setCategories(prev => prev.filter(c => c.id !== id));
+        lastLocalUpdate.current = Date.now();
     };
 
     const checkIn = async (userId: string, venueId: string, method: 'qr' | 'manual' | 'self', staffName: string = "", memo?: string) => {
@@ -442,14 +451,17 @@ export function DemoProvider({ children, eventId = "" }: { children: ReactNode, 
 
     const addSession = (s: Session) => {
         setSessions(prev => [...prev, s]);
+        lastLocalUpdate.current = Date.now();
     };
 
     const updateSession = (id: string, data: Partial<Session>) => {
         setSessions(prev => prev.map(s => s.id === id ? { ...s, ...data } : s));
+        lastLocalUpdate.current = Date.now();
     };
 
     const deleteSession = (id: string) => {
         setSessions(prev => prev.filter(s => s.id !== id));
+        lastLocalUpdate.current = Date.now();
     };
 
     const findParticipants = (name: string, organization: string, email: string = ""): Participant[] => {
@@ -532,16 +544,19 @@ export function DemoProvider({ children, eventId = "" }: { children: ReactNode, 
             timestamp: new Date().toISOString()
         };
         setNotificationLogs(prev => [log, ...prev]);
+        lastLocalUpdate.current = Date.now();
     };
 
     // --- Deletion Features ---
     const clearAllParticipants = () => {
         setParticipants([]);
         setCheckInLogs([]);
+        lastLocalUpdate.current = Date.now();
     };
 
     const clearNotificationLogs = () => {
         setNotificationLogs([]);
+        lastLocalUpdate.current = Date.now();
     };
 
     return (
