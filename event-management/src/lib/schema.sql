@@ -43,6 +43,8 @@ create table public.attendees (
   name text not null,
   email text,
   company text,
+  ticket_type text,
+  status text,
   category text check (category in ('general', 'vip')) default 'general',
   notes text,
   registered_at timestamp with time zone default timezone('utc'::text, now()) not null
