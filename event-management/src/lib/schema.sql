@@ -39,7 +39,7 @@ create table public.sub_events (
 -- ATTENDEES
 create table public.attendees (
   id uuid default uuid_generate_v4() primary key,
-  event_id uuid references public.events(id) on delete cascade not null,
+  event_id text references public.events(id) on delete cascade not null,
   name text not null,
   email text,
   company text,
