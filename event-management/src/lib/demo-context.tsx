@@ -49,6 +49,7 @@ export type Participant = {
     notes?: string;
     multiTicketNote?: string;
     multiTicketConfirmed?: boolean;
+    isFlyerDistributed?: boolean;
 };
 
 export type CheckInLog = {

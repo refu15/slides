@@ -22,6 +22,7 @@ export default function ParticipantsPage() {
         phone: false,
         notes: false,
         internalNote: false,
+        isFlyerDistributed: false,
     });
     const [isColumnMenuOpen, setIsColumnMenuOpen] = useState(false);
     const [newP, setNewP] = useState({
@@ -30,7 +31,8 @@ export default function ParticipantsPage() {
         email: "",
         phone: "",
         status: "general" as ParticipantStatus,
-        hasAfterParty: false
+        hasAfterParty: false,
+        isFlyerDistributed: false,
     });
 
     const getStatus = (id: string) => {
@@ -68,7 +70,8 @@ export default function ParticipantsPage() {
         const headers = [
             "ID", "名前", "所属", "ステータス", "流入元", "チケット", "懇親会",
             "Email", "電話番号", "チェックイン", "チェックイン時刻", "チェックアウト時刻",
-            "複数チケット", "確認済み"
+            "Email", "電話番号", "チェックイン", "チェックイン時刻", "チェックアウト時刻",
+            "複数チケット", "確認済み", "チラシ配布"
         ];
         const rows = participants.map(p => {
             const cat = categories.find(c => c.id === p.status) || categories.find(c => c.name === p.status);
@@ -83,7 +86,9 @@ export default function ParticipantsPage() {
                 getCheckInTime(p.id),
                 getCheckOutTime(p.id),
                 p.hasMultipleTickets ? '○' : '',
-                p.multiTicketConfirmed ? '○' : ''
+                p.hasMultipleTickets ? '○' : '',
+                p.multiTicketConfirmed ? '○' : '',
+                p.isFlyerDistributed ? '○' : ''
             ];
         });
         const csvContent = "data:text/csv;charset=utf-8,"
@@ -114,13 +119,14 @@ export default function ParticipantsPage() {
 
             ticketType: 'attendance',
             hasAfterParty: newP.hasAfterParty,
+            isFlyerDistributed: newP.isFlyerDistributed,
             hasMultipleTickets: false,
             confirmationStatus: 'unconfirmed',
             paymentStatus: 'paid',
             source: 'other',  // 手動追加
         } as Participant);
         setIsAdding(false);
-        setNewP({ name: "", organization: "", email: "", phone: "", status: "general", hasAfterParty: false });
+        setNewP({ name: "", organization: "", email: "", phone: "", status: "general", hasAfterParty: false, isFlyerDistributed: false });
     };
 
     const handleDelete = (id: string) => {
@@ -261,6 +267,10 @@ export default function ParticipantsPage() {
                                             <input type="checkbox" checked={visibleColumns.internalNote} onChange={() => setVisibleColumns(prev => ({ ...prev, internalNote: !prev.internalNote }))} className="w-4 h-4 accent-black" />
                                             <span className="text-sm font-bold">内部メモ</span>
                                         </label>
+                                        <label className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1">
+                                            <input type="checkbox" checked={visibleColumns.isFlyerDistributed} onChange={() => setVisibleColumns(prev => ({ ...prev, isFlyerDistributed: !prev.isFlyerDistributed }))} className="w-4 h-4 accent-black" />
+                                            <span className="text-sm font-bold">チラシ配布</span>
+                                        </label>
                                     </div>
                                 </div>
                             </>
@@ -366,6 +376,16 @@ export default function ParticipantsPage() {
                         ) : (
                             <div></div> // Spacer
                         )}
+                        <div className="flex items-center gap-2">
+                            <input
+                                type="checkbox"
+                                id="flyerDist"
+                                checked={newP.isFlyerDistributed}
+                                onChange={e => setNewP({ ...newP, isFlyerDistributed: e.target.checked })}
+                                className="w-5 h-5 accent-blue-600"
+                            />
+                            <label htmlFor="flyerDist" className="text-sm font-bold">チラシ配布</label>
+                        </div>
                         <Button onClick={handleSaveNew} className="bg-black text-white hover:bg-red-600 rounded-none font-bold uppercase">保存</Button>
                     </div>
                 </div>
@@ -454,6 +474,7 @@ export default function ParticipantsPage() {
                             {visibleColumns.phone && <th className="p-4 text-sm font-bold uppercase tracking-widest">電話番号</th>}
                             {visibleColumns.notes && <th className="p-4 text-sm font-bold uppercase tracking-widest">備考</th>}
                             {visibleColumns.internalNote && <th className="p-4 text-sm font-bold uppercase tracking-widest">内部メモ</th>}
+                            {visibleColumns.isFlyerDistributed && <th className="p-4 text-sm font-bold uppercase tracking-widest">チラシ</th>}
                             {settings.enableAfterParty && (
                                 <th className="p-4 text-sm font-bold uppercase tracking-widest text-center">懇親会</th>
                             )}
@@ -517,6 +538,11 @@ export default function ParticipantsPage() {
                                         {visibleColumns.phone && <td className="p-4 text-sm">{p.phone}</td>}
                                         {visibleColumns.notes && <td className="p-4 text-sm max-w-xs truncate" title={p.notes || ""}>{p.notes}</td>}
                                         {visibleColumns.internalNote && <td className="p-4 text-sm max-w-xs truncate" title={p.multiTicketNote || ""}>{p.multiTicketNote}</td>}
+                                        {visibleColumns.isFlyerDistributed && (
+                                            <td className="p-4 text-center">
+                                                {p.isFlyerDistributed ? <span className="text-blue-600 font-bold">○</span> : <span className="text-gray-300">-</span>}
+                                            </td>
+                                        )}
                                         {settings.enableAfterParty && (
                                             <td className="p-4 text-center">
                                                 {p.hasAfterParty ? (
@@ -682,6 +708,15 @@ export default function ParticipantsPage() {
                                             className="w-5 h-5 accent-green-600"
                                         />
                                         <span className="font-bold">譲渡確認済み</span>
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={editingParticipant.isFlyerDistributed || false}
+                                            onChange={e => editingParticipant && setEditingParticipant({ ...editingParticipant, isFlyerDistributed: e.target.checked })}
+                                            className="w-5 h-5 accent-blue-600"
+                                        />
+                                        <span className="font-bold">チラシ配布対象</span>
                                     </label>
                                 </div>
 

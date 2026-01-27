@@ -24,6 +24,7 @@ const SYSTEM_FIELDS: Record<string, string> = {
     ptxOrderKey: "PTX注文キー",
     source: "流入元",
     ticketDetails: "チケット内訳",
+    isFlyerDistributed: "チラシ配布",
     notes: "備考 (Notes)",
 };
 
@@ -229,6 +230,7 @@ export default function ImportPage() {
                     else if (lower.includes("流入") || lower.includes("source") || lower.includes("経路") || lower.includes("申し込み元") || lower.includes("きっかけ") || lower.includes("紹介")) field = "source";
 
                     else if (lower.includes("内訳") || lower.includes("detail") || lower.includes("詳細")) field = "ticketDetails";
+                    else if (lower.includes("チラシ") || lower.includes("flyer") || lower.includes("distribution") || lower.includes("配布")) field = "isFlyerDistributed";
                     else if (lower.includes("備考") || lower.includes("note") || lower.includes("メモ")) field = "notes";
 
                     newMapping[h] = field;
@@ -312,6 +314,7 @@ export default function ImportPage() {
                 const afterPartyValue = getValue(row, "hasAfterParty");
                 const ticketDetailsValue = getValue(row, "ticketDetails");
                 const sourceValue = getValue(row, "source");
+                const flyerValue = getValue(row, "isFlyerDistributed");
 
                 // --- カテゴリ決定ロジック ---
                 // Fallback to a default object if categories is empty to prevent crash
@@ -441,6 +444,7 @@ export default function ImportPage() {
                     source,
                     ptxOrderKey: row[mapping.ptxOrderKey] || undefined,
                     notes: notes || undefined,
+                    isFlyerDistributed: (flyerValue === "1" || flyerValue.toLowerCase() === "true" || flyerValue.includes("あり") || flyerValue.includes("○") || flyerValue.toLowerCase() === "yes" || flyerValue.toLowerCase() === "on"),
                 };
             });
 
