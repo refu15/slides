@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ALNO-AI Slides</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Noto Sans JP', sans-serif;
+      background: #0a1628;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+    }
+    .logo {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: .2em;
+      color: #00BCD4;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: clamp(28px, 5vw, 48px);
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .sub {
+      font-size: 16px;
+      color: rgba(255,255,255,.5);
+      margin-bottom: 64px;
+    }
+    .decks {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+      width: 100%;
+      max-width: 900px;
+    }
+    a.deck-card {
+      display: block;
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 16px;
+      padding: 36px 32px;
+      text-decoration: none;
+      color: inherit;
+      transition: background .2s, border-color .2s, transform .2s;
+    }
+    a.deck-card:hover {
+      background: rgba(0,188,212,.1);
+      border-color: #00BCD4;
+      transform: translateY(-4px);
+    }
+    .deck-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      color: #00BCD4;
+      background: rgba(0,188,212,.15);
+      border-radius: 4px;
+      padding: 3px 10px;
+      margin-bottom: 16px;
+    }
+    .deck-title {
+      font-size: 22px;
+      font-weight: 700;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+    .deck-desc {
+      font-size: 14px;
+      color: rgba(255,255,255,.55);
+      line-height: 1.7;
+    }
+    .deck-meta {
+      margin-top: 24px;
+      font-size: 13px;
+      color: rgba(255,255,255,.35);
+      display: flex;
+      gap: 16px;
+    }
+    .deck-meta span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .arrow {
+      margin-top: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #00BCD4;
+    }
+    footer {
+      margin-top: 64px;
+      font-size: 12px;
+      color: rgba(255,255,255,.2);
+    }
+  </style>
+</head>
+<body>
+  <div class="logo">ALNO-AI</div>
+  <h1>Slides</h1>
+  <p class="sub">プレゼンテーション一覧</p>
+
+  <div class="decks">
+
+    <a class="deck-card" href="decks/mitsumori-teian.html">
+      <div class="deck-tag">提案資料</div>
+      <div class="deck-title">Webサイト制作 提案書</div>
+      <div class="deck-desc">
+        情報整理・見やすさ・費用対効果のバランスが最も良い<br>
+        「標準プラン（330,000円・税別）」をご提案する資料です。
+      </div>
+      <div class="deck-meta">
+        <span>📄 38スライド</span>
+        <span>🎨 3プラン比較</span>
+        <span>📅 2026.03</span>
+      </div>
+      <div class="arrow">スライドを開く →</div>
+    </a>
+
+    <a class="deck-card" href="demo.html">
+      <div class="deck-tag">デザインシステム</div>
+      <div class="deck-title">CSS デザインシステム デモ</div>
+      <div class="deck-desc">
+        17種類のスライドタイプ・11種類の図解パターンを網羅した<br>
+        ALNO-AI スライドエンジンのデモンストレーション。
+      </div>
+      <div class="deck-meta">
+        <span>📄 23スライド</span>
+        <span>🧩 全パターン収録</span>
+      </div>
+      <div class="arrow">スライドを開く →</div>
+    </a>
+
+  </div>
+
+  <footer>© ALNO-AI — Built with CSS Slide Design System</footer>
+</body>
+</html>
