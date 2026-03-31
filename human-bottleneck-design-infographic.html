@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=640,height=1600">
+<title>Claude Code時代の「人間ボトルネック」図解</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    font-family: 'Noto Sans JP', sans-serif;
+    background: #f5f5f5;
+  }
+
+  #slide {
+    width: 640px;
+    height: 1600px;
+    overflow: hidden;
+    background: #fff;
+    color: #111;
+    position: relative;
+    padding: 48px 40px;
+  }
+
+  .accent-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 6px;
+    height: 100%;
+    background: #2563eb;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 32px;
+    padding-bottom: 24px;
+    border-bottom: 2px solid #111;
+  }
+
+  .header .tag {
+    font-size: 11px;
+    font-weight: 700;
+    color: #2563eb;
+    letter-spacing: 4px;
+    margin-bottom: 12px;
+  }
+
+  .header h1 {
+    font-size: 24px;
+    font-weight: 900;
+    line-height: 1.6;
+    color: #111;
+  }
+
+  .header h1 .accent { color: #2563eb; }
+
+  /* Problem section */
+  .problem {
+    background: #f8f8f8;
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 28px;
+  }
+
+  .problem .label {
+    font-size: 11px;
+    font-weight: 700;
+    color: #999;
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+  }
+
+  .problem .vs {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .problem .box {
+    flex: 1;
+    text-align: center;
+    padding: 14px 8px;
+    border-radius: 6px;
+  }
+
+  .problem .box.ai {
+    background: #111;
+    color: #fff;
+  }
+
+  .problem .box.human {
+    background: #fff;
+    border: 2px solid #ddd;
+    color: #111;
+  }
+
+  .problem .box .name {
+    font-size: 13px;
+    font-weight: 900;
+    margin-bottom: 4px;
+  }
+
+  .problem .box .desc {
+    font-size: 11px;
+    color: inherit;
+    opacity: 0.7;
+    line-height: 1.5;
+  }
+
+  .problem .vs-mark {
+    font-size: 16px;
+    font-weight: 900;
+    color: #ccc;
+    flex-shrink: 0;
+  }
+
+  .problem .result {
+    text-align: center;
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #2563eb;
+  }
+
+  /* Arrow connector */
+  .arrow {
+    text-align: center;
+    font-size: 20px;
+    color: #ccc;
+    margin: 4px 0;
+  }
+
+  /* 5 Steps */
+  .steps-title {
+    font-size: 14px;
+    font-weight: 900;
+    color: #111;
+    text-align: center;
+    margin-bottom: 16px;
+    letter-spacing: 1px;
+  }
+
+  .step {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 14px;
+    align-items: flex-start;
+  }
+
+  .step .num {
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #111;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 900;
+    border-radius: 4px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .step .step-content {
+    flex: 1;
+  }
+
+  .step .step-title {
+    font-size: 14px;
+    font-weight: 900;
+    color: #111;
+    margin-bottom: 3px;
+  }
+
+  .step .step-action {
+    font-size: 12px;
+    font-weight: 700;
+    color: #2563eb;
+    margin-bottom: 2px;
+  }
+
+  .step .step-desc {
+    font-size: 11px;
+    color: #888;
+    line-height: 1.5;
+  }
+
+  /* 3 Phases */
+  .section-title {
+    font-size: 13px;
+    font-weight: 900;
+    color: #111;
+    text-align: center;
+    margin: 24px 0 14px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    letter-spacing: 1px;
+  }
+
+  .phases {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  .phase {
+    flex: 1;
+    background: #f8f8f8;
+    border-radius: 6px;
+    padding: 14px 12px;
+    text-align: center;
+  }
+
+  .phase .phase-num {
+    font-size: 11px;
+    font-weight: 900;
+    color: #2563eb;
+    margin-bottom: 4px;
+  }
+
+  .phase .phase-name {
+    font-size: 15px;
+    font-weight: 900;
+    color: #111;
+    margin-bottom: 6px;
+  }
+
+  .phase .phase-desc {
+    font-size: 10px;
+    color: #888;
+    line-height: 1.6;
+  }
+
+  .phase-arrow {
+    display: flex;
+    justify-content: center;
+    gap: 0;
+    margin: -4px 0 8px;
+  }
+
+  .phase-arrow span {
+    font-size: 14px;
+    color: #ccc;
+  }
+
+  /* 3 Review Points */
+  .review-points {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .review-point {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f8f8f8;
+    border-radius: 6px;
+    padding: 12px 16px;
+    border-left: 3px solid #2563eb;
+  }
+
+  .review-point .rp-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .review-point .rp-text {
+    flex: 1;
+  }
+
+  .review-point .rp-title {
+    font-size: 13px;
+    font-weight: 900;
+    color: #111;
+  }
+
+  .review-point .rp-desc {
+    font-size: 10px;
+    color: #888;
+    line-height: 1.5;
+  }
+
+  /* Conclusion */
+  .conclusion {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 2px solid #111;
+    text-align: center;
+  }
+
+  .conclusion .main {
+    font-size: 16px;
+    font-weight: 900;
+    color: #111;
+    line-height: 1.8;
+    margin-bottom: 8px;
+  }
+
+  .conclusion .main .accent { color: #2563eb; }
+
+  .conclusion .sub {
+    font-size: 11px;
+    color: #999;
+    letter-spacing: 1px;
+  }
+
+  .footer {
+    position: absolute;
+    bottom: 24px;
+    right: 32px;
+    font-size: 12px;
+    color: #ccc;
+    letter-spacing: 1px;
+  }
+
+  .dl-btn {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 100;
+    background: #111;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-family: 'Noto Sans JP', sans-serif;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+  .dl-btn:hover { background: #333; }
+  @media print { .dl-btn { display: none; } }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+  <button class="dl-btn" onclick="downloadSlide()">PNG Download</button>
+
+  <div id="slide">
+    <div class="accent-bar"></div>
+
+    <!-- Header -->
+    <div class="header">
+      <div class="tag">INFOGRAPHIC</div>
+      <h1>Claude Code時代の<span class="accent">「人間ボトルネック」</span><br>を設計で潰す</h1>
+    </div>
+
+    <!-- Problem -->
+    <div class="problem">
+      <div class="label">PROBLEM</div>
+      <div class="vs">
+        <div class="box ai">
+          <div class="name">AI</div>
+          <div class="desc">並列処理 / 24h稼働<br>高速出力 / 疲れない</div>
+        </div>
+        <div class="vs-mark">vs</div>
+        <div class="box human">
+          <div class="name">Human</div>
+          <div class="desc">直列処理 / 疲れる<br>判断に限界 / 精度低下</div>
+        </div>
+      </div>
+      <div class="result">レビュー・判断・承認が人間に集中し、全体が詰まる</div>
+    </div>
+
+    <div class="arrow">▼</div>
+
+    <!-- 5 Steps -->
+    <div class="steps-title">Elon Musk's 5 Steps で再設計</div>
+
+    <div class="step">
+      <div class="num">1</div>
+      <div class="step-content">
+        <div class="step-title">要件を疑え</div>
+        <div class="step-action">そのレビュー、人間が必要か？</div>
+        <div class="step-desc">lint / type check / test / format は機械で十分</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">2</div>
+      <div class="step-content">
+        <div class="step-title">削除する</div>
+        <div class="step-action">混在タスク・曖昧ルール・過剰確認を削る</div>
+        <div class="step-desc">調査と実装を分離。1タスク1目的に絞る</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">3</div>
+      <div class="step-content">
+        <div class="step-title">最適化する</div>
+        <div class="step-action">人間が見る場所を3点に限定</div>
+        <div class="step-desc">目的通りか / 危険な副作用 / この差分で十分か</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">4</div>
+      <div class="step-content">
+        <div class="step-title">加速する</div>
+        <div class="step-action">人間を速くするのではなく、1回の判断コストを下げる</div>
+        <div class="step-desc">差分を小さく / 報告を定型化 / 危険変更だけアラート</div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">5</div>
+      <div class="step-content">
+        <div class="step-title">自動化する</div>
+        <div class="step-action">形式確認と危険検知だけを最後に機械へ</div>
+        <div class="step-desc">不要な運用を自動化しても無駄が速くなるだけ</div>
+      </div>
+    </div>
+
+    <!-- 3 Phases -->
+    <div class="section-title">タスクの3フェーズ分離</div>
+
+    <div class="phases">
+      <div class="phase">
+        <div class="phase-num">PHASE 1</div>
+        <div class="phase-name">Understand</div>
+        <div class="phase-desc">目的の再定義<br>変更範囲の整理<br>リスク洗い出し</div>
+      </div>
+      <div class="phase">
+        <div class="phase-num">PHASE 2</div>
+        <div class="phase-name">Build</div>
+        <div class="phase-desc">合意した範囲だけ<br>1タスク1目的<br>勝手に広げない</div>
+      </div>
+      <div class="phase">
+        <div class="phase-num">PHASE 3</div>
+        <div class="phase-name">Check</div>
+        <div class="phase-desc">変更理由<br>テスト結果<br>人間確認3点</div>
+      </div>
+    </div>
+
+    <!-- Human Review 3 Points -->
+    <div class="section-title">人間が見るのはこの3点だけ</div>
+
+    <div class="review-points">
+      <div class="review-point">
+        <div class="rp-icon">&#9312;</div>
+        <div class="rp-text">
+          <div class="rp-title">目的通りか</div>
+          <div class="rp-desc">依頼と違う方向に進んでいないか</div>
+        </div>
+      </div>
+      <div class="review-point">
+        <div class="rp-icon">&#9313;</div>
+        <div class="rp-text">
+          <div class="rp-title">危険な副作用はないか</div>
+          <div class="rp-desc">影響範囲の拡大・本番影響・データ影響</div>
+        </div>
+      </div>
+      <div class="review-point">
+        <div class="rp-icon">&#9314;</div>
+        <div class="rp-text">
+          <div class="rp-title">この差分で十分か</div>
+          <div class="rp-desc">不足・過剰がないか（仕様とビジネスの接点）</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conclusion -->
+    <div class="conclusion">
+      <div class="main">人間を速くするのではなく<br><span class="accent">人間が通る場所を減らす</span></div>
+      <div class="sub">ツール論ではなく、業務設計の問題である</div>
+    </div>
+
+    <div class="footer">2026.03</div>
+  </div>
+
+  <script>
+  function downloadSlide() {
+    var btn = document.querySelector('.dl-btn');
+    btn.style.display = 'none';
+    html2canvas(document.getElementById('slide'), {
+      width: 640, height: 1600, scale: 2, useCORS: true
+    }).then(function(canvas) {
+      var a = document.createElement('a');
+      a.download = 'human-bottleneck-design-infographic.png';
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+      btn.style.display = '';
+    });
+  }
+  </script>
+</body>
+</html>
