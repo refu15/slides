@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>お問い合わせ | 公益財団法人 未来教育研究所</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+JP:wght@300;400;500;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a href="index.html" class="logo"><span class="logo-sub">公益財団法人</span><span class="logo-main">未来教育研究所</span></a>
+    <button class="hamburger" aria-label="メニュー" onclick="document.body.classList.toggle('nav-open')"><span></span><span></span><span></span></button>
+    <nav class="gnav"><ul>
+      <li><a href="about.html">財団について</a></li>
+      <li><a href="projects.html">事業内容</a></li>
+      <li><a href="research.html">研究活動</a></li>
+      <li><a href="news.html">ニュース</a></li>
+      <li><a href="contact.html" class="btn-contact">お問い合わせ</a></li>
+    </ul></nav>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="container">
+    <span class="page-en">Contact</span>
+    <h1>お問い合わせ</h1>
+  </div>
+</section>
+
+<div class="container">
+  <section class="content-section">
+    <p style="text-align:center; margin-bottom:40px;">下記フォームよりお気軽にお問い合わせください。<br><span style="font-size:13px;color:var(--text-light);">※は必須項目です</span></p>
+
+    <form style="max-width:640px; margin:0 auto;">
+      <div class="form-group">
+        <label>お名前 <span class="required">※</span></label>
+        <input type="text" placeholder="山田 太郎" required>
+      </div>
+      <div class="form-group">
+        <label>ご所属</label>
+        <input type="text" placeholder="○○大学 / ○○株式会社">
+      </div>
+      <div class="form-group">
+        <label>メールアドレス <span class="required">※</span></label>
+        <input type="email" placeholder="example@email.com" required>
+      </div>
+      <div class="form-group">
+        <label>電話番号</label>
+        <input type="tel" placeholder="078-000-0000">
+      </div>
+      <div class="form-group">
+        <label>お問い合わせ種別</label>
+        <select>
+          <option value="">選択してください</option>
+          <option>教育経営アカデミーについて</option>
+          <option>研究助成について</option>
+          <option>講演会・セミナーについて</option>
+          <option>刊行物について</option>
+          <option>取材・メディア関連</option>
+          <option>その他</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>お問い合わせ内容 <span class="required">※</span></label>
+        <textarea placeholder="お問い合わせ内容をご記入ください" required></textarea>
+      </div>
+      <div style="text-align:center; margin-top:32px;">
+        <button type="submit" class="btn-submit">送信する</button>
+      </div>
+    </form>
+
+    <div style="max-width:640px; margin:48px auto 0; padding-top:32px; border-top:1px solid var(--border);">
+      <h3 style="font-family:var(--font-serif); font-size:18px; color:var(--primary); margin-bottom:16px;">お電話でのお問い合わせ</h3>
+      <p style="font-size:24px; font-family:var(--font-en); font-weight:700; color:var(--primary); margin-bottom:4px;">
+        <a href="tel:0789548222">078-954-8222</a>
+      </p>
+      <p style="font-size:13px; color:var(--text-light);">受付時間: 平日 9:00〜17:00（土日祝除く）</p>
+      <p style="margin-top:8px; font-size:14px;">メール: <a href="mailto:info@mirai-kyoiku.or.jp" style="color:var(--primary);">info@mirai-kyoiku.or.jp</a></p>
+    </div>
+  </section>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-logo"><span class="logo-sub">公益財団法人</span><span class="logo-main">未来教育研究所</span></div>
+    <nav class="footer-nav">
+      <ul><li><a href="about.html">財団について</a></li><li><a href="projects.html">事業内容</a></li><li><a href="research.html">研究活動</a></li><li><a href="news.html">ニュース</a></li><li><a href="contact.html">お問い合わせ</a></li></ul>
+      <ul class="footer-sub"><li><a href="#">個人情報保護方針</a></li><li><a href="#">サイトポリシー</a></li><li><a href="#">採用情報</a></li></ul>
+    </nav>
+    <p class="copyright">© 公益財団法人 未来教育研究所 All Rights Reserved.</p>
+  </div>
+</footer>
+
+</body>
+</html>
