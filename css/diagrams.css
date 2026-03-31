@@ -1,0 +1,550 @@
+/* ============================================================
+   DIAGRAM PATTERNS — 11 Visual Components
+   ============================================================ */
+
+/* ============================================
+   1. PROCESS FLOW (horizontal steps with arrows)
+   ============================================ */
+.dia-flow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  flex: 1;
+}
+.dia-flow-step {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--sp-sm);
+  position: relative;
+  padding: 0 var(--sp-sm);
+}
+.dia-flow-step::after {
+  content: '';
+  position: absolute;
+  right: -12px;
+  top: 24px;
+  width: 24px;
+  height: 24px;
+  border-right: 3px solid var(--c-accent);
+  border-bottom: 3px solid var(--c-accent);
+  transform: rotate(-45deg);
+}
+.dia-flow-step:last-child::after { display: none; }
+
+.dia-flow-icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--grad-accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-bold);
+  flex-shrink: 0;
+}
+.dia-flow-title {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+}
+.dia-flow-body {
+  font-size: var(--fs-caption);
+  color: var(--c-text-secondary);
+  line-height: var(--lh-normal);
+}
+
+/* Variant: vertical flow */
+.dia-flow.vertical {
+  flex-direction: column;
+  align-items: stretch;
+}
+.dia-flow.vertical .dia-flow-step {
+  flex-direction: row;
+  text-align: left;
+  align-items: flex-start;
+}
+.dia-flow.vertical .dia-flow-step::after {
+  right: auto;
+  bottom: -12px;
+  top: auto;
+  left: 32px;
+  transform: rotate(45deg);
+}
+
+/* ============================================
+   2. TIMELINE (horizontal bar with phases)
+   ============================================ */
+.dia-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-lg);
+  flex: 1;
+}
+.dia-timeline-bar {
+  display: flex;
+  position: relative;
+  height: 6px;
+  background: var(--c-border);
+  border-radius: 3px;
+  margin: var(--sp-lg) 0;
+}
+.dia-timeline-bar::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--grad-accent);
+  border-radius: 3px;
+  width: var(--progress, 100%);
+}
+.dia-timeline-phases {
+  display: flex;
+  gap: 0;
+}
+.dia-timeline-phase {
+  flex: 1;
+  text-align: center;
+  position: relative;
+}
+.dia-timeline-phase::before {
+  content: '';
+  position: absolute;
+  top: -28px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--c-accent);
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 2px var(--c-accent);
+}
+.dia-timeline-label {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+  color: var(--c-primary);
+  margin-bottom: var(--sp-xs);
+}
+.dia-timeline-detail {
+  font-size: var(--fs-caption);
+  color: var(--c-text-secondary);
+  line-height: var(--lh-normal);
+}
+
+/* ============================================
+   3. STEPPED BARS (ascending / Gantt-like)
+   ============================================ */
+.dia-stepped {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--sp-sm);
+  flex: 1;
+  padding-top: var(--sp-xl);
+}
+.dia-stepped-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+.dia-stepped-period {
+  font-size: var(--fs-body-sm);
+  font-weight: var(--fw-bold);
+  text-align: center;
+}
+.dia-stepped-block {
+  background: var(--c-primary);
+  color: #fff;
+  border-radius: var(--r-md);
+  padding: var(--sp-sm) var(--sp-md);
+  text-align: center;
+  font-weight: var(--fw-semi);
+  font-size: var(--fs-body-sm);
+}
+.dia-stepped-bar:nth-child(1) .dia-stepped-block { min-height: 80px; opacity: 0.6; }
+.dia-stepped-bar:nth-child(2) .dia-stepped-block { min-height: 120px; opacity: 0.8; }
+.dia-stepped-bar:nth-child(3) .dia-stepped-block { min-height: 160px; opacity: 1.0; }
+.dia-stepped-bar:nth-child(4) .dia-stepped-block { min-height: 200px; }
+
+.dia-stepped-details {
+  font-size: var(--fs-caption);
+  color: var(--c-text-secondary);
+  line-height: var(--lh-normal);
+}
+
+/* ============================================
+   4. PYRAMID / FUNNEL
+   ============================================ */
+.dia-pyramid {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  justify-content: center;
+}
+.dia-pyramid-level {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-lg);
+  width: 100%;
+  max-width: 1200px;
+}
+.dia-pyramid-shape {
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-body-sm);
+  border-radius: var(--r-sm);
+  padding: 0 var(--sp-md);
+  text-align: center;
+  flex-shrink: 0;
+}
+/* Narrower at top, wider at bottom */
+.dia-pyramid-level:nth-child(1) .dia-pyramid-shape { width: 280px; background: var(--c-primary-dark); }
+.dia-pyramid-level:nth-child(2) .dia-pyramid-shape { width: 420px; background: var(--c-primary); }
+.dia-pyramid-level:nth-child(3) .dia-pyramid-shape { width: 560px; background: var(--c-primary-light); }
+.dia-pyramid-level:nth-child(4) .dia-pyramid-shape { width: 700px; background: var(--c-secondary); }
+.dia-pyramid-level:nth-child(5) .dia-pyramid-shape { width: 840px; background: var(--c-accent); }
+
+.dia-pyramid-desc {
+  font-size: var(--fs-body-sm);
+  color: var(--c-text-secondary);
+  line-height: var(--lh-normal);
+  flex: 1;
+}
+
+/* ============================================
+   5. ORG CHART
+   ============================================ */
+.dia-org {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-lg);
+  flex: 1;
+  justify-content: center;
+}
+.dia-org-node {
+  background: var(--c-bg-card);
+  border: 2px solid var(--c-border);
+  border-radius: var(--r-md);
+  padding: 12px 28px;
+  font-weight: var(--fw-semi);
+  font-size: var(--fs-body-sm);
+  text-align: center;
+  position: relative;
+}
+.dia-org-node.highlight {
+  background: var(--c-primary);
+  color: #fff;
+  border-color: var(--c-primary);
+}
+.dia-org-node.accent {
+  border-color: var(--c-accent);
+  background: rgba(0,188,212,0.08);
+}
+.dia-org-row {
+  display: flex;
+  gap: var(--sp-lg);
+  align-items: flex-start;
+  justify-content: center;
+}
+.dia-org-connector {
+  width: 2px;
+  height: 24px;
+  background: var(--c-border);
+  margin: 0 auto;
+}
+.dia-org-hline {
+  height: 2px;
+  background: var(--c-border);
+  align-self: stretch;
+  margin: 0 var(--sp-xl);
+}
+
+/* ============================================
+   6. MATRIX / QUADRANT (2x2)
+   ============================================ */
+.dia-matrix {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: var(--sp-md);
+  flex: 1;
+}
+.dia-matrix-cell {
+  background: var(--c-bg-card);
+  border-radius: var(--r-lg);
+  padding: var(--sp-lg);
+  border: 1px solid var(--c-border-light);
+}
+.dia-matrix-cell-title {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-bold);
+  color: var(--c-primary);
+  margin-bottom: var(--sp-sm);
+  padding-bottom: var(--sp-xs);
+  border-bottom: 2px solid var(--c-accent);
+}
+.dia-matrix-cell-body {
+  font-size: var(--fs-body-sm);
+  color: var(--c-text-secondary);
+  line-height: var(--lh-normal);
+}
+
+/* ============================================
+   7. ICON ROW (A-E style with circles)
+   ============================================ */
+.dia-icons {
+  display: flex;
+  gap: var(--sp-md);
+  flex: 1;
+  align-items: flex-start;
+}
+.dia-icon-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--sp-sm);
+}
+.dia-icon-circle {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-bold);
+  color: #fff;
+  flex-shrink: 0;
+  position: relative;
+}
+/* Circular progress ring effect */
+.dia-icon-circle::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 4px solid var(--c-border-light);
+  border-top-color: var(--c-accent);
+  border-right-color: var(--c-accent);
+}
+.dia-icon-circle.a { background: var(--c-primary); }
+.dia-icon-circle.b { background: var(--c-secondary); }
+.dia-icon-circle.c { background: var(--c-accent); }
+.dia-icon-circle.d { background: #5C6BC0; }
+.dia-icon-circle.e { background: #7E57C2; }
+
+.dia-icon-title {
+  font-size: var(--fs-body-sm);
+  font-weight: var(--fw-bold);
+}
+.dia-icon-body {
+  font-size: var(--fs-caption);
+  color: var(--c-text-secondary);
+  line-height: var(--lh-normal);
+}
+
+/* ============================================
+   8. CONCENTRIC CIRCLES
+   ============================================ */
+.dia-concentric {
+  position: relative;
+  width: 600px;
+  height: 600px;
+  margin: 0 auto;
+  flex-shrink: 0;
+}
+.dia-concentric-ring {
+  position: absolute;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid;
+}
+.dia-concentric-ring:nth-child(1) {
+  inset: 0;
+  border-color: rgba(0,188,212,0.2);
+  background: rgba(0,188,212,0.03);
+}
+.dia-concentric-ring:nth-child(2) {
+  inset: 80px;
+  border-color: rgba(33,150,243,0.3);
+  background: rgba(33,150,243,0.05);
+}
+.dia-concentric-ring:nth-child(3) {
+  inset: 160px;
+  border-color: rgba(26,58,107,0.4);
+  background: rgba(26,58,107,0.08);
+}
+.dia-concentric-ring:nth-child(4) {
+  inset: 220px;
+  border-color: var(--c-primary);
+  background: var(--c-primary);
+  color: #fff;
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-body);
+}
+.dia-concentric-label {
+  position: absolute;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semi);
+  color: var(--c-text-secondary);
+}
+
+/* ============================================
+   9. COMPARISON ARROWS (Before → After)
+   ============================================ */
+.dia-compare-arrow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: var(--sp-lg);
+  align-items: center;
+  flex: 1;
+}
+.dia-compare-side {
+  background: var(--c-bg-muted);
+  border-radius: var(--r-lg);
+  padding: var(--sp-lg);
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+.dia-compare-side.after {
+  background: #fff;
+  border: 2px solid var(--c-positive);
+  box-shadow: var(--shadow-md);
+}
+.dia-compare-arrow-icon {
+  font-size: 48px;
+  color: var(--c-accent);
+  display: flex;
+  align-items: center;
+}
+
+/* ============================================
+   10. GAUGE / SCORE CARDS
+   ============================================ */
+.dia-gauge-row {
+  display: flex;
+  gap: var(--sp-lg);
+  flex: 1;
+  align-items: stretch;
+}
+.dia-gauge-card {
+  flex: 1;
+  background: var(--c-bg-card);
+  border-radius: var(--r-lg);
+  padding: var(--sp-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: var(--sp-sm);
+  box-shadow: var(--shadow-card);
+}
+.dia-gauge-value {
+  font-size: 72px;
+  font-weight: var(--fw-black);
+  background: var(--grad-accent);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+.dia-gauge-label {
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semi);
+  color: var(--c-primary);
+}
+.dia-gauge-sub {
+  font-size: var(--fs-caption);
+  color: var(--c-text-muted);
+}
+
+/* Progress bar variant */
+.dia-gauge-bar {
+  width: 100%;
+  height: 8px;
+  background: var(--c-border-light);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: var(--sp-xs);
+}
+.dia-gauge-bar-fill {
+  height: 100%;
+  background: var(--grad-accent);
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+/* ============================================
+   11. CYCLE / LOOP DIAGRAM
+   ============================================ */
+.dia-cycle {
+  position: relative;
+  width: 500px;
+  height: 500px;
+  margin: 0 auto;
+}
+.dia-cycle-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 160px;
+  height: 160px;
+  border-radius: 50%;
+  background: var(--c-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-body);
+  text-align: center;
+  z-index: 2;
+}
+.dia-cycle-ring {
+  position: absolute;
+  inset: 0;
+  border: 3px dashed var(--c-border);
+  border-radius: 50%;
+}
+.dia-cycle-node {
+  position: absolute;
+  width: 120px;
+  text-align: center;
+  font-size: var(--fs-caption);
+  font-weight: var(--fw-semi);
+}
+.dia-cycle-node-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--grad-accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: var(--fw-bold);
+  margin: 0 auto var(--sp-xs);
+}
+/* Position nodes around circle */
+.dia-cycle-node:nth-child(1) { top: -20px;  left: 50%; transform: translateX(-50%); }
+.dia-cycle-node:nth-child(2) { top: 50%;   right: -40px; transform: translateY(-50%); }
+.dia-cycle-node:nth-child(3) { bottom: -20px; left: 50%; transform: translateX(-50%); }
+.dia-cycle-node:nth-child(4) { top: 50%;   left: -40px; transform: translateY(-50%); }

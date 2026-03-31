@@ -1,0 +1,1233 @@
+{
+  "$schema": "slide_format_v1",
+  "description": "ALNO-AI スライド生成エージェント用フォーマット定義。既存プレゼンテーションの全レイアウトパターンを網羅。",
+  "brand": {
+    "company_name": "ALNO-AI",
+    "tagline": "町のＡＩ屋さんを創る",
+    "colors": {
+      "primary": "#1A3A6B",
+      "secondary": "#2196F3",
+      "accent": "#00BCD4",
+      "background": "linear-gradient(135deg, #E8F4FD 0%, #F0F9FF 50%, #E8F8F0 100%)",
+      "text_primary": "#1A1A1A",
+      "text_secondary": "#333333",
+      "text_muted": "#666666",
+      "white": "#FFFFFF",
+      "light_gray": "#F5F5F5",
+      "border": "#E0E0E0"
+    },
+    "typography": {
+      "title_font": "Noto Sans JP",
+      "body_font": "Noto Sans JP",
+      "sizes": {
+        "hero_title": 48,
+        "section_title": 36,
+        "slide_title": 28,
+        "subtitle": 20,
+        "body": 16,
+        "caption": 14,
+        "small": 12
+      },
+      "weights": {
+        "bold": 700,
+        "semibold": 600,
+        "regular": 400
+      }
+    },
+    "layout": {
+      "width": 1920,
+      "height": 1080,
+      "margin": 80,
+      "sidebar_width": 40,
+      "page_number_position": "bottom-right"
+    }
+  },
+
+  "slide_types": [
+    {
+      "id": "title",
+      "name": "タイトルスライド",
+      "description": "プレゼン冒頭の表紙。大タイトル＋サブタイトル＋日付＋対象者",
+      "usage": "プレゼンの最初の1枚",
+      "structure": {
+        "background": "brand_gradient",
+        "elements": [
+          {
+            "type": "text",
+            "role": "main_title",
+            "style": "hero_title_bold",
+            "position": "center",
+            "max_chars": 30
+          },
+          {
+            "type": "text",
+            "role": "subtitle",
+            "style": "subtitle_regular",
+            "position": "below_title",
+            "max_chars": 60
+          },
+          {
+            "type": "text",
+            "role": "meta",
+            "style": "caption_muted",
+            "position": "below_subtitle",
+            "content_template": "{audience} {date}"
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      },
+      "example": {
+        "main_title": "未来創造室 プロジェクトキックオフ",
+        "subtitle": "AI駆動型組織への変革 - 2025年12月〜2026年11月",
+        "meta": "大郷町役場様 2025年11月11日(火)"
+      }
+    },
+
+    {
+      "id": "toc",
+      "name": "目次スライド",
+      "description": "セクション一覧を番号付きで表示。1列または2列レイアウト",
+      "usage": "タイトルスライドの次",
+      "structure": {
+        "background": "brand_gradient",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "section_title_bold",
+            "position": "top_left",
+            "content": "目次"
+          },
+          {
+            "type": "toc_list",
+            "role": "sections",
+            "layout": "auto",
+            "layout_rules": {
+              "1_to_5_items": "single_column",
+              "6_to_14_items": "two_columns"
+            },
+            "item_structure": {
+              "number": { "style": "number_badge_primary", "format": "{nn}" },
+              "title": { "style": "body_bold" },
+              "description": { "style": "caption_muted", "optional": true }
+            }
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      },
+      "example": {
+        "sections": [
+          { "number": "01", "title": "プロジェクト全体像", "description": "大目標・期間・到達ステップ目標" },
+          { "number": "02", "title": "指導内容の階層設計", "description": "4段階ステップによる組織変革" }
+        ]
+      }
+    },
+
+    {
+      "id": "section_divider",
+      "name": "セクション区切りスライド",
+      "description": "大きなセクション番号とタイトルのみ。セクションの切り替わりを示す",
+      "usage": "各章の開始前",
+      "structure": {
+        "background": "white_or_light",
+        "elements": [
+          {
+            "type": "text",
+            "role": "section_number",
+            "style": "hero_title_bold",
+            "position": "center_upper"
+          },
+          {
+            "type": "text",
+            "role": "section_title",
+            "style": "section_title_bold",
+            "position": "center"
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      },
+      "example": {
+        "section_number": "01",
+        "section_title": "トップメッセージ"
+      }
+    },
+
+    {
+      "id": "message",
+      "name": "メッセージ／代表挨拶スライド",
+      "description": "長文テキストを中心とした読ませるスライド。代表メッセージや理念など",
+      "usage": "トップメッセージ、ビジョン説明",
+      "structure": {
+        "background": "brand_gradient",
+        "sidebar": "brand_sidebar_left",
+        "elements": [
+          {
+            "type": "text",
+            "role": "section_label",
+            "style": "caption_muted",
+            "content_template": "{section_number}. {section_title}"
+          },
+          {
+            "type": "text",
+            "role": "body",
+            "style": "body_regular",
+            "position": "main_area",
+            "max_chars": 300,
+            "line_height": 1.8
+          },
+          {
+            "type": "text",
+            "role": "author",
+            "style": "body_bold",
+            "position": "bottom_right_area",
+            "content_template": "{name}\n{role}"
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "profile",
+      "name": "プロフィール／会社紹介スライド",
+      "description": "人物・組織の紹介。プロフィールセクション＋実績リスト",
+      "usage": "自己紹介、会社概要",
+      "structure": {
+        "background": "brand_gradient",
+        "sidebar": "brand_sidebar_left",
+        "elements": [
+          {
+            "type": "text",
+            "role": "section_label",
+            "style": "caption_muted"
+          },
+          {
+            "type": "text",
+            "role": "name",
+            "style": "slide_title_bold",
+            "position": "top_area"
+          },
+          {
+            "type": "section_group",
+            "role": "profile_section",
+            "items": [
+              {
+                "label": "プロフィール",
+                "style": "subtitle_bold_primary",
+                "content_type": "paragraph"
+              },
+              {
+                "label": "主な実績",
+                "style": "subtitle_bold_primary",
+                "content_type": "bullet_list"
+              }
+            ]
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "three_cards",
+      "name": "3カードレイアウト",
+      "description": "3つの項目を横並びカードで表示。サービス概要、3つの柱など",
+      "usage": "サービス紹介、3要素の説明",
+      "structure": {
+        "background": "brand_gradient",
+        "sidebar": "brand_sidebar_left",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "text",
+            "role": "subtitle",
+            "style": "body_regular",
+            "optional": true
+          },
+          {
+            "type": "card_grid",
+            "role": "cards",
+            "layout": "3_columns",
+            "card_structure": {
+              "icon_or_image": { "optional": true },
+              "title": { "style": "subtitle_bold" },
+              "body": { "style": "body_regular" }
+            }
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      },
+      "example": {
+        "slide_title": "ALNOの事業について",
+        "cards": [
+          { "title": "AI教育事業", "body": "企業や組織に合わせた社内研修やAIセミナー" },
+          { "title": "AI開発事業", "body": "生成AIの導入支援や社内用AIチャットボット開発" },
+          { "title": "AIアドバイザー事業", "body": "外部顧問サービスやAI活用の提案や診断" }
+        ]
+      }
+    },
+
+    {
+      "id": "six_cards",
+      "name": "6カード（2x3）グリッド",
+      "description": "6つの項目を2行3列で表示。KPI、メトリクス、目標一覧など",
+      "usage": "KGI/KPI一覧、メトリクスダッシュボード",
+      "structure": {
+        "background": "brand_gradient",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "card_grid",
+            "role": "cards",
+            "layout": "2x3_grid",
+            "card_structure": {
+              "title": { "style": "subtitle_bold_primary" },
+              "value": { "style": "hero_number", "optional": true },
+              "body": { "style": "body_regular" }
+            }
+          },
+          {
+            "type": "text",
+            "role": "bottom_message",
+            "style": "body_bold",
+            "position": "bottom_center",
+            "optional": true
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "four_cards",
+      "name": "4カード（2x2）グリッド",
+      "description": "4つの項目を2行2列で表示。DO/DON'T、比較など",
+      "usage": "分類整理、マトリクス表示",
+      "structure": {
+        "background": "brand_gradient",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "card_grid",
+            "role": "cards",
+            "layout": "2x2_grid",
+            "card_structure": {
+              "title": { "style": "subtitle_bold" },
+              "body": { "style": "body_regular" }
+            }
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "four_columns",
+      "name": "4カラムレイアウト",
+      "description": "4つの項目を横並びで表示。各カラムに見出し＋リスト",
+      "usage": "カテゴリ別の詳細、Urgent/Important分類",
+      "structure": {
+        "background": "brand_gradient",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "column_layout",
+            "role": "columns",
+            "count": 4,
+            "column_structure": {
+              "image_or_icon": { "optional": true },
+              "title": { "style": "subtitle_bold_primary" },
+              "subtitle": { "style": "caption_muted", "optional": true },
+              "bullet_list": { "style": "body_regular" }
+            }
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "two_column_text",
+      "name": "2カラムテキスト",
+      "description": "左右2分割でテキスト情報を並列表示。概要と詳細の並列など",
+      "usage": "大目標/期間、概要/詳細の対比",
+      "structure": {
+        "background": "brand_gradient",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "column_layout",
+            "role": "columns",
+            "count": 2,
+            "column_structure": {
+              "heading": { "style": "subtitle_bold_primary" },
+              "body": { "style": "body_regular" },
+              "sub_sections": {
+                "optional": true,
+                "items": [
+                  {
+                    "heading": { "style": "subtitle_bold_primary" },
+                    "body": { "style": "body_regular" }
+                  }
+                ]
+              }
+            }
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "two_box_comparison",
+      "name": "2ボックス比較",
+      "description": "2つの大きなカードを横並びで対比。コンセプト説明など",
+      "usage": "Hack & Create、Before/After",
+      "structure": {
+        "background": "brand_gradient",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "comparison_boxes",
+            "role": "boxes",
+            "count": 2,
+            "box_structure": {
+              "title": { "style": "subtitle_bold", "background": "colored_header" },
+              "body": { "style": "body_regular" },
+              "bullet_list": { "style": "body_regular", "optional": true }
+            }
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "table",
+      "name": "テーブル／マトリクス",
+      "description": "行列の表形式でデータ表示。レベル定義、ステップなど",
+      "usage": "レベル概要、評価基準、比較表",
+      "structure": {
+        "background": "brand_gradient",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "table",
+            "role": "data_table",
+            "header": {
+              "style": "header_white_on_primary",
+              "columns": ["dynamic"]
+            },
+            "rows": {
+              "style": "alternating_light_gray",
+              "label_column": { "style": "badge_primary", "optional": true }
+            }
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "label_value_rows",
+      "name": "ラベル＋値リスト",
+      "description": "左にラベルバッジ、右に説明テキストの行形式",
+      "usage": "目標・施策の詳細、ゴール一覧",
+      "structure": {
+        "background": "brand_gradient",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "label_value_list",
+            "role": "items",
+            "item_structure": {
+              "label": { "style": "badge_primary", "width": "fixed_120px" },
+              "value": { "style": "body_regular" }
+            },
+            "separator": "light_line"
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      },
+      "example": {
+        "slide_title": "柱1：AI組織利用率 100%（週5回以上）",
+        "items": [
+          { "label": "目標", "value": "全社員（100%）が、最低週5回以上、AIを活用している状態を実現する。" },
+          { "label": "施策1", "value": "毎月の「AI活用実績」の集計・発表" },
+          { "label": "施策2", "value": "使用者のインセンティブ（表彰、キャリア評価への反映）" }
+        ]
+      }
+    },
+
+    {
+      "id": "process_steps",
+      "name": "プロセス／ステップ",
+      "description": "3〜5段階のステップを矢印で繋いで表示。プロセスフロー",
+      "usage": "導入ステップ、優先順位の説明",
+      "structure": {
+        "background": "brand_gradient",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "process_flow",
+            "role": "steps",
+            "direction": "horizontal",
+            "connector": "arrow",
+            "step_structure": {
+              "number_or_icon": { "style": "circle_badge_primary" },
+              "title": { "style": "subtitle_bold" },
+              "body": { "style": "body_regular" }
+            }
+          },
+          {
+            "type": "text",
+            "role": "bottom_note",
+            "style": "caption_muted",
+            "optional": true
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "timeline_horizontal",
+      "name": "水平タイムライン",
+      "description": "横軸に時間を取り、各フェーズを順番に表示",
+      "usage": "ロードマップ、月別計画、進化図",
+      "structure": {
+        "background": "brand_gradient",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "timeline",
+            "role": "phases",
+            "direction": "horizontal",
+            "phase_structure": {
+              "label": { "style": "subtitle_bold_primary" },
+              "period": { "style": "caption_muted", "optional": true },
+              "title": { "style": "subtitle_bold", "optional": true },
+              "bullet_list": { "style": "body_regular" }
+            },
+            "connector": "arrow_or_bar"
+          },
+          {
+            "type": "text",
+            "role": "bottom_summary",
+            "style": "body_bold",
+            "position": "bottom_center",
+            "optional": true
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "timeline_stepped_bars",
+      "name": "段階バータイムライン",
+      "description": "段階的に大きくなるバーで時間の進行と内容の深化を表現",
+      "usage": "役割の進化、段階的な拡大計画",
+      "structure": {
+        "background": "brand_gradient",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "stepped_bars",
+            "role": "phases",
+            "direction": "left_to_right_ascending",
+            "bar_structure": {
+              "period": { "style": "subtitle_bold", "position": "above_bar" },
+              "title": { "style": "subtitle_bold", "position": "inside_bar" },
+              "bullet_list": { "style": "body_regular", "position": "below_bar" }
+            }
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "timeline_with_images",
+      "name": "画像付きタイムライン",
+      "description": "各ステップにアイコンまたは画像を伴う横並びタイムライン",
+      "usage": "ワークフロー化のステップ、実装フェーズ",
+      "structure": {
+        "background": "brand_gradient",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "image_timeline",
+            "role": "steps",
+            "direction": "horizontal",
+            "step_structure": {
+              "image_or_icon": { "position": "top" },
+              "connector": "arrow_right",
+              "period": { "style": "subtitle_bold" },
+              "title": { "style": "body_bold" },
+              "bullet_list": { "style": "caption_regular" }
+            }
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "org_chart",
+      "name": "組織図",
+      "description": "階層的な組織構造をボックスと線で表示",
+      "usage": "組織体制、チーム構成",
+      "structure": {
+        "background": "brand_gradient",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "org_chart",
+            "role": "organization",
+            "node_structure": {
+              "box": { "style": "bordered_box" },
+              "highlighted_box": { "style": "filled_box_accent" },
+              "text": { "style": "body_bold" },
+              "sub_text": { "style": "caption_muted", "optional": true }
+            },
+            "connector": "line_vertical_horizontal"
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "org_chart_with_roles",
+      "name": "役割付き組織図",
+      "description": "上部に組織名、下部に各メンバーの役割カードを配置",
+      "usage": "コアメンバー体制、プロジェクトチーム",
+      "structure": {
+        "background": "brand_gradient",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "text",
+            "role": "team_name",
+            "style": "badge_large_primary",
+            "position": "top_center"
+          },
+          {
+            "type": "text",
+            "role": "team_description",
+            "style": "body_regular",
+            "position": "below_badge"
+          },
+          {
+            "type": "role_cards",
+            "role": "members",
+            "layout": "horizontal_equal",
+            "card_structure": {
+              "role_title": { "style": "caption_bold" },
+              "name": { "style": "body_regular" },
+              "responsibilities": { "style": "caption_muted" }
+            }
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "pyramid",
+      "name": "ピラミッド図",
+      "description": "三角形の階層構造で上位ほど少数・高度な内容を表現",
+      "usage": "人材育成の階層、組織レベル",
+      "structure": {
+        "background": "brand_gradient",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "pyramid",
+            "role": "levels",
+            "direction": "top_to_bottom",
+            "level_structure": {
+              "title": { "style": "subtitle_bold", "position": "center" },
+              "description": { "style": "body_regular", "position": "right" }
+            },
+            "gradient": "dark_top_to_light_bottom"
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "flow_diagram",
+      "name": "フローダイアグラム",
+      "description": "指導内容の階層設計など、ステップ間の関係を図解で表現",
+      "usage": "階層的な設計、段階的な進行の説明",
+      "structure": {
+        "background": "brand_gradient",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "flow_nodes",
+            "role": "nodes",
+            "layout": "custom_positioned",
+            "node_structure": {
+              "number_badge": { "style": "circle_badge_filled" },
+              "title": { "style": "subtitle_bold" },
+              "body": { "style": "body_regular" }
+            },
+            "connectors": "arrows_between_nodes"
+          },
+          {
+            "type": "text",
+            "role": "bottom_note",
+            "style": "callout_box",
+            "optional": true
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "five_icon_process",
+      "name": "5アイコンプロセス",
+      "description": "A〜Eなどのラベル付き円形アイコンと説明を横並び",
+      "usage": "求めるべき支援、5つの施策",
+      "structure": {
+        "background": "brand_gradient",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "icon_row",
+            "role": "items",
+            "count": 5,
+            "item_structure": {
+              "icon": { "style": "circle_icon_gradient", "label": "A-E" },
+              "title": { "style": "body_bold" },
+              "bullet_list": { "style": "caption_regular" }
+            }
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "icon_grid",
+      "name": "アイコングリッド",
+      "description": "複数のアイコン＋ラベルをグリッド状に配置。ツール紹介、活用例など",
+      "usage": "活用例一覧、ツール紹介",
+      "structure": {
+        "background": "brand_gradient",
+        "sidebar": "brand_sidebar_left",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "icon_grid",
+            "role": "items",
+            "layout": "flexible_grid",
+            "item_structure": {
+              "icon": { "type": "image_or_emoji" },
+              "label": { "style": "body_regular" }
+            }
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "pain_points",
+      "name": "課題提示スライド",
+      "description": "対象者の課題・悩みを列挙して共感を得るスライド",
+      "usage": "こんなお悩みありませんか？",
+      "structure": {
+        "background": "brand_gradient",
+        "sidebar": "brand_sidebar_left",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "pain_cards",
+            "role": "pains",
+            "layout": "flexible_wrap",
+            "card_structure": {
+              "text": { "style": "body_regular" },
+              "background": "light_card"
+            }
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "comparison_before_after",
+      "name": "Before/After比較",
+      "description": "従来の方法と新しい方法を左右で対比",
+      "usage": "従来のAI活用支援 vs 組織に合ったAI活用支援",
+      "structure": {
+        "background": "brand_gradient",
+        "sidebar": "brand_sidebar_left",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "comparison",
+            "role": "before_after",
+            "layout": "left_right_with_separator",
+            "before": {
+              "title": { "style": "subtitle_bold" },
+              "body": { "style": "body_regular" },
+              "result": { "style": "body_muted_negative" }
+            },
+            "separator": "equals_or_vs",
+            "after": {
+              "title": { "style": "subtitle_bold_primary" },
+              "bullet_list": { "style": "body_regular_with_check" },
+              "result": { "style": "body_bold_positive" }
+            }
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "single_point",
+      "name": "1ポイント強調スライド",
+      "description": "1つの重要なメッセージを大きく表示",
+      "usage": "やる気次第、重要なメッセージ",
+      "structure": {
+        "background": "brand_gradient",
+        "sidebar": "brand_sidebar_left",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "text",
+            "role": "key_message",
+            "style": "hero_title_bold",
+            "position": "center"
+          },
+          {
+            "type": "text",
+            "role": "supporting_text",
+            "style": "body_regular",
+            "position": "below_center",
+            "optional": true
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "department_detail",
+      "name": "部門別詳細スライド",
+      "description": "複数部門ごとにメトリクスと説明を積み重ね表示",
+      "usage": "部門別ワークフロー、部門別KPI",
+      "structure": {
+        "background": "brand_gradient",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "text",
+            "role": "objective",
+            "style": "body_regular",
+            "optional": true
+          },
+          {
+            "type": "department_list",
+            "role": "departments",
+            "item_structure": {
+              "name": { "style": "subtitle_bold_primary" },
+              "metric": { "style": "body_bold" },
+              "description": { "style": "body_regular" }
+            },
+            "separator": "light_line"
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "metrics_dashboard",
+      "name": "メトリクスダッシュボード",
+      "description": "大きな数値を中心に配置したデータ訴求スライド",
+      "usage": "ビジネス成果、ROI",
+      "structure": {
+        "background": "colored_gradient_band",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "metric_grid",
+            "role": "metrics",
+            "layout": "2x3_grid",
+            "metric_structure": {
+              "label": { "style": "caption_bold_primary" },
+              "value": { "style": "hero_number" },
+              "unit": { "style": "body_bold" },
+              "description": { "style": "caption_muted" }
+            }
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "summary",
+      "name": "まとめスライド",
+      "description": "複数のキーポイントをカード形式で総括。プレゼン終盤用",
+      "usage": "まとめ、結論",
+      "structure": {
+        "background": "brand_gradient",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "summary_cards",
+            "role": "points",
+            "layout": "2x3_or_2x2_grid",
+            "card_structure": {
+              "title": { "style": "subtitle_bold_primary", "with_underline": true },
+              "bullet_list": { "style": "body_regular" }
+            }
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "qa",
+      "name": "質疑応答スライド",
+      "description": "質疑応答セクション。シンプルなメッセージ",
+      "usage": "Q&Aセクション",
+      "structure": {
+        "background": "brand_gradient",
+        "sidebar": "brand_sidebar_left",
+        "elements": [
+          {
+            "type": "text",
+            "role": "slide_title",
+            "style": "slide_title_bold"
+          },
+          {
+            "type": "text",
+            "role": "message",
+            "style": "body_regular",
+            "position": "center"
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "thank_you",
+      "name": "感謝スライド",
+      "description": "プレゼン終了の感謝メッセージ",
+      "usage": "プレゼンの最後",
+      "structure": {
+        "background": "brand_gradient",
+        "sidebar": "brand_sidebar_left",
+        "elements": [
+          {
+            "type": "text",
+            "role": "message",
+            "style": "slide_title_bold",
+            "position": "center",
+            "content": "今回は貴重なお時間をいただきまして\nありがとうございました。"
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    },
+
+    {
+      "id": "contact",
+      "name": "連絡先スライド",
+      "description": "連絡先情報を表示する最終スライド",
+      "usage": "プレゼンの最後（感謝の後）",
+      "structure": {
+        "background": "brand_gradient",
+        "sidebar": "brand_sidebar_left",
+        "elements": [
+          {
+            "type": "text",
+            "role": "heading",
+            "style": "slide_title_bold",
+            "content": "お申込みはこちらまで"
+          },
+          {
+            "type": "contact_info",
+            "role": "contact",
+            "fields": [
+              { "label": "担当", "value": "{name}" },
+              { "label": "電話番号", "value": "{phone}" },
+              { "label": "メール", "value": "{email}" }
+            ]
+          },
+          {
+            "type": "page_number",
+            "position": "bottom_right"
+          }
+        ]
+      }
+    }
+  ],
+
+  "presentation_templates": [
+    {
+      "id": "client_proposal",
+      "name": "顧客提案資料",
+      "description": "新規顧客への提案・営業用プレゼン",
+      "recommended_flow": [
+        "title",
+        "toc",
+        "section_divider",
+        "message",
+        "section_divider",
+        "profile",
+        "three_cards",
+        "section_divider",
+        "single_point",
+        "process_steps",
+        "table",
+        "section_divider",
+        "icon_grid",
+        "section_divider",
+        "pain_points",
+        "three_cards",
+        "comparison_before_after",
+        "label_value_rows",
+        "section_divider",
+        "qa",
+        "thank_you",
+        "contact"
+      ]
+    },
+    {
+      "id": "project_kickoff",
+      "name": "プロジェクトキックオフ",
+      "description": "社内プロジェクトの開始時の共有資料",
+      "recommended_flow": [
+        "title",
+        "toc",
+        "org_chart",
+        "two_column_text",
+        "table",
+        "two_box_comparison",
+        "flow_diagram",
+        "six_cards",
+        "label_value_rows",
+        "department_detail",
+        "metrics_dashboard",
+        "timeline_with_images",
+        "pyramid",
+        "four_columns",
+        "timeline_horizontal",
+        "label_value_rows",
+        "timeline_stepped_bars",
+        "timeline_horizontal",
+        "org_chart_with_roles",
+        "label_value_rows",
+        "four_columns",
+        "five_icon_process",
+        "four_cards",
+        "timeline_stepped_bars",
+        "timeline_horizontal",
+        "summary"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,255 @@
+/* ============================================================
+   ENGINE LAYER — 16:9 Lock, Slide Container, Navigation, Print
+   ============================================================ */
+
+/* --- Reset & Base --- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background: #1a1a2e;
+  overflow: hidden;
+  font-family: var(--font-body);
+  color: var(--c-text);
+}
+
+/* --- 16:9 Viewport Lock --- */
+.sd-viewport {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sd-deck {
+  position: relative;
+  width: 1920px;
+  height: 1080px;
+  transform-origin: center center;
+  /* JS sets scale via --sd-scale */
+  transform: scale(var(--sd-scale, 0.5));
+}
+
+/* --- Slide --- */
+.sd-slide {
+  position: absolute;
+  inset: 0;
+  width: 1920px;
+  height: 1080px;
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+
+.sd-slide[aria-current="true"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Slide inner padding */
+.sd-slide-inner {
+  position: absolute;
+  inset: 0;
+  padding: var(--slide-padding, 72px 88px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* --- Page Number --- */
+.sd-page-num {
+  position: absolute;
+  bottom: 36px;
+  right: 48px;
+  font-size: 20px;
+  font-weight: 400;
+  color: var(--c-text-muted);
+  font-family: var(--font-body);
+  z-index: 5;
+}
+
+/* --- Sidebar Branding (ALNO style vertical text) --- */
+.sd-sidebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 48px;
+  height: 100%;
+  background: var(--c-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.sd-sidebar-text {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  white-space: nowrap;
+}
+
+.sd-slide.has-sidebar .sd-slide-inner {
+  padding-left: 120px;
+}
+
+/* --- Section Label (e.g. "03. 前提知識") --- */
+.sd-section-label {
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  color: var(--c-text-muted);
+  margin-bottom: 12px;
+}
+
+/* --- Navigation HUD --- */
+.sd-nav {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(12px);
+  padding: 10px 24px;
+  border-radius: 40px;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.sd-viewport:hover .sd-nav,
+.sd-nav:focus-within {
+  opacity: 1;
+}
+
+.sd-nav button {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: background 0.2s;
+  font-family: system-ui;
+}
+.sd-nav button:hover { background: rgba(255,255,255,0.15); }
+
+.sd-nav-counter {
+  color: rgba(255,255,255,0.8);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  min-width: 60px;
+  text-align: center;
+  font-family: var(--font-body);
+}
+
+/* --- Progress Bar --- */
+.sd-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: var(--c-accent);
+  transition: width 0.3s ease;
+  z-index: 1001;
+}
+
+/* --- Slide Transitions --- */
+.sd-slide.fade-enter  { opacity: 0; }
+.sd-slide.fade-active { opacity: 1; }
+
+/* --- Thumbnail Overview (press 'o') --- */
+.sd-overview {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 2000;
+  display: none;
+  overflow-y: auto;
+  padding: 48px;
+}
+
+.sd-overview.active { display: block; }
+
+.sd-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.sd-overview-thumb {
+  aspect-ratio: 16/9;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.2s, transform 0.2s;
+  background: #fff;
+}
+.sd-overview-thumb:hover {
+  border-color: var(--c-accent);
+  transform: scale(1.03);
+}
+.sd-overview-thumb.current {
+  border-color: var(--c-accent);
+  box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.3);
+}
+
+/* --- Print / PDF --- */
+@media print {
+  body { background: #fff; overflow: visible; }
+
+  .sd-viewport {
+    position: static;
+    display: block;
+  }
+
+  .sd-deck {
+    transform: none !important;
+    width: 100%;
+    height: auto;
+    position: static;
+  }
+
+  .sd-slide {
+    position: relative !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 16/9;
+    page-break-after: always;
+    page-break-inside: avoid;
+    break-after: page;
+    break-inside: avoid;
+  }
+
+  .sd-nav,
+  .sd-progress,
+  .sd-overview { display: none !important; }
+}
+
+@page {
+  size: 1920px 1080px landscape;
+  margin: 0;
+}
+
+/* --- Responsive Scale Helper --- */
+@media (max-width: 960px) {
+  .sd-nav { padding: 8px 16px; gap: 8px; }
+  .sd-nav button { font-size: 16px; padding: 4px 8px; }
+}
