@@ -178,10 +178,23 @@
     thumbs.forEach((t, i) => t.classList.toggle('current', i === current));
   }
 
+  /* --- Portrait Hint --- */
+  function buildRotateHint() {
+    const el = document.createElement('div');
+    el.className = 'sd-rotate-hint';
+    el.innerHTML = `
+      <div class="sd-rotate-icon">&#128241;</div>
+      <p>&#26908;&#21521;&#12365;&#12395;&#12375;&#12390;&#12372;&#35239;&#12367;&#12384;&#12373;&#12356;<br>Please rotate your device</p>
+      <small>This presentation is designed for landscape view (16:9)</small>
+    `;
+    document.body.appendChild(el);
+  }
+
   /* --- Boot --- */
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', function () { init(); buildRotateHint(); });
   } else {
     init();
+    buildRotateHint();
   }
 })();

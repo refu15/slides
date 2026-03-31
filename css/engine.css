@@ -253,3 +253,36 @@ body {
   .sd-nav { padding: 8px 16px; gap: 8px; }
   .sd-nav button { font-size: 16px; padding: 4px 8px; }
 }
+
+/* --- Portrait / Mobile: Rotate Overlay --- */
+.sd-rotate-hint {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #0a1628;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  color: #fff;
+  font-family: var(--font-body, sans-serif);
+  text-align: center;
+  padding: 32px;
+}
+.sd-rotate-hint .sd-rotate-icon {
+  font-size: 64px;
+  animation: sd-rotate-spin 2s ease-in-out infinite;
+}
+@keyframes sd-rotate-spin {
+  0%   { transform: rotate(0deg); }
+  40%  { transform: rotate(90deg); }
+  60%  { transform: rotate(90deg); }
+  100% { transform: rotate(0deg); }
+}
+.sd-rotate-hint p { font-size: 18px; opacity: .8; line-height: 1.6; }
+.sd-rotate-hint small { font-size: 13px; opacity: .45; }
+
+@media (orientation: portrait) {
+  .sd-rotate-hint { display: flex; }
+}
