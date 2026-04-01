@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ニュース | 公益財団法人 未来教育研究所</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@400;700&family=Noto+Sans+JP:wght@300;400;500;700&family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="header">
+  <div class="header-inner">
+    <a href="index.html" class="logo"><span class="logo-sub">公益財団法人</span><span class="logo-main">未来教育研究所</span></a>
+    <button class="hamburger" aria-label="メニュー" onclick="document.body.classList.toggle('nav-open')"><span></span><span></span><span></span></button>
+    <nav class="gnav"><ul>
+      <li><a href="about.html">財団について</a></li>
+      <li><a href="projects.html">事業内容</a></li>
+      <li><a href="research.html">研究活動</a></li>
+      <li><a href="news.html">ニュース</a></li>
+      <li><a href="contact.html" class="btn-contact">お問い合わせ</a></li>
+    </ul></nav>
+  </div>
+</header>
+
+<section class="page-hero">
+  <div class="container">
+    <span class="page-en">News</span>
+    <h1>ニュース</h1>
+  </div>
+</section>
+
+<div class="container">
+  <section class="content-section">
+
+    <div class="news-filter">
+      <button class="filter-btn active">すべて</button>
+      <button class="filter-btn">お知らせ</button>
+      <button class="filter-btn">助成</button>
+      <button class="filter-btn">講演会</button>
+      <button class="filter-btn">刊行物</button>
+    </div>
+
+    <div class="news-archive">
+      <article class="news-archive-item">
+        <time datetime="2026-03-15">2026.03.15</time>
+        <span class="news-tag tag-info">お知らせ</span>
+        <div>
+          <h3><a href="#">教育経営アカデミー講座 2026年度受講生の募集を開始しました</a></h3>
+          <p>元「京都大学私学経営アカデミー」講師陣による新たな学びの創出。2026年5月開講予定です。</p>
+        </div>
+      </article>
+
+      <article class="news-archive-item">
+        <time datetime="2026-02-01">2026.02.01</time>
+        <span class="news-tag tag-grant">助成</span>
+        <div>
+          <h3><a href="#">第16回 教育研究助成の募集を開始しました</a></h3>
+          <p>初等・中等教育に携わる教員の研究活動を対象とした公募助成です。応募期間は○月○日まで。</p>
+        </div>
+      </article>
+
+      <article class="news-archive-item">
+        <time datetime="2025-12-20">2025.12.20</time>
+        <span class="news-tag tag-pub">刊行物</span>
+        <div>
+          <h3><a href="#">研究紀要 最新号（第XX号）を発刊しました</a></h3>
+          <p>今号では「AI時代における教育者の役割」を特集。6本の研究論文を掲載しています。</p>
+        </div>
+      </article>
+
+      <article class="news-archive-item">
+        <time datetime="2025-11-15">2025.11.15</time>
+        <span class="news-tag tag-event">講演会</span>
+        <div>
+          <h3><a href="#">教育研究大会2025を開催しました</a></h3>
+          <p>「AI時代の教育のあり方」をテーマに、全国から200名以上の教育関係者が参加。基調講演とパネルディスカッションが行われました。</p>
+        </div>
+      </article>
+
+      <article class="news-archive-item">
+        <time datetime="2025-09-01">2025.09.01</time>
+        <span class="news-tag tag-info">お知らせ</span>
+        <div>
+          <h3><a href="#">会報 最新号を発行しました</a></h3>
+          <p>研究助成の成果報告、講演会レポート、海外教育事情の特集を掲載しています。</p>
+        </div>
+      </article>
+
+      <article class="news-archive-item">
+        <time datetime="2025-06-20">2025.06.20</time>
+        <span class="news-tag tag-event">講演会</span>
+        <div>
+          <h3><a href="#">第15回 定例研究会を開催しました</a></h3>
+          <p>グローバル教育の最前線について、3名の研究者が研究成果を発表しました。</p>
+        </div>
+      </article>
+
+      <article class="news-archive-item">
+        <time datetime="2025-04-01">2025.04.01</time>
+        <span class="news-tag tag-grant">助成</span>
+        <div>
+          <h3><a href="#">第15回 教育研究助成 採択結果を公開しました</a></h3>
+          <p>全国から寄せられた応募の中から、○件の研究を採択しました。</p>
+        </div>
+      </article>
+
+      <article class="news-archive-item">
+        <time datetime="2025-03-15">2025.03.15</time>
+        <span class="news-tag tag-info">お知らせ</span>
+        <div>
+          <h3><a href="#">ホームページをリニューアルしました</a></h3>
+          <p>より見やすく、使いやすいサイトへリニューアルいたしました。</p>
+        </div>
+      </article>
+    </div>
+
+    <div class="pagination">
+      <span class="page-current">1</span>
+      <a href="#" class="page-num">2</a>
+      <a href="#" class="page-num">3</a>
+      <a href="#" class="page-next">次のページ →</a>
+    </div>
+
+  </section>
+</div>
+
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-logo"><span class="logo-sub">公益財団法人</span><span class="logo-main">未来教育研究所</span></div>
+    <nav class="footer-nav">
+      <ul><li><a href="about.html">財団について</a></li><li><a href="projects.html">事業内容</a></li><li><a href="research.html">研究活動</a></li><li><a href="news.html">ニュース</a></li><li><a href="contact.html">お問い合わせ</a></li></ul>
+      <ul class="footer-sub"><li><a href="#">個人情報保護方針</a></li><li><a href="#">サイトポリシー</a></li><li><a href="#">採用情報</a></li></ul>
+    </nav>
+    <p class="copyright">© 公益財団法人 未来教育研究所 All Rights Reserved.</p>
+  </div>
+</footer>
+
+</body>
+</html>
