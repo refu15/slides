@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>参謀AI 設計思想 | VAIZO</title>
+  <style>
+    :root {
+      --primary: #0a0a1a;
+      --accent: #3b82f6;
+      --accent-dark: #1e40af;
+      --accent-glow: rgba(59, 130, 246, 0.15);
+      --gold: #f59e0b;
+      --gold-glow: rgba(245, 158, 11, 0.12);
+      --red: #ef4444;
+      --green: #10b981;
+      --bg: #fafbfc;
+      --card: #ffffff;
+      --text: #1a1a2e;
+      --text-light: #64748b;
+      --border: #e2e8f0;
+      --section-alt: #f1f5f9;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.85;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+      background: linear-gradient(160deg, #0a0a1a 0%, #1e293b 50%, #0f172a 100%);
+      color: #fff;
+      padding: 100px 24px 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero::before {
+      content: "";
+      position: absolute;
+      top: -40%;
+      right: -20%;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+
+    .hero-badge {
+      display: inline-block;
+      background: rgba(59, 130, 246, 0.15);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #93c5fd;
+      padding: 6px 20px;
+      border-radius: 100px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      margin-bottom: 24px;
+    }
+
+    .hero h1 {
+      font-size: 2.6rem;
+      font-weight: 900;
+      margin-bottom: 20px;
+      letter-spacing: -0.02em;
+      line-height: 1.3;
+    }
+
+    .hero h1 span {
+      background: linear-gradient(90deg, #60a5fa, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-sub {
+      font-size: 1.1rem;
+      opacity: 0.75;
+      max-width: 640px;
+      margin: 0 auto;
+      line-height: 1.9;
+    }
+
+    .hero-date {
+      margin-top: 32px;
+      font-size: 0.85rem;
+      opacity: 0.4;
+    }
+
+    /* ===== COMMON ===== */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    section {
+      padding: 72px 0;
+    }
+
+    section.alt {
+      background: var(--section-alt);
+    }
+
+    .section-label {
+      display: inline-block;
+      background: var(--accent-glow);
+      color: var(--accent);
+      padding: 4px 14px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .section-label.gold {
+      background: var(--gold-glow);
+      color: #b45309;
+    }
+
+    .section-label.red {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--red);
+    }
+
+    .section-label.green {
+      background: rgba(16, 185, 129, 0.1);
+      color: #047857;
+    }
+
+    h2 {
+      font-size: 1.75rem;
+      font-weight: 800;
+      margin-bottom: 12px;
+      letter-spacing: -0.01em;
+      line-height: 1.4;
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--text);
+    }
+
+    .section-desc {
+      color: var(--text-light);
+      font-size: 1rem;
+      margin-bottom: 40px;
+      max-width: 700px;
+    }
+
+    /* ===== PROBLEM SECTION ===== */
+    .problem-box {
+      background: linear-gradient(135deg, #fef2f2 0%, #fff1f2 100%);
+      border: 1px solid #fecaca;
+      border-radius: 16px;
+      padding: 40px;
+      margin-bottom: 32px;
+    }
+
+    .problem-box h3 {
+      color: var(--red);
+      font-size: 1.1rem;
+      margin-bottom: 16px;
+    }
+
+    .flow-compare {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+
+    .flow-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 28px;
+      border: 1px solid var(--border);
+    }
+
+    .flow-card.current {
+      border-color: #fca5a5;
+      background: #fff5f5;
+    }
+
+    .flow-card.ideal {
+      border-color: #86efac;
+      background: #f0fdf4;
+    }
+
+    .flow-card .tag {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+
+    .flow-card.current .tag {
+      background: #fee2e2;
+      color: #b91c1c;
+    }
+
+    .flow-card.ideal .tag {
+      background: #dcfce7;
+      color: #15803d;
+    }
+
+    .flow-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 0.92rem;
+      line-height: 1.6;
+    }
+
+    .flow-step .arrow {
+      color: var(--text-light);
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* ===== THREE PILLARS ===== */
+    .pillars {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 28px;
+    }
+
+    .pillar {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 36px;
+      border: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+      transition: box-shadow 0.3s;
+    }
+
+    .pillar:hover {
+      box-shadow: 0 8px 32px rgba(0,0,0,0.06);
+    }
+
+    .pillar::before {
+      content: attr(data-num);
+      position: absolute;
+      top: -12px;
+      right: 20px;
+      font-size: 5rem;
+      font-weight: 900;
+      opacity: 0.04;
+      color: var(--accent);
+      line-height: 1;
+    }
+
+    .pillar-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      margin-bottom: 16px;
+    }
+
+    .pillar:nth-child(1) .pillar-icon { background: #ede9fe; }
+    .pillar:nth-child(2) .pillar-icon { background: #dbeafe; }
+    .pillar:nth-child(3) .pillar-icon { background: #fef3c7; }
+
+    .pillar h3 {
+      font-size: 1.25rem;
+      margin-bottom: 12px;
+    }
+
+    .pillar p {
+      color: var(--text-light);
+      font-size: 0.95rem;
+      margin-bottom: 16px;
+    }
+
+    .pillar-analogy {
+      background: var(--section-alt);
+      border-radius: 10px;
+      padding: 16px 20px;
+      font-size: 0.88rem;
+      color: var(--text-light);
+      border-left: 3px solid var(--accent);
+    }
+
+    .pillar-examples {
+      margin-top: 16px;
+    }
+
+    .pillar-examples li {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      margin-bottom: 6px;
+      padding-left: 20px;
+      position: relative;
+      list-style: none;
+    }
+
+    .pillar-examples li::before {
+      content: "→";
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+    /* ===== EXPERIENCE SECTION ===== */
+    .exp-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .exp-card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 28px;
+      border: 1px solid var(--border);
+    }
+
+    .exp-card.without {
+      background: #f8fafc;
+      border-color: #cbd5e1;
+    }
+
+    .exp-card.with {
+      background: linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%);
+      border-color: #93c5fd;
+    }
+
+    .exp-card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .exp-item {
+      font-size: 0.9rem;
+      color: var(--text-light);
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.04);
+    }
+
+    .exp-item:last-child {
+      border-bottom: none;
+    }
+
+    /* ===== CONCEPT TABLE ===== */
+    .concept-table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin-bottom: 32px;
+    }
+
+    .concept-table th {
+      background: var(--primary);
+      color: #fff;
+      padding: 14px 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-align: left;
+      letter-spacing: 0.03em;
+    }
+
+    .concept-table td {
+      padding: 14px 20px;
+      font-size: 0.9rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--card);
+    }
+
+    .concept-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .concept-table tr:nth-child(even) td {
+      background: #f8fafc;
+    }
+
+    /* ===== ARCHITECTURE ===== */
+    .arch-diagram {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .arch-layers {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .arch-layer {
+      border-radius: 12px;
+      padding: 16px 24px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      position: relative;
+    }
+
+    .arch-layer.client {
+      background: linear-gradient(90deg, #dbeafe, #e0e7ff);
+      color: var(--accent-dark);
+      border: 1px solid #93c5fd;
+    }
+
+    .arch-layer.sanbo {
+      background: linear-gradient(90deg, #0f172a, #1e293b);
+      color: #fff;
+      border: 1px solid #334155;
+      font-size: 1.05rem;
+    }
+
+    .arch-layer.workers {
+      background: linear-gradient(90deg, #f0fdf4, #ecfdf5);
+      color: #065f46;
+      border: 1px solid #86efac;
+    }
+
+    .arch-layer.infra {
+      background: #f8fafc;
+      color: var(--text-light);
+      border: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+
+    .arch-connector {
+      text-align: center;
+      color: var(--text-light);
+      font-size: 1.2rem;
+      line-height: 1;
+    }
+
+    /* ===== PRICING ===== */
+    .pricing-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    .price-card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 36px;
+      border: 1px solid var(--border);
+      text-align: center;
+      position: relative;
+    }
+
+    .price-card.featured {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent), 0 8px 32px rgba(59, 130, 246, 0.1);
+    }
+
+    .price-card.featured::after {
+      content: "推奨";
+      position: absolute;
+      top: -10px;
+      right: 20px;
+      background: var(--accent);
+      color: #fff;
+      padding: 4px 14px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .price-name {
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-light);
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .price-amount {
+      font-size: 2.4rem;
+      font-weight: 900;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+
+    .price-amount span {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text-light);
+    }
+
+    .price-period {
+      font-size: 0.82rem;
+      color: var(--text-light);
+      margin-bottom: 24px;
+    }
+
+    .price-features {
+      text-align: left;
+      list-style: none;
+    }
+
+    .price-features li {
+      padding: 8px 0;
+      font-size: 0.88rem;
+      color: var(--text-light);
+      border-bottom: 1px solid rgba(0,0,0,0.04);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .price-features li::before {
+      content: "✓";
+      color: var(--green);
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .price-features li.disabled::before {
+      content: "—";
+      color: #cbd5e1;
+    }
+
+    .price-features li.disabled {
+      color: #cbd5e1;
+    }
+
+    /* ===== VISION ===== */
+    .vision-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+    }
+
+    .vision-card {
+      background: var(--card);
+      border-radius: 14px;
+      padding: 28px;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .vision-card .icon {
+      font-size: 2rem;
+      margin-bottom: 12px;
+    }
+
+    .vision-card h3 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    .vision-card p {
+      font-size: 0.85rem;
+      color: var(--text-light);
+    }
+
+    /* ===== ROADMAP ===== */
+    .roadmap {
+      position: relative;
+      padding-left: 32px;
+    }
+
+    .roadmap::before {
+      content: "";
+      position: absolute;
+      left: 11px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+
+    .roadmap-item {
+      position: relative;
+      margin-bottom: 32px;
+      padding-left: 28px;
+    }
+
+    .roadmap-item::before {
+      content: "";
+      position: absolute;
+      left: -24px;
+      top: 6px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid var(--accent);
+      background: #fff;
+    }
+
+    .roadmap-item.active::before {
+      background: var(--accent);
+    }
+
+    .roadmap-phase {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: 0.05em;
+      margin-bottom: 4px;
+    }
+
+    .roadmap-item h3 {
+      font-size: 1.05rem;
+      margin-bottom: 6px;
+    }
+
+    .roadmap-item p {
+      font-size: 0.88rem;
+      color: var(--text-light);
+    }
+
+    /* ===== QUOTE ===== */
+    .quote-block {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      border-radius: 16px;
+      padding: 48px;
+      color: #fff;
+      text-align: center;
+      margin: 40px 0;
+    }
+
+    .quote-block blockquote {
+      font-size: 1.3rem;
+      font-weight: 700;
+      line-height: 1.7;
+      margin-bottom: 16px;
+    }
+
+    .quote-block cite {
+      font-size: 0.85rem;
+      opacity: 0.5;
+      font-style: normal;
+    }
+
+    /* ===== FOOTER ===== */
+    footer {
+      background: var(--primary);
+      color: rgba(255,255,255,0.4);
+      text-align: center;
+      padding: 40px 24px;
+      font-size: 0.82rem;
+    }
+
+    footer strong {
+      color: rgba(255,255,255,0.7);
+    }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 768px) {
+      .hero { padding: 64px 20px 48px; }
+      .hero h1 { font-size: 1.8rem; }
+      .flow-compare,
+      .exp-grid,
+      .pricing-grid { grid-template-columns: 1fr; }
+      .vision-cards { grid-template-columns: 1fr; }
+      .container { padding: 0 16px; }
+      section { padding: 48px 0; }
+      .problem-box { padding: 24px; }
+      .quote-block { padding: 32px 20px; }
+      .quote-block blockquote { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="container">
+      <div class="hero-badge">VAIZO INTERNAL STRATEGY</div>
+      <h1>参謀AI <span>設計思想書</span></h1>
+      <p class="hero-sub">
+        ツールではなく、参謀。<br>
+        会社を理解し、自ら考え、提案するAIの設計原則。
+      </p>
+      <p class="hero-date">2026.04.05 — 橋本MTGに基づく戦略整理</p>
+    </div>
+  </header>
+
+  <!-- SECTION: 本質的な問い -->
+  <section>
+    <div class="container">
+      <div class="section-label red">CORE QUESTION</div>
+      <h2>この設計で、本当に「参謀」になれるのか</h2>
+      <p class="section-desc">
+        機能を足す前に、参謀の本質を定義する。ツールは「指示されたことをやる」。参謀は違う。
+      </p>
+
+      <div class="problem-box">
+        <h3>現在の設計が抱える本質的問題</h3>
+        <p style="color: var(--text-light); font-size: 0.95rem;">
+          今の設計は「優秀な作業者AI」になっている。<br>
+          このままでは ChatGPT Enterprise / Microsoft Copilot との差別化が難しい。
+        </p>
+        <div class="flow-compare">
+          <div class="flow-card current">
+            <div class="tag">現在の設計</div>
+            <div class="flow-step"><span class="arrow">1.</span>人間が指示する</div>
+            <div class="flow-step"><span class="arrow">2.</span>AIが実行する</div>
+            <div class="flow-step"><span class="arrow">3.</span>結果を出力する</div>
+          </div>
+          <div class="flow-card ideal">
+            <div class="tag">参謀であるべき姿</div>
+            <div class="flow-step"><span class="arrow">1.</span>AIが会社の状況を理解している</div>
+            <div class="flow-step"><span class="arrow">2.</span>AIが自ら「これをやるべきでは」と提起する</div>
+            <div class="flow-step"><span class="arrow">3.</span>人間が判断する</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: 参謀の3原則 -->
+  <section class="alt">
+    <div class="container">
+      <div class="section-label">THREE PILLARS</div>
+      <h2>参謀AIの3原則</h2>
+      <p class="section-desc">
+        参謀の本質から導いた、設計に反映すべき3つの核。
+      </p>
+
+      <div class="pillars">
+        <div class="pillar" data-num="01">
+          <div class="pillar-icon">🧠</div>
+          <h3>蓄積する記憶</h3>
+          <p>
+            人間の参謀が初日から有能なわけがない。3ヶ月、半年と社長の横にいて、会社の文脈・癖・優先順位を学んで初めて参謀になる。
+          </p>
+          <div class="pillar-analogy">
+            毎回リセットされるセッション = 毎日新しい派遣社員が来るのと同じ。<br>
+            参謀AIは「この会社は今、何に注力していて、何が課題で、社長が何を気にしているか」を蓄積し続けなければならない。
+          </div>
+          <ul class="pillar-examples">
+            <li>過去の意思決定パターンの学習</li>
+            <li>プロジェクトの文脈と優先順位の記憶</li>
+            <li>社長の思考の癖・判断基準の理解</li>
+          </ul>
+        </div>
+
+        <div class="pillar" data-num="02">
+          <div class="pillar-icon">⚡</div>
+          <h3>能動的な接触</h3>
+          <p>
+            本物の参謀は呼ばれる前に来る。ユーザーがUIを開かなくても、参謀から接触してくる体験がなければ、ただの「開いたら使えるツール」で終わる。
+          </p>
+          <div class="pillar-analogy">
+            「ユーザーが指示を出す」のではなく「参謀が気づきを届ける」。この方向の逆転が、ツールと参謀の分水嶺。
+          </div>
+          <ul class="pillar-examples">
+            <li>「先週のプロジェクトAの進捗が止まっています。確認しますか？」</li>
+            <li>「来月の商談に向けて、競合の最新動向をまとめておきました」</li>
+            <li>「経理フォルダの活動が先月比40%減。何か起きていますか？」</li>
+          </ul>
+        </div>
+
+        <div class="pillar" data-num="03">
+          <div class="pillar-icon">💡</div>
+          <h3>観点の提示</h3>
+          <p>
+            作業を代行するのは社員AIの仕事。参謀の仕事は「経営者が考えていなかった観点を出す」こと。
+          </p>
+          <div class="pillar-analogy">
+            橋本さんの言う「次なる一手」——これをVAIZO側のコンサルタントが分析するのではなく、参謀AI自身が顧客に直接提示できる状態が理想形。
+          </div>
+          <ul class="pillar-examples">
+            <li>経営データの異変から仮説を立てて報告</li>
+            <li>同業界のトレンドと自社の動きを照合して提言</li>
+            <li>部門間の活動バランスの偏りを可視化</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: 顧客体験の本質 -->
+  <section>
+    <div class="container">
+      <div class="section-label gold">EXPERIENCE</div>
+      <h2>本当の付加価値</h2>
+      <p class="section-desc">
+        機能ではなく、「参謀がいる生活はどう変わるか」から考える。<br>
+        本当の付加価値は「経営者の頭の中が整理される」体験。
+      </p>
+
+      <div class="exp-grid">
+        <div class="exp-card without">
+          <h3>😓 参謀がいない経営者の日常</h3>
+          <div class="exp-item">自分で考え、自分で調べる</div>
+          <div class="exp-item">自分で判断し、自分で指示する</div>
+          <div class="exp-item">見落としに気づくのは問題が起きてから</div>
+          <div class="exp-item">孤独な意思決定の連続</div>
+          <div class="exp-item">認知負荷が常に高い</div>
+        </div>
+        <div class="exp-card with">
+          <h3>✨ 参謀がいる経営者の日常</h3>
+          <div class="exp-item">朝、参謀から「今日気にすべきこと」が届く</div>
+          <div class="exp-item">判断に迷ったら壁打ちできる</div>
+          <div class="exp-item">見落としていたことを指摘してくれる</div>
+          <div class="exp-item">自分一人では見えなかったものが見える</div>
+          <div class="exp-item">認知負荷が下がり、本質に集中できる</div>
+        </div>
+      </div>
+
+      <div class="quote-block">
+        <blockquote>
+          「自分一人では見えなかったものが見える」<br>
+          これが参謀AIの本質的な提供価値。
+        </blockquote>
+        <cite>機能で言えばレポートやダッシュボードだが、本質はこの体験そのもの。</cite>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: 製品アーキテクチャ -->
+  <section class="alt">
+    <div class="container">
+      <div class="section-label">ARCHITECTURE</div>
+      <h2>参謀AIの構造</h2>
+      <p class="section-desc">
+        1対1のAIではなく、参謀の下に複数の社員AIがいる階層構造。
+      </p>
+
+      <div class="arch-diagram">
+        <div class="arch-layers">
+          <div class="arch-layer client">
+            👤 クライアント（VAIZO独自UI）<br>
+            <span style="font-weight:400; font-size:0.82rem;">作業フォルダ指定 / アウトプット可視化 / 出力形式自動判別</span>
+          </div>
+          <div class="arch-connector">▼</div>
+          <div class="arch-layer sanbo">
+            🎖️ 参謀AI（統括・判断・提案）<br>
+            <span style="font-weight:400; font-size:0.82rem;">記憶蓄積 / 能動的接触 / 観点提示</span>
+          </div>
+          <div class="arch-connector">▼</div>
+          <div class="arch-layer workers">
+            ⚙️ 社員AI群（実行部隊）<br>
+            <span style="font-weight:400; font-size:0.82rem;">資料作成 / リサーチ / データ分析 / コード生成</span>
+          </div>
+          <div class="arch-connector">▼</div>
+          <div class="arch-layer infra">
+            ☁️ VAIZO AWS基盤（ログ・認証・マルチテナント）
+          </div>
+        </div>
+      </div>
+
+      <table class="concept-table">
+        <thead>
+          <tr>
+            <th>項目</th>
+            <th>仕様</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>認証</td>
+            <td>Google Cloud OAuth（VAIZOが一元管理、社員追加はVAIZOが承認）</td>
+          </tr>
+          <tr>
+            <td>UI</td>
+            <td>VAIZO独自UI（CLIは非表示）。作業フォルダ指定・アウトプット先可視化</td>
+          </tr>
+          <tr>
+            <td>出力形式</td>
+            <td>自動判別（スライド→HTML / 見積書→PDF / 常にMD生成）</td>
+          </tr>
+          <tr>
+            <td>ディレクトリ設計</td>
+            <td>部署名・PJ名ごとにフォルダ → 活動分析・コンサル価値に直結</td>
+          </tr>
+          <tr>
+            <td>ログ</td>
+            <td>全操作ログ → 活用レポート自動生成 / 活用不足時の提案</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SECTION: 料金戦略 -->
+  <section>
+    <div class="container">
+      <div class="section-label gold">PRICING STRATEGY</div>
+      <h2>料金とアップセル設計</h2>
+      <p class="section-desc">
+        体験させて、ニーズを自覚させて、上位プランに誘引する。
+      </p>
+
+      <div class="pricing-grid">
+        <div class="price-card">
+          <div class="price-name">ENTRY PLAN</div>
+          <div class="price-amount">5<span>万円</span></div>
+          <div class="price-period">/月額</div>
+          <ul class="price-features">
+            <li>参謀AI（PC操作）</li>
+            <li>VAIZO独自UI</li>
+            <li>基本ログ・レポート</li>
+            <li>部署別フォルダ管理</li>
+            <li class="disabled">モバイル操作</li>
+            <li class="disabled">能動的通知</li>
+          </ul>
+        </div>
+        <div class="price-card featured">
+          <div class="price-name">STANDARD PLAN</div>
+          <div class="price-amount">25<span>万円</span></div>
+          <div class="price-period">/月額</div>
+          <ul class="price-features">
+            <li>参謀AI（PC + モバイル）</li>
+            <li>VAIZO独自UI</li>
+            <li>詳細ログ・活用レポート</li>
+            <li>部署別フォルダ管理</li>
+            <li>モバイル操作</li>
+            <li>能動的通知・提案</li>
+          </ul>
+        </div>
+      </div>
+
+      <div style="margin-top: 32px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 28px;">
+        <h3 style="font-size: 1rem; margin-bottom: 12px;">📈 アップセル戦略</h3>
+        <p style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 12px;">
+          <strong>ステップ1:</strong> エントリーでPCからClaude Codeを体験 → 「出先でもやりたい」ニーズが自然発生
+        </p>
+        <p style="font-size: 0.9rem; color: var(--text-light); margin-bottom: 12px;">
+          <strong>ステップ2:</strong> 業務自動化のアイデア＋実装手順を大量にコンテンツ化して提供
+        </p>
+        <p style="font-size: 0.9rem; color: var(--text-light);">
+          <strong>ステップ3:</strong> 「25万円でシステム選び放題・作り放題」をアピールしてクロージング
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: 商談ストーリー -->
+  <section class="alt">
+    <div class="container">
+      <div class="section-label green">SALES STRATEGY</div>
+      <h2>商談設計</h2>
+      <p class="section-desc">
+        誰に、何を、どの順番で見せるか。
+      </p>
+
+      <table class="concept-table">
+        <thead>
+          <tr>
+            <th>フェーズ</th>
+            <th>対象者</th>
+            <th>内容</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Phase 1</td>
+            <td>部長陣 + 社長</td>
+            <td>参謀AIのデモ：業務自動化・資料作成の即戦力を実演</td>
+          </tr>
+          <tr>
+            <td>Phase 2</td>
+            <td>部長陣 + 社長</td>
+            <td>活用レポート：部署ごとの活動可視化、同業他社との比較</td>
+          </tr>
+          <tr>
+            <td>Phase 3</td>
+            <td style="color: var(--red); font-weight: 600;">社長のみ</td>
+            <td>部長陣の活動監視メリット → 最終クロージング</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- SECTION: ビジョン -->
+  <section>
+    <div class="container">
+      <div class="section-label">VISION</div>
+      <h2>VAIZOが見ている未来</h2>
+      <p class="section-desc">
+        参謀AIが解決する社会課題と、その先にある世界。
+      </p>
+
+      <div class="vision-cards">
+        <div class="vision-card">
+          <div class="icon">🌏</div>
+          <h3>人手不足 × 多言語AI</h3>
+          <p>
+            言語の壁がない参謀AI。海外展開する日本企業をエンパワーメントする。
+          </p>
+        </div>
+        <div class="vision-card">
+          <div class="icon">🏢</div>
+          <h3>小規模高収益組織</h3>
+          <p>
+            社長 + 社員1-2名 + AIエージェント = 3億円企業。「大きさ」を追わない。
+          </p>
+        </div>
+        <div class="vision-card">
+          <div class="icon">🪙</div>
+          <h3>トークン経済</h3>
+          <p>
+            株式公開の先へ。トークン発行 → ベーシックインカム → 「好き」に没頭できる社会。
+          </p>
+        </div>
+      </div>
+
+      <div class="quote-block" style="margin-top: 40px;">
+        <blockquote>
+          会社は大きければ大きいほど、<br>
+          非本質的なルールや規律を導入しなければならなくなる。<br><br>
+          そもそも「デカさ」を追い求めないという選択肢。
+        </blockquote>
+        <cite>— 橋本友太郎</cite>
+      </div>
+    </div>
+  </section>
+
+  <!-- SECTION: 実装ロードマップ -->
+  <section class="alt">
+    <div class="container">
+      <div class="section-label">ROADMAP</div>
+      <h2>実装優先度</h2>
+      <p class="section-desc">
+        本質から逆算した、設計への反映ロードマップ。
+      </p>
+
+      <div class="roadmap">
+        <div class="roadmap-item active">
+          <div class="roadmap-phase">NOW — 設計書に即反映</div>
+          <h3>参謀の記憶機構</h3>
+          <p>会社の文脈・優先順位・意思決定パターンを蓄積するナレッジ層の設計。セッション間で記憶を継承する仕組み。</p>
+        </div>
+        <div class="roadmap-item active">
+          <div class="roadmap-phase">NOW — 設計書に即反映</div>
+          <h3>能動的接触チャネル</h3>
+          <p>参謀AIからユーザーへの通知・提案の配信設計。メール / Slack / アプリ内通知。</p>
+        </div>
+        <div class="roadmap-item active">
+          <div class="roadmap-phase">NOW — 設計書に即反映</div>
+          <h3>観点提示エンジン</h3>
+          <p>活動ログ + 外部データを分析し、ユーザーが気づいていない課題や機会を言語化する仕組み。</p>
+        </div>
+        <div class="roadmap-item">
+          <div class="roadmap-phase">NEXT — Phase 2で実装</div>
+          <h3>部署間インサイト</h3>
+          <p>匿名化された同業他社の活用パターン分析。コンサル的価値の自動提供。</p>
+        </div>
+        <div class="roadmap-item">
+          <div class="roadmap-phase">FUTURE — 差別化施策</div>
+          <h3>参謀会議</h3>
+          <p>複数部門の参謀AIが情報共有し、部門横断の提案を自律生成。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <p><strong>VAIZO Inc.</strong> — 参謀AI 設計思想書</p>
+    <p style="margin-top: 8px;">Confidential — Internal Use Only — 2026.04.05</p>
+  </footer>
+
+</body>
+</html>
