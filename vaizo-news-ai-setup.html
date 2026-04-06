@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VAIZO お知らせAI自動運用 セットアップガイド</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', sans-serif; background: #fafafa; color: #1a1a1a; line-height: 1.8; }
+  .header { background: #111; color: #fff; padding: 48px 0; }
+  .header h1 { font-size: 32px; font-weight: 900; letter-spacing: -0.02em; }
+  .header p { color: #888; margin-top: 8px; font-size: 14px; }
+  .container { max-width: 860px; margin: 0 auto; padding: 0 24px; }
+  .section { padding: 48px 0; border-bottom: 1px solid #eee; }
+  .section:last-child { border-bottom: none; }
+  h2 { font-size: 24px; font-weight: 800; margin-bottom: 24px; padding-bottom: 8px; border-bottom: 3px solid #111; display: inline-block; }
+  h3 { font-size: 18px; font-weight: 700; margin: 24px 0 12px; }
+  h4 { font-size: 15px; font-weight: 700; margin: 16px 0 8px; color: #333; }
+  p, li { font-size: 15px; color: #444; }
+  ul, ol { margin: 12px 0 12px 24px; }
+  li { margin-bottom: 8px; }
+  code { background: #f0f0f0; padding: 2px 6px; font-size: 13px; border-radius: 3px; }
+  pre { background: #111; color: #e0e0e0; padding: 20px; margin: 16px 0; overflow-x: auto; border-radius: 4px; font-size: 13px; line-height: 1.6; }
+  pre code { background: none; padding: 0; color: inherit; }
+  .badge { display: inline-block; background: #111; color: #fff; font-size: 11px; font-weight: 700; padding: 3px 10px; letter-spacing: 0.1em; margin-bottom: 8px; }
+  .step-grid { display: grid; grid-template-columns: 48px 1fr; gap: 0 16px; margin: 24px 0; }
+  .step-num { width: 36px; height: 36px; background: #111; color: #fff; font-weight: 900; font-size: 16px; display: flex; align-items: center; justify-content: center; border-radius: 50%; margin-top: 2px; }
+  .step-content { padding-bottom: 32px; border-left: 2px solid #eee; padding-left: 24px; margin-left: -7px; }
+  .step-content:last-child { border-left: none; }
+  .step-content h4 { margin-top: 0; font-size: 17px; }
+  .arch-box { background: #fff; border: 2px solid #111; padding: 24px; margin: 16px 0; }
+  .arch-box pre { background: #f9f9f9; color: #333; border: 1px solid #ddd; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+  th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid #eee; font-size: 14px; }
+  th { font-weight: 700; background: #f5f5f5; font-size: 13px; }
+  .warn { background: #fff8e1; border-left: 4px solid #ffc107; padding: 16px; margin: 16px 0; font-size: 14px; }
+  .info { background: #e8f5e9; border-left: 4px solid #4caf50; padding: 16px; margin: 16px 0; font-size: 14px; }
+  .flow-diagram { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 24px 0; }
+  .flow-box { background: #fff; border: 2px solid #111; padding: 16px 20px; text-align: center; min-width: 140px; }
+  .flow-box strong { display: block; font-size: 14px; }
+  .flow-box span { font-size: 12px; color: #666; }
+  .flow-arrow { font-size: 24px; color: #111; }
+  .account-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 16px 0; }
+  .account-card { background: #fff; border: 1px solid #ddd; padding: 20px; text-align: center; }
+  .account-card strong { display: block; font-size: 16px; margin-bottom: 4px; }
+  .account-card span { font-size: 13px; color: #666; }
+  .footer { background: #111; color: #666; padding: 32px 0; text-align: center; font-size: 12px; margin-top: 48px; }
+  @media (max-width: 768px) {
+    .account-grid { grid-template-columns: 1fr; }
+    .flow-diagram { flex-direction: column; }
+    .flow-arrow { transform: rotate(90deg); }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="container">
+    <div class="badge">INTERNAL GUIDE</div>
+    <h1>VAIZO お知らせAI自動運用<br>セットアップガイド</h1>
+    <p>3人が別々のPCからAI記事を作成・公開できる仕組みの構築手順</p>
+  </div>
+</div>
+
+<!-- ARCHITECTURE -->
+<div class="section">
+  <div class="container">
+    <h2>1. 全体アーキテクチャ</h2>
+
+    <div class="arch-box">
+      <pre><code>vaizo.jp（Xserver for WordPress）
+├── 静的HTML（メインサイト）
+│   ├── index.html          ← トップページ
+│   ├── service/            ← サービスページ
+│   ├── contact/            ← お問い合わせ
+│   ├── recruit/            ← 採用情報
+│   └── about.html          ← 会社概要
+│
+└── WordPress（お知らせ・ブログ）  ← 今回構築
+    ├── /news/              ← お知らせ一覧
+    └── /news/記事スラッグ/   ← 個別記事</code></pre>
+    </div>
+
+    <h3>記事作成フロー</h3>
+    <div class="flow-diagram">
+      <div class="flow-box"><strong>AI記事生成</strong><span>Claude Code で下書き作成</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box"><strong>WordPress投稿</strong><span>MCP or wp-admin</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box"><strong>レビュー</strong><span>ブラウザでプレビュー確認</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-box"><strong>公開</strong><span>ワンクリックで公開</span></div>
+    </div>
+
+    <div class="info">
+      <strong>ポイント:</strong> メインサイト（静的HTML）はそのまま維持。お知らせ/ブログだけWordPressが担当する。
+    </div>
+  </div>
+</div>
+
+<!-- STEP 1: WordPress Setup -->
+<div class="section">
+  <div class="container">
+    <h2>2. WordPress側の設定</h2>
+
+    <div class="step-grid">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <h4>パーマリンク設定</h4>
+        <p>WordPress管理画面 → <code>設定</code> → <code>パーマリンク</code></p>
+        <p><strong>カスタム構造</strong>を選択し、以下を入力：</p>
+        <pre><code>/news/%postname%/</code></pre>
+        <p>これでお知らせ記事が <code>vaizo.jp/news/記事名/</code> のURLになる。</p>
+      </div>
+
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <h4>フロントページ設定</h4>
+        <p>WordPress管理画面 → <code>設定</code> → <code>表示設定</code></p>
+        <ul>
+          <li>「ホームページの表示」→ <strong>固定ページ</strong>を選択</li>
+          <li>「ホームページ」→ 空の固定ページを作成して選択（表示されないので名前は何でもOK）</li>
+          <li>「投稿ページ」→ <strong>なし</strong>（または「お知らせ」固定ページを作成）</li>
+        </ul>
+        <div class="warn">
+          <strong>重要:</strong> これをしないとWordPressのトップページが静的 index.html を上書きしてしまう。
+        </div>
+      </div>
+
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <h4>テーマのカスタマイズ</h4>
+        <p>WordPressの記事ページをVAIZOサイトのデザインに合わせるため、子テーマを作成する。</p>
+        <p>必要なファイル:</p>
+        <ul>
+          <li><code>style.css</code> — VAIZOのデザインシステムを適用</li>
+          <li><code>single.php</code> — 個別記事テンプレート（VAIZOヘッダー/フッター付き）</li>
+          <li><code>archive.php</code> — 記事一覧テンプレート</li>
+          <li><code>functions.php</code> — セキュリティ設定・不要機能の無効化</li>
+        </ul>
+        <p>→ テーマファイルはSSHでアップロードする。</p>
+      </div>
+
+      <div class="step-num">4</div>
+      <div class="step-content">
+        <h4>セキュリティ強化</h4>
+        <p><code>functions.php</code> に以下を追加：</p>
+        <pre><code>// XML-RPC無効化（ブルートフォース攻撃対策）
+add_filter('xmlrpc_enabled', '__return_false');
+
+// REST API を認証済みユーザーのみに制限（公開投稿の取得は許可）
+add_filter('rest_authentication_errors', function($result) {
+    if (!is_user_logged_in() && !is_admin()) {
+        // 公開コンテンツの取得は許可
+        if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'GET') {
+            return $result;
+        }
+        return new WP_Error('rest_not_logged_in', 'Authentication required', array('status' => 401));
+    }
+    return $result;
+});
+
+// バージョン情報を隠す
+remove_action('wp_head', 'wp_generator');
+
+// 絵文字スクリプト無効化（パフォーマンス）
+remove_action('wp_head', 'print_emoji_detection_script', 7);
+remove_action('wp_print_styles', 'print_emoji_styles');</code></pre>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STEP 2: User Accounts -->
+<div class="section">
+  <div class="container">
+    <h2>3. ユーザーアカウント作成（3人分）</h2>
+    <p>WordPress管理画面 → <code>ユーザー</code> → <code>新規ユーザーを追加</code></p>
+
+    <div class="account-grid">
+      <div class="account-card">
+        <strong>櫻井 理也</strong>
+        <span>管理者（Administrator）</span>
+        <p style="margin-top:8px; font-size:12px; color:#999;">全権限。テーマ・プラグイン管理も可能。</p>
+      </div>
+      <div class="account-card">
+        <strong>橋本 友太郎</strong>
+        <span>編集者（Editor）</span>
+        <p style="margin-top:8px; font-size:12px; color:#999;">全投稿の作成・編集・公開が可能。</p>
+      </div>
+      <div class="account-card">
+        <strong>メンバー3</strong>
+        <span>投稿者（Author）</span>
+        <p style="margin-top:8px; font-size:12px; color:#999;">自分の投稿の作成・公開が可能。</p>
+      </div>
+    </div>
+
+    <h4>設定手順</h4>
+    <ol>
+      <li>ユーザー名・メールアドレスを入力</li>
+      <li>「権限グループ」で上記の権限を選択</li>
+      <li>「新規ユーザーを追加」をクリック</li>
+      <li>※ ログインURLはセキュリティプラグインでカスタム化済み</li>
+    </ol>
+  </div>
+</div>
+
+<!-- STEP 3: AI Article Generation -->
+<div class="section">
+  <div class="container">
+    <h2>4. AI記事自動生成の仕組み</h2>
+
+    <h3>方法A: Claude Code + WordPress MCP（推奨）</h3>
+    <p>Claude Code から直接WordPressに下書き投稿する。</p>
+
+    <pre><code># Claude Code のプロンプト例
+
+「以下のテーマでVAIZOのお知らせ記事を作成し、
+WordPressに下書きとして投稿してください。
+
+テーマ: AIエージェントを活用した業務改善の最新事例
+カテゴリ: AI活用Tips
+想定読者: 中小企業の経営者
+文字数: 800〜1200文字
+トーン: 専門的だが親しみやすい」</code></pre>
+
+    <p>Claude Code がMCP経由で以下を実行：</p>
+    <ol>
+      <li>記事本文を生成</li>
+      <li><code>create_post</code> ツールで WordPress に下書き投稿</li>
+      <li>wp-admin でプレビュー確認 → 修正 → 公開</li>
+    </ol>
+
+    <h3>方法B: wp-admin から直接作成</h3>
+    <p>ブラウザで <code>vaizo.jp/wp-admin/</code> にログインし、通常のWordPress操作で記事作成。</p>
+    <p>AIアシスト用に以下のWordPressプラグインを導入可能：</p>
+    <table>
+      <tr><th>プラグイン</th><th>機能</th><th>料金</th></tr>
+      <tr><td>AI Engine</td><td>ChatGPT連携。記事生成・画像生成</td><td>無料版あり</td></tr>
+      <tr><td>Jeqn AI</td><td>SEO最適化された記事生成</td><td>無料版あり</td></tr>
+      <tr><td>Jeqn AI + Claude API</td><td>Claude API を直接利用</td><td>API従量課金</td></tr>
+    </table>
+
+    <h3>方法C: 定期自動投稿（上級）</h3>
+    <p>cronジョブやn8nで定期的にAI記事を生成・投稿する自動化パイプライン。</p>
+    <pre><code># n8n ワークフロー例
+[スケジュール（毎週月曜9時）]
+  → [Claude API で記事生成]
+  → [WordPress REST API で下書き投稿]
+  → [Slack通知「新しい下書きがあります」]
+  → [人間がレビュー・公開]</code></pre>
+  </div>
+</div>
+
+<!-- STEP 4: Integration -->
+<div class="section">
+  <div class="container">
+    <h2>5. 静的サイトとの統合</h2>
+
+    <h3>.htaccess の設定</h3>
+    <p>静的HTMLファイルが存在するパスは静的ファイルを配信し、<code>/news/</code> 配下はWordPressが処理するように設定。</p>
+
+    <pre><code># 静的ファイル → 直接配信（既存の動作）
+# /news/ → WordPress が処理
+#
+# 現在の .htaccess の WordPress セクションが
+# 自動的にこの振り分けを行う:
+#   RewriteCond %{REQUEST_FILENAME} !-f  ← ファイルが存在しなければ
+#   RewriteCond %{REQUEST_FILENAME} !-d  ← ディレクトリが存在しなければ
+#   RewriteRule . /index.php [L]         ← WordPress に渡す</code></pre>
+
+    <div class="warn">
+      <strong>必要な作業:</strong> 現在 <code>/news/</code> に静的HTMLファイルが存在するため、これらを削除またはリネームする必要がある。WordPressが <code>/news/</code> を処理できるようにするため。
+    </div>
+
+    <h4>実行コマンド</h4>
+    <pre><code># 既存の静的ニュースファイルをバックアップして削除
+ssh -i ~/.ssh/xserver_vaizo.key -p 10022 home@sv2.xwp.ne.jp \
+  "cd home.xwp.jp/public_html && \
+   mkdir -p _backup_news && \
+   mv news/ _backup_news/ && \
+   echo 'Done'"</code></pre>
+
+    <h3>ヘッダーナビのリンク</h3>
+    <p>静的HTMLのヘッダーにある「お知らせ」リンクはそのまま <code>/news/</code> を指しているので変更不要。WordPressが <code>/news/</code> を処理するようになれば自動的につながる。</p>
+  </div>
+</div>
+
+<!-- STEP 5: Implementation Order -->
+<div class="section">
+  <div class="container">
+    <h2>6. 実装の優先順位</h2>
+
+    <table>
+      <tr><th>順番</th><th>タスク</th><th>担当</th><th>所要時間</th></tr>
+      <tr><td>1</td><td>WordPressパーマリンク設定（<code>/news/%postname%/</code>）</td><td>Claude Code</td><td>5分</td></tr>
+      <tr><td>2</td><td>WordPressフロントページ設定（静的トップ維持）</td><td>Claude Code</td><td>5分</td></tr>
+      <tr><td>3</td><td>VAIZOデザインの子テーマ作成・アップロード</td><td>Claude Code + SSH</td><td>30分</td></tr>
+      <tr><td>4</td><td>セキュリティ設定（xmlrpc無効化等）</td><td>Claude Code</td><td>10分</td></tr>
+      <tr><td>5</td><td>静的 /news/ ファイルの退避</td><td>Claude Code + SSH</td><td>5分</td></tr>
+      <tr><td>6</td><td>3人のユーザーアカウント作成</td><td>WordPress MCP</td><td>10分</td></tr>
+      <tr><td>7</td><td>テスト記事をAIで作成・投稿</td><td>Claude Code + MCP</td><td>10分</td></tr>
+      <tr><td>8</td><td>動作確認・デザイン調整</td><td>全員</td><td>15分</td></tr>
+    </table>
+
+    <div class="info">
+      <strong>合計所要時間:</strong> 約1.5時間。Claude Code がほぼ全工程を実行可能。
+    </div>
+  </div>
+</div>
+
+<!-- DAILY OPERATION -->
+<div class="section">
+  <div class="container">
+    <h2>7. 日常運用フロー</h2>
+
+    <h3>記事作成（誰でも・どこからでも）</h3>
+    <ol>
+      <li>ブラウザで <code>vaizo.jp/wp-admin/</code> にログイン</li>
+      <li>「投稿」→「新規投稿を追加」</li>
+      <li>AI生成 or 手動で記事を作成</li>
+      <li>「プレビュー」で確認 →「公開」</li>
+    </ol>
+
+    <h3>AIで記事を一括生成する場合</h3>
+    <ol>
+      <li>Claude Code を起動</li>
+      <li>「今週のお知らせ記事を3本作成して、下書きで投稿して」と指示</li>
+      <li>WordPress MCPが自動で下書き投稿</li>
+      <li>各メンバーが wp-admin でレビュー・公開</li>
+    </ol>
+
+    <h3>推奨記事カテゴリ</h3>
+    <table>
+      <tr><th>カテゴリ</th><th>頻度</th><th>内容例</th></tr>
+      <tr><td>お知らせ</td><td>随時</td><td>サービス開始、イベント告知</td></tr>
+      <tr><td>AI活用Tips</td><td>週1回</td><td>AIツールの使い方、業界動向</td></tr>
+      <tr><td>導入事例</td><td>月1回</td><td>クライアントの成功事例</td></tr>
+      <tr><td>代表コラム</td><td>月1〜2回</td><td>経営者向けのAI活用メッセージ</td></tr>
+    </table>
+  </div>
+</div>
+
+<div class="footer">
+  <div class="container">
+    <p>&copy; 2026 VAIZO Inc. — Internal Document</p>
+    <p style="margin-top:4px;">作成: Claude Code | 最終更新: 2026-04-06</p>
+  </div>
+</div>
+
+</body>
+</html>
