@@ -1,0 +1,28 @@
+name: Monthly RAG Rebuild
+
+on:
+  schedule:
+    - cron: '0 15 1 * *'    # 毎月1日 00:00 JST
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Rebuild RAG vector index
+        env:
+          DATABASE_URL:    ${{ secrets.DATABASE_URL }}
+          GEMINI_API_KEY:  ${{ secrets.GEMINI_API_KEY }}
+        run: npx tsx scripts/rebuild-rag-index.mts

@@ -1,0 +1,71 @@
+# ============================================================
+# LLM 設定の単一ソース。ここを変えればシステム全体が切り替わる。
+# ============================================================
+
+# 現行で使用するモデル
+current:
+  provider: google
+  model: gemini-3.1-flash-lite-preview
+  temperature: 0.7
+  max_output_tokens: 1024
+  top_p: 0.95
+  system_prompt_path: ./prompts/sanbo-persona.md
+
+# プロバイダ障害時の自動フォールバック順（上から順に試行）
+fallback_chain:
+  - provider: google
+    model: gemini-3-flash
+    temperature: 0.7
+    max_output_tokens: 1024
+
+  - provider: openai
+    model: gpt-5.4-nano
+    temperature: 0.7
+    max_output_tokens: 1024
+
+  - provider: anthropic
+    model: claude-haiku-4-5-20251001
+    temperature: 0.7
+    max_output_tokens: 1024
+
+# 週次 Eval の合格条件
+eval:
+  test_cases: ./eval/gline-50cases.json
+  min_score: 0.85          # 全体合格率（％）
+  min_jp_fluency: 0.90     # 日本語自然度（ルールベース採点）
+  min_tone_match: 0.80     # 社長口調の再現率
+  banned_keywords:         # 出てきたら即NG（機密情報漏洩防止）
+    - 未公開
+    - 社外秘
+    - 給与交渉
+    - 機密
+  must_escalate_on:        # これらの質問は人間引継ぎへ切替必須
+    - 年収
+    - ボーナス
+    - 内定条件
+    - 契約内容
+
+# 新モデル検知の範囲（Gemini models API で絞り込み）
+scan:
+  name_includes:           # このパターンを含むモデルだけ候補化
+    - flash-lite
+    - flash
+  exclude_names:           # 除外（Experimental など）
+    - experimental
+    - vision-only
+  max_input_cost_per_mtok: 0.30   # これを超えるモデルは候補外
+  require_context_window: 128000   # 最小コンテキスト長
+
+# A/B テスト設定（段階的ロールアウト用）
+ab_test:
+  enabled: false
+  candidate_model: null
+  candidate_provider: null
+  traffic_percentage: 0
+  start_date: null
+  stop_after_days: 7
+
+# レポート先
+report:
+  slack_webhook_env: SLACK_WEBHOOK
+  github_issue_on_fail: true

@@ -1,0 +1,53 @@
+name: Daily Purge (90-day TTL & GDPR deletions)
+
+on:
+  schedule:
+    - cron: '30 18 * * *'   # 毎日 03:30 JST
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Purge conversations older than 90 days + finalize GDPR deletions
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          node --input-type=module -e "
+            import { neon } from '@neondatabase/serverless'
+            const q = neon(process.env.DATABASE_URL)
+
+            const logs = await q\`
+              DELETE FROM conversations
+              WHERE created_at < NOW() - INTERVAL '90 days'
+              RETURNING id
+            \`
+            console.log('deleted conversations:', logs.length)
+
+            const events = await q\`
+              DELETE FROM events
+              WHERE created_at < NOW() - INTERVAL '90 days'
+              RETURNING id
+            \`
+            console.log('deleted events:', events.length)
+
+            const applicants = await q\`
+              DELETE FROM applicants
+              WHERE requested_deletion = TRUE
+                AND deleted_at < NOW() - INTERVAL '30 days'
+              RETURNING id
+            \`
+            console.log('purged applicants (post-30d grace):', applicants.length)
+          "

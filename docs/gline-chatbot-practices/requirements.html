@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>G-LINE 採用チャットボット 要件定義書 v1.0</title>
+  <style>
+    @page { size: A4; margin: 18mm 16mm; }
+    :root {
+      --primary: #1a1a2e;
+      --accent: #e94560;
+      --accent2: #0f3460;
+      --bg: #ffffff;
+      --card: #ffffff;
+      --text: #1a1a2e;
+      --text-light: #4a5568;
+      --border: #e2e8f0;
+      --ok: #2f855a;
+      --warn: #c05621;
+      --ng: #c53030;
+      --gold: #b7791f;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.75;
+      font-size: 10.5pt;
+    }
+    .cover {
+      min-height: 260mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      page-break-after: always;
+      background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+      color: #fff;
+      padding: 40px;
+      margin: -18mm -16mm;
+    }
+    .cover h1 {
+      font-size: 28pt;
+      font-weight: 800;
+      margin-bottom: 16px;
+      letter-spacing: 0.02em;
+    }
+    .cover .subtitle {
+      font-size: 14pt;
+      opacity: 0.9;
+      margin-bottom: 40px;
+    }
+    .cover .meta {
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 24px 40px;
+      font-size: 11pt;
+      line-height: 2.2;
+      text-align: left;
+    }
+    .cover .meta strong { display: inline-block; width: 110px; opacity: 0.7; }
+
+    .container { max-width: 100%; padding: 0; }
+    h1 {
+      font-size: 18pt;
+      margin: 32px 0 16px;
+      padding-bottom: 8px;
+      border-bottom: 3px solid var(--accent);
+      page-break-before: always;
+    }
+    h1:first-of-type { page-break-before: auto; }
+    h2 {
+      font-size: 14pt;
+      margin: 24px 0 12px;
+      color: var(--accent2);
+      border-left: 4px solid var(--accent2);
+      padding-left: 10px;
+    }
+    h3 {
+      font-size: 11.5pt;
+      margin: 18px 0 8px;
+      color: var(--primary);
+    }
+    h4 {
+      font-size: 10.5pt;
+      margin: 12px 0 6px;
+      color: var(--accent2);
+    }
+    p, li { font-size: 10pt; line-height: 1.75; }
+    ul, ol { margin: 8px 0 12px 20px; }
+    li { margin: 2px 0; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 10px 0 16px;
+      font-size: 9.5pt;
+    }
+    th, td {
+      border: 1px solid var(--border);
+      padding: 6px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+      font-size: 9.5pt;
+    }
+    tr:nth-child(even) td { background: #f7fafc; }
+    .callout {
+      padding: 12px 16px;
+      border-radius: 6px;
+      margin: 12px 0;
+      font-size: 9.5pt;
+    }
+    .callout.ok { background: #f0fff4; border-left: 4px solid var(--ok); }
+    .callout.warn { background: #fffaf0; border-left: 4px solid var(--warn); }
+    .callout.ng { background: #fff5f5; border-left: 4px solid var(--ng); }
+    .callout.gold { background: #fffbeb; border-left: 4px solid var(--gold); }
+    code {
+      background: #f1f3f5;
+      padding: 2px 5px;
+      border-radius: 3px;
+      font-family: "Consolas", "Menlo", monospace;
+      font-size: 9pt;
+    }
+    pre {
+      background: #1a1a2e;
+      color: #f0f0f0;
+      padding: 12px 14px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 8.5pt;
+      line-height: 1.5;
+      margin: 8px 0 12px;
+    }
+    pre code { background: transparent; color: inherit; padding: 0; }
+    .toc {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin: 16px 0 24px;
+      font-size: 9.5pt;
+    }
+    .toc h3 { margin-top: 0; color: var(--primary); }
+    .toc ol { margin-left: 20px; }
+    .toc li { margin: 3px 0; }
+    .badge {
+      display: inline-block;
+      padding: 2px 10px;
+      font-size: 8.5pt;
+      border-radius: 10px;
+      font-weight: 700;
+      margin-right: 4px;
+    }
+    .badge.ok { background: #c6f6d5; color: var(--ok); }
+    .badge.warn { background: #feebc8; color: var(--warn); }
+    .badge.ng { background: #fed7d7; color: var(--ng); }
+    .badge.info { background: #bee3f8; color: var(--accent2); }
+
+    .decision-table th:first-child { width: 22%; }
+    .decision-table th:nth-child(2) { width: 48%; }
+    .decision-table th:nth-child(3) { width: 30%; }
+
+    .footer-note {
+      margin-top: 40px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      font-size: 8.5pt;
+      color: var(--text-light);
+      text-align: center;
+    }
+    @media print {
+      body { font-size: 10pt; }
+      h1 { page-break-before: always; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ========== COVER ========== -->
+<div class="cover">
+  <h1>G-LINE 採用チャットボット<br>要件定義書</h1>
+  <div class="subtitle">Requirements Specification v1.0</div>
+  <div class="meta">
+    <div><strong>プロジェクト</strong>G-LINE 採用チャットボット</div>
+    <div><strong>文書バージョン</strong>v1.0（初版）</div>
+    <div><strong>作成日</strong>2026年4月18日</div>
+    <div><strong>作成者</strong>開発チーム</div>
+    <div><strong>対象読者</strong>代表・採用担当・開発チーム</div>
+    <div><strong>ステータス</strong>仮決定版（要承認）</div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ========== 目次 ========== -->
+<div class="toc">
+  <h3>目次</h3>
+  <ol>
+    <li>エグゼクティブサマリー</li>
+    <li>プロジェクト目的と背景</li>
+    <li>前提条件と制約</li>
+    <li>機能要件</li>
+    <li>非機能要件</li>
+    <li>アーキテクチャ設計</li>
+    <li>技術スタック</li>
+    <li>データ設計</li>
+    <li>セキュリティ・コンプライアンス</li>
+    <li>コスト試算</li>
+    <li>仮決定事項一覧</li>
+    <li>スケジュール</li>
+    <li>運用・保守体制</li>
+    <li>リスクと未決事項</li>
+    <li>次のアクション</li>
+  </ol>
+</div>
+
+<!-- ========== 1. EXEC SUMMARY ========== -->
+<h1>1. エグゼクティブサマリー</h1>
+
+<h2>1.1 本書の目的</h2>
+<p>G-LINE 採用サイトに設置する AI チャットボットの要件・設計・仮決定事項を一元的にまとめたものです。ヒアリング結果、業界標準、法的要件（APPI / GDPR）、コスト制約を踏まえ、<strong>「社長の分身として応募者に答える」</strong>体験を、安全・保守しやすく・拡張可能な形で実装するための仕様書です。</p>
+
+<h2>1.2 ゴール</h2>
+<table>
+  <tr><th>軸</th><th>目標</th></tr>
+  <tr><td>主目的</td><td>会社理解 → 応募・面接予約への誘導</td></tr>
+  <tr><td>副目的</td><td>応募前の不安解消 / 会社への興味喚起 / 接点強化</td></tr>
+  <tr><td>成功指標</td><td>応募転換率 5% / エスカレーション率 20% 以下 / RAG ヒット率 80% 以上</td></tr>
+  <tr><td>公開予定</td><td>2026年6月1日（仮）</td></tr>
+</table>
+
+<h2>1.3 選定結果サマリー</h2>
+<table>
+  <tr><th>領域</th><th>採用技術・決定事項</th></tr>
+  <tr><td>LLM モデル</td><td>Google Gemini 3.1 Flash-Lite（切替可能設計）</td></tr>
+  <tr><td>DB</td><td>AWS RDS for PostgreSQL（東京リージョン）</td></tr>
+  <tr><td>API サーバー</td><td>Cloudflare Workers（無料枠・エッジ）</td></tr>
+  <tr><td>フロント配信</td><td>Cloudflare Pages（無料枠）</td></tr>
+  <tr><td>埋め込み方式</td><td>1行 &lt;script&gt; タグで任意サイトに埋込</td></tr>
+  <tr><td>月額コスト</td><td>初年度 ¥200〜¥900 / 2年目以降 ¥3,500〜¥4,400</td></tr>
+</table>
+
+<div class="callout ok">
+<strong>採用1件の売上で10年分のシステム運用コストをペイできる計算</strong>（中途採用単価¥50万〜を想定）。
+</div>
+
+<!-- ========== 2. 目的と背景 ========== -->
+<h1>2. プロジェクト目的と背景</h1>
+
+<h2>2.1 背景</h2>
+<ul>
+  <li>採用市場の競争激化により、応募前の会社理解が応募転換率を大きく左右する</li>
+  <li>営業時間外にも問い合わせ機会がある一方、人的対応にはコスト上限がある</li>
+  <li>代表（荒牧氏）の熱意ある人物像が会社の魅力そのものだが、全員に直接語れない</li>
+  <li>AI 技術の成熟により、代表の分身としての対応が現実的な品質に到達</li>
+</ul>
+
+<h2>2.2 主目的（再掲）</h2>
+<ol>
+  <li><strong>会社理解を深めてもらい、そのまま応募・面接予約につなげる</strong></li>
+  <li>応募前の不安解消</li>
+  <li>会社への興味喚起</li>
+  <li>ホームページ上での接点強化</li>
+</ol>
+
+<h2>2.3 やらないこと（非ゴール）</h2>
+<ul>
+  <li>何でも答える万能AI（範囲を厳格に限定）</li>
+  <li>個別の給与交渉・条件交渉</li>
+  <li>未公開情報・機密情報の開示</li>
+  <li>競合他社との比較論</li>
+</ul>
+
+<!-- ========== 3. 前提条件と制約 ========== -->
+<h1>3. 前提条件と制約</h1>
+
+<h2>3.1 ビジネス上の制約</h2>
+<table>
+  <tr><th>項目</th><th>制約</th></tr>
+  <tr><td>月額予算（2年目〜）</td><td>¥5,000 以内</td></tr>
+  <tr><td>初年度予算</td><td>¥1,000/月以内（無料枠活用）</td></tr>
+  <tr><td>公開期限</td><td>2026年6月1日（仮）</td></tr>
+  <tr><td>運用担当者</td><td>代表 + 採用担当の2名想定</td></tr>
+  <tr><td>エスカレーション</td><td>info メールへ集約、24h以内初動</td></tr>
+</table>
+
+<h2>3.2 法規制上の制約</h2>
+<table>
+  <tr><th>法令・規格</th><th>対応方針</th></tr>
+  <tr><td>個人情報保護法（APPI）</td><td>東京リージョン保管、越境移転なし、90日匿名化、削除請求対応</td></tr>
+  <tr><td>GDPR</td><td>データ最小化、忘れられる権利対応（EU からの応募想定なしだが準拠）</td></tr>
+  <tr><td>特定電子メール法</td><td>応募者への返信のみ、マーケ目的送信なし</td></tr>
+  <tr><td>著作権法</td><td>代表著書・HP・募集要項のうち G-LINE が権利保有するものに限定し RAG 投入</td></tr>
+</table>
+
+<h2>3.3 技術的制約</h2>
+<ul>
+  <li>既存のホームページ構成を問わず、<code>&lt;script&gt;</code> タグ1行で動作する</li>
+  <li>1応答あたり2秒以内のレイテンシ</li>
+  <li>モバイル（iPhone / Android）対応必須</li>
+  <li>アクセシビリティ：WCAG 2.1 AA 準拠</li>
+</ul>
+
+<!-- ========== 4. 機能要件 ========== -->
+<h1>4. 機能要件</h1>
+
+<h2>4.1 チャットボット機能</h2>
+<table>
+  <tr><th>機能</th><th>概要</th><th>優先度</th></tr>
+  <tr><td>フローティングチャット UI</td><td>ホームページ右下に常駐するチャットウィジェット</td><td>必須</td></tr>
+  <tr><td>AI 応答生成</td><td>Gemini 3.1 Flash-Lite + RAG による代表口調の応答</td><td>必須</td></tr>
+  <tr><td>FAQ マッチング</td><td>決定木的な選択肢ボタンによる導線</td><td>必須</td></tr>
+  <tr><td>ガードレール</td><td>給与交渉・機密情報・競合比較を検知してエスカレーション</td><td>必須</td></tr>
+  <tr><td>応募フォーム遷移</td><td>応募タイミングで既存応募フォームへ自然に誘導</td><td>必須</td></tr>
+  <tr><td>面接予約導線</td><td>予約希望日時を取得し info メールに通知</td><td>必須</td></tr>
+  <tr><td>営業時間外対応</td><td>24時間受付、人間対応は翌営業日の案内</td><td>必須</td></tr>
+  <tr><td>多言語対応</td><td>v1.0 は日本語のみ</td><td>将来</td></tr>
+</table>
+
+<h2>4.2 管理者機能</h2>
+<table>
+  <tr><th>機能</th><th>概要</th><th>優先度</th></tr>
+  <tr><td>FAQ 編集</td><td>採用担当が FAQ を追加・編集・公開停止できる画面</td><td>必須</td></tr>
+  <tr><td>会話ログ閲覧</td><td>匿名化された会話履歴の確認（個別応募者特定は不可）</td><td>必須</td></tr>
+  <tr><td>KPI ダッシュボード</td><td>Metabase Cloud Free で週次指標表示</td><td>必須</td></tr>
+  <tr><td>応募者一覧</td><td>応募者情報の閲覧（代表・採用担当のみ）</td><td>必須</td></tr>
+  <tr><td>エスカレーション キュー</td><td>人間対応が必要な質問の一覧</td><td>必須</td></tr>
+  <tr><td>GDPR 削除要求処理</td><td>削除要求に対する本人確認 → 物理削除</td><td>必須</td></tr>
+  <tr><td>A/B テスト管理</td><td>モデル切替のトラフィック配分設定</td><td>将来</td></tr>
+</table>
+
+<h2>4.3 システム機能</h2>
+<table>
+  <tr><th>機能</th><th>概要</th><th>優先度</th></tr>
+  <tr><td>週次 LLM モデル監視</td><td>新モデル検知→Eval→PR 自動作成</td><td>必須</td></tr>
+  <tr><td>月次 RAG 再構築</td><td>代表原稿を再埋込、最新HPと同期</td><td>必須</td></tr>
+  <tr><td>日次ログ削除</td><td>90日超のログを物理削除</td><td>必須</td></tr>
+  <tr><td>週次 Slack レポート</td><td>KPI・未回答質問・モデル動向</td><td>必須</td></tr>
+  <tr><td>障害検知・通知</td><td>Sentry Free + Slack 通知</td><td>必須</td></tr>
+</table>
+
+<!-- ========== 5. 非機能要件 ========== -->
+<h1>5. 非機能要件</h1>
+<table>
+  <tr><th>分類</th><th>要件</th><th>目標値</th></tr>
+  <tr><td>性能</td><td>チャット応答時間</td><td>2秒以内（p95）</td></tr>
+  <tr><td>性能</td><td>ウィジェット初期表示</td><td>500ms 以内</td></tr>
+  <tr><td>可用性</td><td>SLA</td><td>99.5%（月間ダウンタイム 3.6時間以内）</td></tr>
+  <tr><td>拡張性</td><td>同時接続</td><td>100 並列まで余裕</td></tr>
+  <tr><td>拡張性</td><td>モデル切替</td><td>YAML 1行変更で完結</td></tr>
+  <tr><td>セキュリティ</td><td>通信暗号化</td><td>TLS 1.2 以上</td></tr>
+  <tr><td>セキュリティ</td><td>保存データ暗号化</td><td>AES-256（AWS KMS）</td></tr>
+  <tr><td>保守性</td><td>FAQ 更新</td><td>非エンジニアが管理画面から編集可能</td></tr>
+  <tr><td>移植性</td><td>DB ロックイン回避</td><td>PostgreSQL 標準、pg_dump で他クラウド移行可</td></tr>
+  <tr><td>アクセシビリティ</td><td>WCAG</td><td>2.1 AA 準拠</td></tr>
+  <tr><td>ブラウザ対応</td><td>対応ブラウザ</td><td>Chrome / Safari / Edge 最新2バージョン</td></tr>
+  <tr><td>デバイス対応</td><td>モバイル</td><td>iOS 15+ / Android 10+</td></tr>
+</table>
+
+<!-- ========== 6. アーキテクチャ設計 ========== -->
+<h1>6. アーキテクチャ設計</h1>
+
+<h2>6.1 全体構成図</h2>
+<pre><code>┌─ [顧客サイト（G-LINE HP 等、どのサーバーでも可）]
+│   HTML に &lt;script src=".../widget.js" data-tenant="g-line-001" async&gt;&lt;/script&gt;
+│                          ↓ CORS fetch
+├─ [フロント配信] Cloudflare Pages（無料・CDN・日本エッジ）
+│   widget.js (Preact, 20KB gz) + widget.css + iframe.html
+│                          ↓ REST API
+├─ [API サーバー] Cloudflare Workers（無料枠 10万req/日）
+│   /api/chat /api/apply /api/event /api/gdpr
+│   + LLM Adapter（Gemini/OpenAI/Anthropic 切替可能）
+│   + Guardrail 層（禁止トピック検知）
+│   + 会話ログ匿名化
+│                          ↓ Hyperdrive（コネクションプール）
+├─ [データベース] AWS RDS PostgreSQL（東京 ap-northeast-1）
+│   db.t4g.micro / 20GB / pgvector 拡張
+│   └─ applicants / appointments / conversations / rag_chunks / faq / events / escalations
+│                          ↕
+└─ [外部連携]
+    ├─ Gemini API（LLM + 埋込）
+    ├─ Resend（info メール通知、無料 3000通/月）
+    ├─ Slack Webhook（運用通知）
+    └─ GitHub Actions（週次監視・日次削除・月次RAG再構築）</code></pre>
+
+<h2>6.2 データフロー（チャット1ターン）</h2>
+<ol>
+  <li>ユーザーがチャットに質問を入力</li>
+  <li>ウィジェット → Cloudflare Workers `/api/chat` へ POST</li>
+  <li>Workers がガードレール層でNGトピック判定。NG なら即エスカレーション文言を返却</li>
+  <li>OK なら質問を Gemini embedding に送り、768次元ベクトル化</li>
+  <li>RDS pgvector で Top5 類似チャンク検索</li>
+  <li>システムプロンプト + RAG結果 + 会話履歴 を Gemini 3.1 Flash-Lite に送信</li>
+  <li>Gemini の応答を匿名化ログ保存 + ユーザーに返却</li>
+  <li>応募意志が読み取れれば応募フォーム URL を提示</li>
+</ol>
+
+<!-- ========== 7. 技術スタック ========== -->
+<h1>7. 技術スタック</h1>
+<table>
+  <tr><th>レイヤー</th><th>選択技術</th><th>選定理由</th></tr>
+  <tr><td>フロント言語</td><td>TypeScript + Preact</td><td>軽量（10KB）、React互換、採用ボット用途に最適</td></tr>
+  <tr><td>ビルドツール</td><td>Vite 5</td><td>高速、IIFE バンドル対応</td></tr>
+  <tr><td>フロント配信</td><td>Cloudflare Pages</td><td>無料・CDN・日本エッジ・自動 HTTPS</td></tr>
+  <tr><td>API ランタイム</td><td>Cloudflare Workers</td><td>無料10万req/日、エッジ実行、デプロイ1コマンド</td></tr>
+  <tr><td>API フレームワーク</td><td>Hono</td><td>Workers 最適化、軽量</td></tr>
+  <tr><td>DB</td><td>AWS RDS PostgreSQL 16（東京）</td><td>業界標準・ISMAP・APPI完全対応・pgvector</td></tr>
+  <tr><td>DB プーリング</td><td>Cloudflare Hyperdrive</td><td>Workers から RDS への接続プール</td></tr>
+  <tr><td>DB ドライバ</td><td>postgres.js</td><td>Workers / Node 両対応、ESM 対応</td></tr>
+  <tr><td>ベクトル検索</td><td>pgvector 0.7+ / HNSW</td><td>RDS で標準提供、768次元対応</td></tr>
+  <tr><td>LLM</td><td>Google Gemini 3.1 Flash-Lite</td><td>Claude Haiku比 72%安、精度同等以上、1Mコンテキスト</td></tr>
+  <tr><td>埋込モデル</td><td>text-embedding-004</td><td>768次元、Gemini と同じ認証</td></tr>
+  <tr><td>LLM 抽象化</td><td>自作 Adapter + YAML設定</td><td>モデル切替を YAML 1行で可能</td></tr>
+  <tr><td>メール送信</td><td>Resend</td><td>月3000通無料、ドメイン認証簡単</td></tr>
+  <tr><td>BI ダッシュボード</td><td>Metabase Cloud Free</td><td>無料、採用担当GUI操作可能</td></tr>
+  <tr><td>監視</td><td>Sentry Free + Cloudflare Analytics</td><td>無料、エラー・トラフィック可視化</td></tr>
+  <tr><td>CI/CD</td><td>GitHub Actions</td><td>無料、週次監視ワークフロー</td></tr>
+  <tr><td>IaC</td><td>Terraform</td><td>AWS RDS + Cloudflare リソースの再現性</td></tr>
+</table>
+
+<!-- ========== 8. データ設計 ========== -->
+<h1>8. データ設計</h1>
+
+<h2>8.1 テーブル一覧</h2>
+<table>
+  <tr><th>テーブル</th><th>用途</th><th>保存期間</th><th>特記</th></tr>
+  <tr><td>applicants</td><td>応募者情報</td><td>永続（削除要求で物理削除）</td><td>氏名・メール・電話は暗号化列</td></tr>
+  <tr><td>appointments</td><td>面接予約</td><td>永続</td><td>applicants へ FK</td></tr>
+  <tr><td>conversations</td><td>会話ログ</td><td>90日（日次削除）</td><td>匿名session_id、個人情報マスク済み</td></tr>
+  <tr><td>rag_chunks</td><td>RAG ベクトル</td><td>月次再構築</td><td>embedding vector(768) + HNSW</td></tr>
+  <tr><td>faq</td><td>FAQ マスタ</td><td>永続</td><td>採用担当が管理画面で更新</td></tr>
+  <tr><td>events</td><td>KPI イベント</td><td>90日</td><td>chat_open / ask / apply_click 等</td></tr>
+  <tr><td>escalations</td><td>人間引き継ぎ</td><td>永続（解決後1年）</td><td>info メール通知トリガ</td></tr>
+</table>
+
+<h2>8.2 データ量試算（10年運用）</h2>
+<table>
+  <tr><th>規模</th><th>月間対話</th><th>応募者/月</th><th>10年後DB容量</th></tr>
+  <tr><td>小規模</td><td>300 ターン</td><td>3名</td><td>17 MB</td></tr>
+  <tr><td>中規模（想定）</td><td>1,800 ターン</td><td>10名</td><td>25 MB</td></tr>
+  <tr><td>大規模</td><td>9,000 ターン</td><td>30名</td><td>60 MB</td></tr>
+</table>
+<p>いずれも <code>db.t4g.micro</code>（20GB ストレージ）で10年運用可能。</p>
+
+<h2>8.3 Row Level Security（RLS）</h2>
+<table>
+  <tr><th>ロール</th><th>権限</th></tr>
+  <tr><td>app_public</td><td>Cloudflare Workers から INSERT のみ（応募・予約・ログ書込）</td></tr>
+  <tr><td>app_admin</td><td>代表・採用担当。全テーブル全権限</td></tr>
+  <tr><td>app_analytics</td><td>Metabase 接続用。匿名化ビューのみ SELECT</td></tr>
+</table>
+
+<!-- ========== 9. セキュリティ・コンプライアンス ========== -->
+<h1>9. セキュリティ・コンプライアンス</h1>
+
+<h2>9.1 認証・暗号化</h2>
+<ul>
+  <li>保存時：AES-256（AWS KMS で鍵管理、年1回ローテーション）</li>
+  <li>通信時：TLS 1.2/1.3、SSL <code>verify-full</code></li>
+  <li>個人情報列：pgcrypto の <code>pgp_sym_encrypt</code> でアプリ層暗号化</li>
+  <li>暗号化鍵：AWS Secrets Manager で一元管理</li>
+  <li>API キー：GitHub Secrets + Cloudflare Workers Secrets</li>
+</ul>
+
+<h2>9.2 認証・認可</h2>
+<ul>
+  <li>管理画面：AWS IAM Identity Center（SSO）または Cloudflare Access</li>
+  <li>Workers → RDS：IAM データベース認証（12時間トークン）</li>
+  <li>ウィジェット：テナントID + Origin 検証 + CORS allowlist</li>
+  <li>レート制限：IP単位 + テナント単位の二重制限（Cloudflare WAF）</li>
+</ul>
+
+<h2>9.3 APPI（個人情報保護法）対応</h2>
+<table>
+  <tr><th>要件</th><th>対応</th></tr>
+  <tr><td>個人情報の利用目的明示</td><td>プライバシーポリシー改訂、応募フォームで同意取得</td></tr>
+  <tr><td>安全管理措置</td><td>暗号化・RLS・アクセスログ・90日削除</td></tr>
+  <tr><td>越境移転</td><td>東京リージョン保管 → 越境移転なし</td></tr>
+  <tr><td>開示・訂正・削除請求</td><td>info メール経由、7日以内受付 → 30日以内処理</td></tr>
+  <tr><td>漏洩時報告</td><td>検知から72時間以内に個人情報保護委員会へ報告</td></tr>
+</table>
+
+<h2>9.4 AWS RDS 取得認証</h2>
+<table>
+  <tr><th>認証</th><th>状況</th></tr>
+  <tr><td>ISMAP（日本政府クラウド）</td><td>✅ 対応</td></tr>
+  <tr><td>SOC 2 Type 2</td><td>✅ 対応</td></tr>
+  <tr><td>ISO/IEC 27001:2022</td><td>✅ 対応</td></tr>
+  <tr><td>ISO/IEC 27017 / 27018 / 27701</td><td>✅ 対応</td></tr>
+  <tr><td>HIPAA / PCI-DSS / FISC</td><td>✅ 対応</td></tr>
+</table>
+
+<!-- ========== 10. コスト試算 ========== -->
+<h1>10. コスト試算</h1>
+
+<h2>10.1 月額コスト（中規模・月1,800対話想定）</h2>
+<table>
+  <tr><th>項目</th><th>初年度（無料枠活用）</th><th>2年目以降</th></tr>
+  <tr><td>Cloudflare Workers</td><td>¥0</td><td>¥0</td></tr>
+  <tr><td>Cloudflare Pages</td><td>¥0</td><td>¥0</td></tr>
+  <tr><td>AWS RDS db.t4g.micro（東京）</td><td><strong>¥0（12ヶ月無料）</strong></td><td>¥3,100</td></tr>
+  <tr><td>RDS ストレージ gp3 20GB</td><td>¥0（無料枠内）</td><td>¥350</td></tr>
+  <tr><td>Gemini API（Flash-Lite）</td><td>¥200〜¥900</td><td>¥200〜¥900</td></tr>
+  <tr><td>Resend メール</td><td>¥0（3000通/月無料）</td><td>¥0</td></tr>
+  <tr><td>Sentry Free</td><td>¥0（5K errors/月）</td><td>¥0</td></tr>
+  <tr><td>Metabase Cloud Free</td><td>¥0（1ユーザー）</td><td>¥0</td></tr>
+  <tr><td>ドメイン（.jp）</td><td>¥300（年間 ¥3,600）</td><td>¥300</td></tr>
+  <tr style="background:#fffbeb;"><td><strong>合計</strong></td><td><strong>¥500〜¥1,200/月</strong></td><td><strong>¥3,950〜¥4,650/月</strong></td></tr>
+</table>
+
+<h2>10.2 初期開発費（見積）</h2>
+<table>
+  <tr><th>項目</th><th>工数</th><th>備考</th></tr>
+  <tr><td>要件定義・設計</td><td>完了</td><td>本書</td></tr>
+  <tr><td>DB構築・マイグレーション</td><td>1日</td><td>RDS セットアップ、スキーマ適用</td></tr>
+  <tr><td>API 実装（Workers）</td><td>3日</td><td>chat / apply / event / gdpr</td></tr>
+  <tr><td>ウィジェット実装</td><td>2日</td><td>Preact + Vite</td></tr>
+  <tr><td>管理画面</td><td>2日</td><td>FAQ 編集 + Metabase 設定</td></tr>
+  <tr><td>RAG 原稿投入</td><td>1日</td><td>代表の本・HP 取込</td></tr>
+  <tr><td>Eval・テスト</td><td>2日</td><td>30問テスト・手動テスト</td></tr>
+  <tr><td>法務対応</td><td>1日</td><td>プライバシーポリシー改訂</td></tr>
+  <tr><td>デプロイ・本番確認</td><td>1日</td><td>Terraform apply・dnsカット</td></tr>
+  <tr><td><strong>合計</strong></td><td><strong>13人日</strong></td><td>2.5週間想定</td></tr>
+</table>
+
+<!-- ========== 11. 仮決定事項一覧 ========== -->
+<h1>11. 仮決定事項一覧</h1>
+<p class="callout warn">
+<strong>以下は全て「仮決定」です</strong>。本番運用開始前に代表・採用担当のレビューを受けて確定してください。疑義がある項目は各セクションの「承認要否」欄で示しています。
+</p>
+
+<h2>11.1 学習データ（RAG ソース）</h2>
+<table class="decision-table">
+  <tr><th>項目</th><th>仮決定</th><th>承認要否</th></tr>
+  <tr><td>代表著書</td><td>1冊（書名未確定・代表自己出版のみ）</td><td><span class="badge warn">代表確認</span></td></tr>
+  <tr><td>自叙伝</td><td>あれば使用（テキスト化必要）</td><td><span class="badge warn">代表確認</span></td></tr>
+  <tr><td>HP 原稿</td><td>全ページ自動スクレイピング</td><td><span class="badge ok">確定可</span></td></tr>
+  <tr><td>募集要項</td><td>最新版を使用</td><td><span class="badge ok">確定可</span></td></tr>
+  <tr><td>代表インタビュー・講演録</td><td>公開済みのみ使用</td><td><span class="badge warn">確認</span></td></tr>
+  <tr><td>著作権</td><td>G-LINE または代表本人が権利保有するもののみ</td><td><span class="badge ng">出版社契約要確認</span></td></tr>
+</table>
+
+<h2>11.2 ドメイン・メール</h2>
+<table class="decision-table">
+  <tr><th>項目</th><th>仮決定</th><th>承認要否</th></tr>
+  <tr><td>API ドメイン</td><td><code>gline-bot.example.jp</code></td><td><span class="badge warn">ドメイン取得要</span></td></tr>
+  <tr><td>ウィジェット CDN</td><td><code>widget.gline-bot.example.jp</code></td><td><span class="badge warn">ドメイン取得要</span></td></tr>
+  <tr><td>管理画面</td><td><code>admin.gline-bot.example.jp</code></td><td><span class="badge warn">ドメイン取得要</span></td></tr>
+  <tr><td>info メール（受信）</td><td><code>info@g-line.co.jp</code>（既存）</td><td><span class="badge ok">既存</span></td></tr>
+  <tr><td>通知メール（送信元）</td><td><code>no-reply@gline-bot.example.jp</code></td><td><span class="badge warn">SPF/DKIM 設定</span></td></tr>
+</table>
+
+<h2>11.3 ブランディング</h2>
+<table class="decision-table">
+  <tr><th>項目</th><th>仮決定</th><th>承認要否</th></tr>
+  <tr><td>プライマリカラー</td><td>#0066CC（仮・青系）</td><td><span class="badge warn">G-LINE HP から確定</span></td></tr>
+  <tr><td>アクセントカラー</td><td>#FF6B35（仮・オレンジ）</td><td><span class="badge warn">G-LINE HP から確定</span></td></tr>
+  <tr><td>ロゴ</td><td>G-LINE 既存ロゴを使用</td><td><span class="badge ok">確定可</span></td></tr>
+  <tr><td>ウィジェット位置</td><td>画面右下（固定）</td><td><span class="badge ok">確定</span></td></tr>
+  <tr><td>ウェルカム文言</td><td>下記（11.4 参照）</td><td><span class="badge warn">代表レビュー</span></td></tr>
+</table>
+
+<h2>11.4 チャット文言（仮）</h2>
+<div class="callout gold">
+<strong>ウェルカムメッセージ：</strong><br>
+「こんにちは！G-LINE の採用担当AIです。会社のこと、お仕事のこと、応募のこと — 何でもお気軽にお尋ねください。私は代表・荒牧の考え方を学んでいるので、荒牧の言葉で率直にお答えします。」
+</div>
+<div class="callout gold">
+<strong>営業時間外文言：</strong><br>
+「ご質問ありがとうございます。詳しくはお問い合わせも可能です。営業時間外のご連絡は翌営業日に担当者からご返信いたします。お急ぎの場合は info@g-line.co.jp までご連絡ください。」
+</div>
+<div class="callout gold">
+<strong>エスカレーション文言（給与交渉検知時）：</strong><br>
+「具体的な条件については面接の場でしっかりお話ししたいと思っています。お気軽に info メールまたはお電話でご連絡ください。」
+</div>
+
+<h2>11.5 A案口調サンプル（仮案・代表レビュー必須）</h2>
+<ol>
+  <li>「大丈夫ですよ。最初から完璧な人なんていませんから。」</li>
+  <li>「一緒に成長していく気持ちがあれば全然問題ありません。」</li>
+  <li>「本気で向き合ってくれる人と、本気で仕事をしたいと思っています。」</li>
+  <li>「地域に根ざして、お客様に『頼んでよかった』と言ってもらえる仕事を積み重ねてきました。」</li>
+  <li>「ぜひ一度、現場の空気感を感じにいらしてください。」</li>
+</ol>
+
+<h2>11.6 運用体制</h2>
+<table class="decision-table">
+  <tr><th>役割</th><th>担当</th><th>承認要否</th></tr>
+  <tr><td>最終承認</td><td>代表（荒牧氏）</td><td><span class="badge ok">確定</span></td></tr>
+  <tr><td>FAQ 更新・Issue 対応</td><td>G-LINE 採用担当</td><td><span class="badge warn">G-LINE 確認</span></td></tr>
+  <tr><td>システム保守</td><td>開発事業者</td><td><span class="badge warn">契約確認</span></td></tr>
+  <tr><td>週次モデル監視</td><td>開発チーム（自動化・レビューのみ）</td><td><span class="badge ok">確定可</span></td></tr>
+  <tr><td>障害一次対応</td><td>開発チーム 24h 以内</td><td><span class="badge warn">SLA 確認</span></td></tr>
+  <tr><td>エスカレーション対応</td><td>G-LINE 採用担当 → 代表</td><td><span class="badge warn">G-LINE 確認</span></td></tr>
+</table>
+
+<h2>11.7 アカウント・リポジトリ</h2>
+<table class="decision-table">
+  <tr><th>項目</th><th>仮決定</th><th>承認要否</th></tr>
+  <tr><td>AWS アカウント</td><td>専用アカウントを新規作成（AWS Organizations 分離推奨）</td><td><span class="badge warn">AWS 担当確認</span></td></tr>
+  <tr><td>Cloudflare アカウント</td><td>新規または既存アカウントに Zone 追加</td><td><span class="badge ok">確定可</span></td></tr>
+  <tr><td>GitHub リポジトリ</td><td>your-org/gline-chatbot（新規 / private）</td><td><span class="badge warn">組織管理者</span></td></tr>
+  <tr><td>ブランチ戦略</td><td>main / develop / feature/*、PR 必須・レビュー1名以上</td><td><span class="badge ok">確定</span></td></tr>
+  <tr><td>デプロイ環境</td><td>dev / staging / prod の3環境分離</td><td><span class="badge ok">確定</span></td></tr>
+</table>
+
+<h2>11.8 プライバシーポリシー改訂内容</h2>
+<div class="callout gold">
+<strong>追加条項（仮案）：</strong>
+<ol>
+  <li>当社は応募者対応のため AI チャットボットを運用しています。チャット内容は 90日後に自動匿名化・削除されます。</li>
+  <li>お預かりした個人情報（氏名・メールアドレス・電話番号・希望日時）は、日本国内の AWS データセンター（東京リージョン）にて AES-256 暗号化の上で保管します。</li>
+  <li>ご希望に応じて、いつでも個人情報の開示・訂正・削除を求めることができます。info@g-line.co.jp までご連絡ください。</li>
+  <li>当社は AI による応答内容を学習データとして使用いたしません。</li>
+  <li>チャット内容は運用改善目的で匿名化したうえで分析に使用することがあります。</li>
+</ol>
+</div>
+
+<h2>11.9 応募・予約フロー</h2>
+<table class="decision-table">
+  <tr><th>項目</th><th>仮決定</th><th>承認要否</th></tr>
+  <tr><td>予約可能曜日</td><td>平日（月〜金）</td><td><span class="badge warn">G-LINE 確認</span></td></tr>
+  <tr><td>予約可能時間</td><td>10:00〜17:00（30分刻み）</td><td><span class="badge warn">G-LINE 確認</span></td></tr>
+  <tr><td>面接場所</td><td>本社対面（原則）</td><td><span class="badge ok">ヒアリング結果</span></td></tr>
+  <tr><td>オンライン可否</td><td>状況により相談可</td><td><span class="badge ok">ヒアリング結果</span></td></tr>
+  <tr><td>応募必須項目</td><td>氏名 / メール / 電話 / 希望日時</td><td><span class="badge ok">ヒアリング結果</span></td></tr>
+  <tr><td>任意項目</td><td>相談内容・メッセージ</td><td><span class="badge ok">推奨</span></td></tr>
+  <tr><td>キャンセル受付</td><td>メール or 電話で任意受付</td><td><span class="badge ok">ヒアリング結果</span></td></tr>
+</table>
+
+<h2>11.10 ガードレール（NG 対応）</h2>
+<table class="decision-table">
+  <tr><th>カテゴリ</th><th>対応</th></tr>
+  <tr><td>給与・ボーナスの具体額</td><td>答えない → info メール誘導</td></tr>
+  <tr><td>未公開情報・社外秘</td><td>答えない → 面接で相談を案内</td></tr>
+  <tr><td>競合他社との比較</td><td>言及しない（他社名を口にしない）</td></tr>
+  <tr><td>クレーム・誹謗中傷</td><td>即エスカレーション、担当者が個別対応</td></tr>
+  <tr><td>プロンプトインジェクション</td><td>応答拒否 + エスカレーション</td></tr>
+  <tr><td>応募と無関係な雑談</td><td>軽く受け止めるが深入りしない</td></tr>
+  <tr><td>恋愛・人生相談等</td><td>温かく受け止め、採用の話題に戻す</td></tr>
+</table>
+
+<h2>11.11 セキュリティ運用</h2>
+<table class="decision-table">
+  <tr><th>項目</th><th>仮決定</th></tr>
+  <tr><td>暗号化鍵管理</td><td>AWS Secrets Manager（年1回ローテーション）</td></tr>
+  <tr><td>API キー管理</td><td>GitHub Secrets + Cloudflare Workers Secrets</td></tr>
+  <tr><td>アクセスログ保持</td><td>90日（CloudWatch Logs）</td></tr>
+  <tr><td>障害通知先</td><td>Slack <code>#gline-ops</code> チャンネル</td></tr>
+  <tr><td>インシデント初動</td><td>24時間以内、開発チームがプライマリ</td></tr>
+  <tr><td>個人情報漏洩時報告</td><td>72時間以内に個人情報保護委員会へ</td></tr>
+  <tr><td>ペネトレーションテスト</td><td>年1回（公開前 + その後毎年）</td></tr>
+</table>
+
+<h2>11.12 KPI と目標値</h2>
+<table class="decision-table">
+  <tr><th>指標</th><th>初年度目標</th><th>2年目目標</th></tr>
+  <tr><td>週次ユニーク利用者数</td><td>50〜100 UU</td><td>100〜300 UU</td></tr>
+  <tr><td>応募転換率</td><td>3%</td><td>5%</td></tr>
+  <tr><td>エスカレーション率</td><td>30% 以下</td><td>20% 以下</td></tr>
+  <tr><td>平均セッション時間</td><td>2〜5分</td><td>3〜5分</td></tr>
+  <tr><td>RAG ヒット率</td><td>70%</td><td>80%</td></tr>
+  <tr><td>チャット応答時間（p95）</td><td>3秒以内</td><td>2秒以内</td></tr>
+  <tr><td>ユーザー満足度（任意アンケート）</td><td>—</td><td>4.0/5.0</td></tr>
+</table>
+
+<!-- ========== 12. スケジュール ========== -->
+<h1>12. スケジュール</h1>
+<table>
+  <tr><th>日程</th><th>マイルストーン</th><th>担当</th></tr>
+  <tr><td>2026-04-25</td><td>本要件定義書の承認</td><td>代表・採用担当</td></tr>
+  <tr><td>2026-04-28</td><td>開発着手・AWS/Cloudflare 環境構築</td><td>開発事業者</td></tr>
+  <tr><td>2026-05-05</td><td>DB スキーマ・RLS 適用</td><td>開発事業者</td></tr>
+  <tr><td>2026-05-12</td><td>α版（開発側内部テスト完了）</td><td>開発事業者</td></tr>
+  <tr><td>2026-05-15</td><td>RAG 原稿投入・プロンプト調整</td><td>開発チーム + 代表</td></tr>
+  <tr><td>2026-05-19</td><td>β版（採用担当レビュー）</td><td>採用担当</td></tr>
+  <tr><td>2026-05-22</td><td>プライバシーポリシー改訂完了</td><td>G-LINE 法務</td></tr>
+  <tr><td>2026-05-26</td><td>ペネトレーションテスト</td><td>開発事業者</td></tr>
+  <tr><td>2026-05-29</td><td>最終承認・DNS カットオーバー</td><td>代表</td></tr>
+  <tr><td>2026-06-01</td><td>本番公開</td><td>開発事業者</td></tr>
+  <tr><td>2026-06-08〜</td><td>毎週レビュー・改善サイクル開始</td><td>両者</td></tr>
+</table>
+
+<!-- ========== 13. 運用・保守体制 ========== -->
+<h1>13. 運用・保守体制</h1>
+
+<h2>13.1 日次・週次・月次タスク</h2>
+<table>
+  <tr><th>周期</th><th>タスク</th><th>担当</th></tr>
+  <tr><td>日次</td><td>会話ログ 90日超 自動削除（GitHub Actions）</td><td>自動</td></tr>
+  <tr><td>日次</td><td>エスカレーションキュー確認</td><td>採用担当</td></tr>
+  <tr><td>週次</td><td>LLM モデル監視（新モデル検知→Eval→PR）</td><td>自動 + 開発チームレビュー</td></tr>
+  <tr><td>週次</td><td>KPI ダッシュボードレビュー</td><td>代表・採用担当</td></tr>
+  <tr><td>週次</td><td>未回答質問 → FAQ 追加候補</td><td>採用担当</td></tr>
+  <tr><td>月次</td><td>RAG 再構築（代表原稿の最新化）</td><td>自動 + 開発チームレビュー</td></tr>
+  <tr><td>月次</td><td>コストレビュー</td><td>開発事業者</td></tr>
+  <tr><td>四半期</td><td>プロンプト・ペルソナ見直し</td><td>代表 + 開発チーム</td></tr>
+  <tr><td>年次</td><td>ペネトレーションテスト</td><td>開発事業者</td></tr>
+</table>
+
+<h2>13.2 責任分界</h2>
+<table>
+  <tr><th>領域</th><th>開発事業者</th><th>G-LINE</th></tr>
+  <tr><td>システム開発・運用</td><td>◎</td><td>—</td></tr>
+  <tr><td>インフラ・セキュリティ</td><td>◎</td><td>—</td></tr>
+  <tr><td>モデル監視・更新</td><td>◎</td><td>レビュー</td></tr>
+  <tr><td>FAQ 更新</td><td>ツール提供</td><td>◎</td></tr>
+  <tr><td>応募者対応</td><td>—</td><td>◎</td></tr>
+  <tr><td>エスカレーション対応</td><td>—</td><td>◎</td></tr>
+  <tr><td>プライバシーポリシー</td><td>雛形提供</td><td>◎（法的責任）</td></tr>
+  <tr><td>個人情報保護委員会対応</td><td>技術サポート</td><td>◎</td></tr>
+</table>
+
+<!-- ========== 14. リスクと未決事項 ========== -->
+<h1>14. リスクと未決事項</h1>
+
+<h2>14.1 主要リスク</h2>
+<table>
+  <tr><th>リスク</th><th>影響</th><th>対策</th></tr>
+  <tr><td>代表著書の著作権</td><td>高</td><td>出版社との契約確認。他社出版は RAG から除外</td></tr>
+  <tr><td>AI ハルシネーション</td><td>中</td><td>RAG でコンテキスト注入、ガードレール、Eval 継続</td></tr>
+  <tr><td>Gemini API 値上げ・廃止</td><td>中</td><td>LLM Adapter で切替可能、週次監視で先行対応</td></tr>
+  <tr><td>個人情報漏洩</td><td>高</td><td>暗号化・RLS・アクセスログ・72h 報告体制</td></tr>
+  <tr><td>Cloudflare 障害</td><td>中</td><td>RDS は独立、ウィジェットは JS 停止でもサイト本体は生きる</td></tr>
+  <tr><td>モデル応答の口調ブレ</td><td>低</td><td>Eval <code>tone_check</code> でスコア化、閾値で切替不可</td></tr>
+  <tr><td>応募者ピーク時の負荷</td><td>低</td><td>Workers は自動スケール、RDS は db.t4g.small に変更可</td></tr>
+</table>
+
+<h2>14.2 未決事項（本承認時に確定すべき）</h2>
+<ol>
+  <li>代表著書の書名・出版形態・著作権範囲</li>
+  <li>G-LINE 既存 HP の URL と HTML 構造</li>
+  <li>ブランドカラー・ロゴの正確な指定</li>
+  <li>代表の口調サンプル（10〜20件の実発言）</li>
+  <li>AWS アカウントの調達方法</li>
+  <li>開発事業者と G-LINE の契約書面</li>
+  <li>プライバシーポリシー改訂版の法務レビュー</li>
+  <li>公開予定日の最終確定</li>
+</ol>
+
+<!-- ========== 15. 次のアクション ========== -->
+<h1>15. 次のアクション</h1>
+
+<h2>15.1 今週中</h2>
+<ol>
+  <li>本書を代表・採用担当にレビュー依頼</li>
+  <li>代表著書のテキストデータ入手</li>
+  <li>G-LINE HP スクレイピング</li>
+  <li>AWS アカウント調達方針の決定</li>
+</ol>
+
+<h2>15.2 来週</h2>
+<ol>
+  <li>本書承認（修正があれば v1.1 へ）</li>
+  <li>開発着手（AWS/Cloudflare 環境構築）</li>
+  <li>プライバシーポリシー改訂ドラフト作成</li>
+</ol>
+
+<h2>15.3 本承認の効力</h2>
+<p>代表・採用担当双方の承認をもって、本書は v1.0（確定版）となり、以降の開発・運用はこの仕様に基づいて実施されます。変更は改訂履歴に記載のうえ v1.1 以降で管理します。</p>
+
+<!-- ========== 承認欄 ========== -->
+<h1>改訂履歴・承認欄</h1>
+<table>
+  <tr><th>バージョン</th><th>日付</th><th>改訂内容</th><th>承認者</th></tr>
+  <tr><td>v1.0 (draft)</td><td>2026-04-18</td><td>初版（全項目仮決定）</td><td>—</td></tr>
+  <tr><td>v1.0</td><td>予定: 2026-04-25</td><td>本承認</td><td>代表・採用担当</td></tr>
+</table>
+
+<br><br>
+<table style="margin-top:32px;">
+  <tr>
+    <th style="width:33%;">代表</th>
+    <th style="width:33%;">採用担当</th>
+    <th style="width:33%;">開発責任者</th>
+  </tr>
+  <tr>
+    <td style="height:80px;">承認印：</td>
+    <td style="height:80px;">承認印：</td>
+    <td style="height:80px;">承認印：</td>
+  </tr>
+  <tr>
+    <td>日付：___________</td>
+    <td>日付：___________</td>
+    <td>日付：___________</td>
+  </tr>
+</table>
+
+<div class="footer-note">
+  G-LINE 採用チャットボット 要件定義書 v1.0（仮決定版）<br>
+  作成：開発チーム ｜ 2026-04-18 ｜ 本書は本承認までドラフト扱い
+</div>
+
+</div>
+</body>
+</html>

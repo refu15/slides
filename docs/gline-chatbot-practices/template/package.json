@@ -1,0 +1,31 @@
+{
+  "name": "gline-chatbot-llm-template",
+  "version": "0.1.0",
+  "description": "G-LINE 採用チャットボット向け LLM 切替可能テンプレート。Gemini 3.1 Flash-Lite がデフォルト、週次で自動モデル監視。",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "chat": "tsx scripts/chat-cli.mts",
+    "eval": "node scripts/diff-and-eval.mjs",
+    "check-models": "node scripts/fetch-models.mjs && node scripts/diff-and-eval.mjs && node scripts/report-slack.mjs",
+    "fetch-models": "node scripts/fetch-models.mjs",
+    "db:init": "psql \"$DATABASE_URL\" -f db/schema.sql && psql \"$DATABASE_URL\" -f db/migrations/0002_rls_policies.sql",
+    "db:seed": "psql \"$DATABASE_URL\" -f db/seed.sql",
+    "db:smoke": "tsx scripts/smoke-test-db.mts",
+    "rag:rebuild": "tsx scripts/rebuild-rag-index.mts",
+    "analytics": "tsx scripts/export-analytics.mts"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.10.0",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

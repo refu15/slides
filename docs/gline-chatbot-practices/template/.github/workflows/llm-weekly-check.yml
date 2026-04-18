@@ -1,0 +1,75 @@
+name: Weekly LLM Model Scan
+
+on:
+  schedule:
+    # 毎週月曜 00:00 UTC = 09:00 JST
+    - cron: '0 0 * * 1'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./   # このテンプレートをリポジトリルートに配置した前提
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Fetch Gemini model catalog
+        run: node scripts/fetch-models.mjs
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Diff & evaluate candidates
+        id: eval
+        run: node scripts/diff-and-eval.mjs
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      - name: Post Slack report
+        if: always()
+        run: node scripts/report-slack.mjs
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+
+      - name: Open PR if a cheaper+better model found
+        if: steps.eval.outputs.recommend_switch == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NEW_MODEL: ${{ steps.eval.outputs.new_model }}
+        run: |
+          git config user.name  "llm-model-bot"
+          git config user.email "bot@users.noreply.github.com"
+          BRANCH="chore/llm-switch-${NEW_MODEL//[^a-zA-Z0-9]/-}"
+          git checkout -b "$BRANCH"
+
+          # config/llm.yaml の current.model を差し替え
+          node -e "
+            const fs=require('fs'); const yaml=require('js-yaml');
+            const p='./config/llm.yaml';
+            const c=yaml.load(fs.readFileSync(p,'utf8'));
+            c.current.model=process.env.NEW_MODEL;
+            fs.writeFileSync(p, yaml.dump(c, {lineWidth: 120}));
+          "
+
+          git add config/llm.yaml tmp/scan-summary.json || true
+          git commit -m "chore(llm): switch current model to ${NEW_MODEL}"
+          git push -u origin "$BRANCH"
+
+          gh pr create \
+            --title "LLM切替提案: ${NEW_MODEL}" \
+            --body "週次スキャンで合格モデルを検出しました。\n\n詳細は \`tmp/scan-summary.json\` を参照。\nEval / 価格を確認し問題なければ merge してください。"

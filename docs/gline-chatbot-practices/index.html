@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>G-LINE 採用チャットボット｜ベストプラクティス10選</title>
+  <meta name="description" content="保守しやすく、変更しやすく、API料金がかからず、それでも精度が高いチャットボット構築のベストプラクティス10案。G-LINE 採用ボット向け設計書。">
+  <style>
+    :root {
+      --primary: #1a1a2e;
+      --accent: #e94560;
+      --accent2: #0f3460;
+      --bg: #f8f9fa;
+      --card: #ffffff;
+      --text: #2d3436;
+      --text-light: #636e72;
+      --border: #dfe6e9;
+      --lv1: #6c5ce7;
+      --lv2: #00b894;
+      --lv3: #fdcb6e;
+      --gold: #f39c12;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", "Yu Gothic", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.8;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent2) 100%);
+      color: #fff;
+      padding: 80px 24px 60px;
+      text-align: center;
+    }
+
+    .hero h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+      letter-spacing: 0.02em;
+    }
+
+    .hero p {
+      font-size: 1.05rem;
+      opacity: 0.9;
+      max-width: 720px;
+      margin: 0 auto;
+    }
+
+    .hero .meta {
+      margin-top: 24px;
+      font-size: 0.85rem;
+      opacity: 0.7;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .section {
+      margin: 56px 0;
+    }
+
+    .section h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 24px;
+      padding-bottom: 8px;
+      border-bottom: 3px solid var(--accent);
+      display: inline-block;
+    }
+
+    .section h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin: 28px 0 12px;
+      color: var(--accent2);
+    }
+
+    .lead {
+      font-size: 1rem;
+      color: var(--text-light);
+      margin-bottom: 16px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 28px 32px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      border-left: 4px solid var(--border);
+    }
+
+    .card.lv1 { border-left-color: var(--lv1); }
+    .card.lv2 { border-left-color: var(--lv2); }
+    .card.lv3 { border-left-color: var(--lv3); }
+    .card.warn { border-left-color: var(--accent); }
+    .card.action { border-left-color: var(--accent2); }
+    .card.gold { border-left-color: var(--gold); border-left-width: 6px; }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #fff;
+      margin-right: 6px;
+      margin-bottom: 8px;
+    }
+
+    .badge.lv1 { background: var(--lv1); }
+    .badge.lv2 { background: var(--lv2); }
+    .badge.lv3 { background: var(--lv3); color: #6a4c00; }
+    .badge.warn { background: var(--accent); }
+    .badge.action { background: var(--accent2); }
+    .badge.gold { background: var(--gold); }
+    .badge.outline {
+      background: transparent;
+      color: var(--text-light);
+      border: 1px solid var(--border);
+    }
+
+    .card h4 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .card h4 .num {
+      display: inline-block;
+      font-size: 0.9rem;
+      color: var(--accent);
+      margin-right: 8px;
+      font-weight: 800;
+    }
+
+    .card p, .card li {
+      color: var(--text);
+      font-size: 0.95rem;
+      line-height: 1.85;
+    }
+
+    .card ul {
+      list-style: none;
+      padding: 0;
+      margin: 8px 0;
+    }
+
+    .card ul li {
+      padding: 4px 0 4px 20px;
+      position: relative;
+    }
+
+    .card ul li::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 14px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+    }
+
+    .card.lv1 ul li::before { background: var(--lv1); }
+    .card.lv2 ul li::before { background: var(--lv2); }
+    .card.lv3 ul li::before { background: var(--lv3); }
+
+    .scores {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      margin: 14px 0 18px;
+      font-size: 0.8rem;
+    }
+
+    .scores .score {
+      background: #f1f3f5;
+      border-radius: 6px;
+      padding: 8px 6px;
+      text-align: center;
+    }
+
+    .scores .label {
+      color: var(--text-light);
+      font-size: 0.7rem;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .scores .value {
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .pros-cons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 12px;
+    }
+
+    @media (max-width: 700px) {
+      .pros-cons { grid-template-columns: 1fr; }
+      .scores { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    .pros, .cons {
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+    }
+
+    .pros { background: #e8f5e9; }
+    .cons { background: #ffebee; }
+
+    .pros strong, .cons strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 0.85rem;
+    }
+
+    .pros strong { color: #2e7d32; }
+    .cons strong { color: #c62828; }
+
+    .pillars {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 16px;
+      margin: 24px 0;
+    }
+
+    .pillar {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 22px 18px;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+
+    .pillar .num {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .pillar h4 {
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+    }
+
+    .pillar p {
+      font-size: 0.8rem;
+      color: var(--text-light);
+    }
+
+    .timeline {
+      position: relative;
+      margin: 32px 0;
+      padding-left: 32px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 8px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+
+    .phase {
+      position: relative;
+      padding: 16px 0 16px 20px;
+    }
+
+    .phase::before {
+      content: "";
+      position: absolute;
+      left: -28px;
+      top: 22px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent2);
+      border: 3px solid #fff;
+      box-shadow: 0 0 0 2px var(--accent2);
+    }
+
+    .phase h4 {
+      font-size: 1.05rem;
+      color: var(--accent2);
+      margin-bottom: 6px;
+    }
+
+    .phase .duration {
+      font-size: 0.8rem;
+      color: var(--text-light);
+      margin-bottom: 8px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 16px 0;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      padding: 12px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      background: var(--primary);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:nth-child(even) { background: #f8f9fa; }
+
+    .table-wrap { overflow-x: auto; }
+
+    .callout {
+      background: #fff8e1;
+      border-left: 4px solid var(--gold);
+      padding: 16px 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+      font-size: 0.92rem;
+    }
+
+    .callout strong { color: #8a5a00; }
+
+    code {
+      background: #f1f3f5;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: "Consolas", "Menlo", monospace;
+      font-size: 0.88em;
+      color: var(--accent);
+    }
+
+    pre {
+      background: #1a1a2e;
+      color: #f0f0f0;
+      padding: 16px 20px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 0.85rem;
+      margin: 12px 0;
+      line-height: 1.6;
+    }
+
+    pre code {
+      background: transparent;
+      color: #f0f0f0;
+      padding: 0;
+    }
+
+    .footer {
+      background: var(--primary);
+      color: #fff;
+      padding: 40px 24px;
+      text-align: center;
+      margin-top: 60px;
+      font-size: 0.85rem;
+      opacity: 0.9;
+    }
+
+    .tag-row {
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>G-LINE 採用チャットボット</h1>
+  <p>保守しやすく、変更しやすく、API料金がかからず、それでも<strong>精度が高い</strong> ——<br>この4つを同時に満たすための<strong>ベストプラクティス10選</strong>と推奨構成</p>
+  <div class="meta">v1.0 ｜ 2026-04-18 ｜ 要件定義（ヒアリング結果）をもとに作成</div>
+</div>
+
+<div class="container">
+
+  <!-- 前提 -->
+  <div class="section">
+    <h2>前提となる目的と制約</h2>
+    <p class="lead">本設計は G-LINE 採用サイトに埋め込むチャットボットを対象としています。ヒアリングで確認された以下の要件・制約をすべて満たすことを前提に、10案を評価します。</p>
+
+    <div class="card action">
+      <h4>主要な要件（抜粋）</h4>
+      <ul>
+        <li>会社理解 → 応募・面接予約への導線化（右下ウィジェット）</li>
+        <li>会社概要・募集要項・面接予約導線・軽い日常相談までを扱う</li>
+        <li>未公開／機密情報・給与交渉の断定回答は禁止</li>
+        <li>代表（荒牧氏）の熱意ある話し方を再現（A案口調）</li>
+        <li>24時間受付、回答不能時は info メールへエスカレーション</li>
+        <li>会話ログは90日保存（匿名化後に分析活用）</li>
+        <li>FAQ・募集情報の更新は代表と採用担当が担う</li>
+      </ul>
+    </div>
+
+    <h3>「楽」の5軸評価</h3>
+    <div class="pillars">
+      <div class="pillar">
+        <div class="num">1</div>
+        <h4>保守性</h4>
+        <p>非エンジニアが更新できるか</p>
+      </div>
+      <div class="pillar">
+        <div class="num">2</div>
+        <h4>変更容易性</h4>
+        <p>設計変更コストの低さ</p>
+      </div>
+      <div class="pillar">
+        <div class="num">3</div>
+        <h4>AI制作性</h4>
+        <p>Claude/Codex で構築可能か</p>
+      </div>
+      <div class="pillar">
+        <div class="num">4</div>
+        <h4>コスト</h4>
+        <p>API 使用料が発生しないか</p>
+      </div>
+      <div class="pillar">
+        <div class="num">5</div>
+        <h4>精度/満足度</h4>
+        <p>回答品質とユーザー体験</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 結論サマリ -->
+  <div class="section">
+    <h2>先に結論：G-LINE への推奨構成</h2>
+    <div class="card gold">
+      <span class="badge gold">RECOMMENDED</span>
+      <h4>ハイブリッド 3層構成：決定木UI → 静的FAQ全文検索 → ビルド時AI事前生成 Q&amp;A</h4>
+      <p>
+        <strong>①ボタン選択で8割カバー</strong>（会社概要・募集要項・面接予約）、<br>
+        <strong>②テキスト質問はブラウザ内Fuse.jsで静的FAQを検索</strong>（料金ゼロ）、<br>
+        <strong>③Claude で月1回オフライン生成した代表口調の Q&amp;A JSON を検索対象に追加</strong>（運用時APIコール無し）。<br>
+        回答不能時は「info メールへ」導線で必ず人にエスカレーション。
+      </p>
+      <div class="callout">
+        <strong>運用時の月額APIコスト：0円</strong>（ビルド時のみ数十円〜数百円の Claude 利用）。
+        非エンジニアは <code>faq.json</code> または Notion（連携可）を編集するだけで反映。
+      </div>
+    </div>
+  </div>
+
+  <!-- 10案 -->
+  <div class="section">
+    <h2>ベストプラクティス 10 案（推奨度順）</h2>
+
+    <!-- 1 -->
+    <div class="card gold">
+      <div class="tag-row">
+        <span class="badge gold">★★★★★ 最推奨</span>
+        <span class="badge outline">コア構成</span>
+      </div>
+      <h4><span class="num">No.1</span>静的FAQ × ファジー全文検索（Fuse.js）</h4>
+      <p>FAQ を <code>faq.json</code>（または Markdown）で管理し、ブラウザで <strong>Fuse.js</strong>（MIT ライセンス・無料）によってあいまい検索。サーバーも AI API も不要。</p>
+      <div class="scores">
+        <div class="score"><span class="label">保守</span><span class="value">★★★★★</span></div>
+        <div class="score"><span class="label">変更</span><span class="value">★★★★★</span></div>
+        <div class="score"><span class="label">AI制作</span><span class="value">★★★★★</span></div>
+        <div class="score"><span class="label">コスト</span><span class="value">0円</span></div>
+        <div class="score"><span class="label">精度</span><span class="value">★★★★</span></div>
+      </div>
+      <div class="pros-cons">
+        <div class="pros"><strong>PROS</strong>インフラ不要／Git で変更履歴管理／検索精度は十分実用レベル／表記ゆれ・タイポに強い</div>
+        <div class="cons"><strong>CONS</strong>完全に想定外の質問は取りこぼす → No.3 や No.7 で補完</div>
+      </div>
+    </div>
+
+    <!-- 2 -->
+    <div class="card gold">
+      <div class="tag-row">
+        <span class="badge gold">★★★★★ 最推奨</span>
+        <span class="badge outline">コア構成</span>
+      </div>
+      <h4><span class="num">No.2</span>ビルド時 AI 事前生成 Q&amp;A ＋ 静的配信</h4>
+      <p>代表の書籍・自叙伝・ホームページ・募集要項を投入し、<strong>Claude / Codex で月1回オフライン実行</strong> して数百〜数千件の Q&amp;A を生成。結果を <code>generated-faq.json</code> として commit。運用中は API を一切呼ばない。</p>
+      <div class="scores">
+        <div class="score"><span class="label">保守</span><span class="value">★★★★</span></div>
+        <div class="score"><span class="label">変更</span><span class="value">★★★★★</span></div>
+        <div class="score"><span class="label">AI制作</span><span class="value">★★★★★</span></div>
+        <div class="score"><span class="label">コスト</span><span class="value">月数百円</span></div>
+        <div class="score"><span class="label">精度</span><span class="value">★★★★★</span></div>
+      </div>
+      <div class="pros-cons">
+        <div class="pros"><strong>PROS</strong>代表口調を大量パターンで再現／運用中のAPIコスト0円／GitHub Actionsで完全自動化</div>
+        <div class="cons"><strong>CONS</strong>生成内容の事実チェックが必要（承認プロセスを必ず挟む）</div>
+      </div>
+    </div>
+
+    <!-- 3 -->
+    <div class="card gold">
+      <div class="tag-row">
+        <span class="badge gold">★★★★★ 最推奨</span>
+        <span class="badge outline">コア構成</span>
+      </div>
+      <h4><span class="num">No.3</span>決定木 UI（シナリオ分岐・ボタン選択型）</h4>
+      <p>「会社について」「募集要項」「面接予約」「その他質問」の4ボタンからスタート。採用導線のように<strong>流れが明確な用途では最強</strong>。LLM を一切使わず、事故リスクがゼロ。</p>
+      <div class="scores">
+        <div class="score"><span class="label">保守</span><span class="value">★★★★★</span></div>
+        <div class="score"><span class="label">変更</span><span class="value">★★★★★</span></div>
+        <div class="score"><span class="label">AI制作</span><span class="value">★★★★★</span></div>
+        <div class="score"><span class="label">コスト</span><span class="value">0円</span></div>
+        <div class="score"><span class="label">精度</span><span class="value">★★★★★</span></div>
+      </div>
+      <div class="pros-cons">
+        <div class="pros"><strong>PROS</strong>100%想定通りに動く／機密漏洩リスクなし／YAML/JSONで非エンジニアが更新可</div>
+        <div class="cons"><strong>CONS</strong>自由なテキスト相談には対応できないので、No.1 とハイブリッドで使う</div>
+      </div>
+    </div>
+
+    <!-- 4 -->
+    <div class="card lv1">
+      <div class="tag-row">
+        <span class="badge lv1">★★★★ 推奨</span>
+      </div>
+      <h4><span class="num">No.4</span>ブラウザ内ローカル LLM（WebLLM / Transformers.js）</h4>
+      <p>Llama 3.2 1B や Phi-3 mini 等をユーザーのブラウザ上で動作。初回だけモデルをダウンロード、以降はキャッシュ。<strong>サーバー側APIコスト完全ゼロ</strong>でテキスト生成が可能。</p>
+      <div class="scores">
+        <div class="score"><span class="label">保守</span><span class="value">★★★</span></div>
+        <div class="score"><span class="label">変更</span><span class="value">★★★</span></div>
+        <div class="score"><span class="label">AI制作</span><span class="value">★★★★</span></div>
+        <div class="score"><span class="label">コスト</span><span class="value">0円</span></div>
+        <div class="score"><span class="label">精度</span><span class="value">★★★</span></div>
+      </div>
+      <div class="pros-cons">
+        <div class="pros"><strong>PROS</strong>個人情報をサーバーへ送らない／API料金ゼロ／オフラインでも動く</div>
+        <div class="cons"><strong>CONS</strong>初回ロード300MB〜／スマホ性能依存／小モデルは幻覚リスクあり（A案口調の再現性はやや低い）</div>
+      </div>
+    </div>
+
+    <!-- 5 -->
+    <div class="card lv1">
+      <div class="tag-row">
+        <span class="badge lv1">★★★★ 推奨</span>
+      </div>
+      <h4><span class="num">No.5</span>Notion / Google スプレッドシート バックエンド</h4>
+      <p>FAQ・募集要項・面接枠を Notion または Google スプレッドシートで管理。サイト側は無料枠APIで読み込み、1時間ごとにキャッシュ。<strong>採用担当・代表が直接編集でき、エンジニアを介さない</strong>。</p>
+      <div class="scores">
+        <div class="score"><span class="label">保守</span><span class="value">★★★★★</span></div>
+        <div class="score"><span class="label">変更</span><span class="value">★★★★★</span></div>
+        <div class="score"><span class="label">AI制作</span><span class="value">★★★★</span></div>
+        <div class="score"><span class="label">コスト</span><span class="value">0円</span></div>
+        <div class="score"><span class="label">精度</span><span class="value">★★★★</span></div>
+      </div>
+      <div class="pros-cons">
+        <div class="pros"><strong>PROS</strong>非エンジニアの更新フロー最強／承認フローを Notion 上で完結／アクセス権限も分離可能</div>
+        <div class="cons"><strong>CONS</strong>APIレート制限を考慮し CDN キャッシュ必須／Notion 側の障害時フォールバック必要</div>
+      </div>
+    </div>
+
+    <!-- 6 -->
+    <div class="card lv1">
+      <div class="tag-row">
+        <span class="badge lv1">★★★★ 推奨</span>
+      </div>
+      <h4><span class="num">No.6</span>ブラウザ埋め込みベクトル検索（Transformers.js RAG）</h4>
+      <p>FAQ を事前にベクトル化して <code>embeddings.json</code> に保存。ユーザー質問もブラウザ側で埋め込み、<strong>コサイン類似度で最も近い Q&amp;A をテンプレ応答</strong>。生成しないので幻覚リスクが無い。</p>
+      <div class="scores">
+        <div class="score"><span class="label">保守</span><span class="value">★★★★</span></div>
+        <div class="score"><span class="label">変更</span><span class="value">★★★★</span></div>
+        <div class="score"><span class="label">AI制作</span><span class="value">★★★★</span></div>
+        <div class="score"><span class="label">コスト</span><span class="value">0円</span></div>
+        <div class="score"><span class="label">精度</span><span class="value">★★★★</span></div>
+      </div>
+      <div class="pros-cons">
+        <div class="pros"><strong>PROS</strong>意味的な類似質問を吸収（例：「給料」↔「賞与」）／幻覚ゼロ／料金ゼロ</div>
+        <div class="cons"><strong>CONS</strong>埋め込みモデルのロード（30MB〜）／No.1 で十分な場合も多い</div>
+      </div>
+    </div>
+
+    <!-- 7 -->
+    <div class="card lv2">
+      <div class="tag-row">
+        <span class="badge lv2">★★★ 必須補助</span>
+      </div>
+      <h4><span class="num">No.7</span>人間へのエスカレーション導線（info メール／電話）</h4>
+      <p>AI が回答できない／したくない質問を検知したら、<strong>即座に info メール送信フォームまたは電話案内に切り替える</strong>。これがある限り、AIは「わからない」と言っても顧客体験が落ちない。</p>
+      <div class="scores">
+        <div class="score"><span class="label">保守</span><span class="value">★★★★★</span></div>
+        <div class="score"><span class="label">変更</span><span class="value">★★★★★</span></div>
+        <div class="score"><span class="label">AI制作</span><span class="value">★★★★★</span></div>
+        <div class="score"><span class="label">コスト</span><span class="value">0円</span></div>
+        <div class="score"><span class="label">精度</span><span class="value">★★★★★</span></div>
+      </div>
+      <div class="pros-cons">
+        <div class="pros"><strong>PROS</strong>機密・個別条件交渉などリスクのある質問から AI を守れる／信頼感UP</div>
+        <div class="cons"><strong>CONS</strong>特になし。必須施策。</div>
+      </div>
+    </div>
+
+    <!-- 8 -->
+    <div class="card lv2">
+      <div class="tag-row">
+        <span class="badge lv2">★★★ 補助</span>
+      </div>
+      <h4><span class="num">No.8</span>PWA ＋ Service Worker キャッシュ</h4>
+      <p>初回アクセス後はオフラインでも FAQ 回答可能。静的アセットをキャッシュし、<strong>レスポンスは常にミリ秒単位</strong>。モバイルでのストレスがゼロに。</p>
+      <div class="scores">
+        <div class="score"><span class="label">保守</span><span class="value">★★★★</span></div>
+        <div class="score"><span class="label">変更</span><span class="value">★★★★</span></div>
+        <div class="score"><span class="label">AI制作</span><span class="value">★★★★</span></div>
+        <div class="score"><span class="label">コスト</span><span class="value">0円</span></div>
+        <div class="score"><span class="label">精度</span><span class="value">★★★★</span></div>
+      </div>
+      <div class="pros-cons">
+        <div class="pros"><strong>PROS</strong>モバイル体感速度が劇的に向上／サーバー負荷も減る</div>
+        <div class="cons"><strong>CONS</strong>キャッシュ戦略を誤ると古い FAQ が残る → バージョンキー運用が必須</div>
+      </div>
+    </div>
+
+    <!-- 9 -->
+    <div class="card lv2">
+      <div class="tag-row">
+        <span class="badge lv2">★★★ 補助</span>
+      </div>
+      <h4><span class="num">No.9</span>GitHub Issues を「未回答キュー」として活用</h4>
+      <p>AI が回答できなかった質問を <strong>GitHub Issues に自動起票</strong>（GitHub Actions 経由、無料枠で完結）。代表・採用担当が Issue にコメントで回答 → 次ビルドで FAQ に取り込む。</p>
+      <div class="scores">
+        <div class="score"><span class="label">保守</span><span class="value">★★★★★</span></div>
+        <div class="score"><span class="label">変更</span><span class="value">★★★★</span></div>
+        <div class="score"><span class="label">AI制作</span><span class="value">★★★★★</span></div>
+        <div class="score"><span class="label">コスト</span><span class="value">0円</span></div>
+        <div class="score"><span class="label">精度</span><span class="value">★★★★</span></div>
+      </div>
+      <div class="pros-cons">
+        <div class="pros"><strong>PROS</strong>変更履歴・対応履歴が Git に残る／通知も Slack / Email 連携可</div>
+        <div class="cons"><strong>CONS</strong>応募者の個人情報は Issue に載せない設計が必要（90日匿名化ルール遵守）</div>
+      </div>
+    </div>
+
+    <!-- 10 -->
+    <div class="card lv2">
+      <div class="tag-row">
+        <span class="badge lv2">★★★ 補助</span>
+      </div>
+      <h4><span class="num">No.10</span>週次ログ分析 → FAQ 自動改善ループ</h4>
+      <p>90日保存の匿名化ログから<strong>頻出質問 TOP20 と未回答質問 TOP10</strong> を GitHub Actions で週次集計。結果を Slack に投稿し、代表と採用担当が翌週に FAQ を増強。</p>
+      <div class="scores">
+        <div class="score"><span class="label">保守</span><span class="value">★★★★</span></div>
+        <div class="score"><span class="label">変更</span><span class="value">★★★★</span></div>
+        <div class="score"><span class="label">AI制作</span><span class="value">★★★★★</span></div>
+        <div class="score"><span class="label">コスト</span><span class="value">0円</span></div>
+        <div class="score"><span class="label">精度</span><span class="value">★★★★（時間とともに向上）</span></div>
+      </div>
+      <div class="pros-cons">
+        <div class="pros"><strong>PROS</strong>KPI（利用者数・予約遷移率・引き継ぎ率）も同時に可視化／要件11をそのまま実装</div>
+        <div class="cons"><strong>CONS</strong>ログの匿名化処理を確実に（氏名・電話を自動マスク）</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 比較表 -->
+  <div class="section">
+    <h2>10案 早見表</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>手法</th>
+            <th>コスト</th>
+            <th>保守</th>
+            <th>精度</th>
+            <th>G-LINE 適合</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>静的FAQ × Fuse.js</td><td>0円</td><td>★★★★★</td><td>★★★★</td><td>★★★★★</td></tr>
+          <tr><td>2</td><td>ビルド時AI事前生成</td><td>月数百円</td><td>★★★★</td><td>★★★★★</td><td>★★★★★</td></tr>
+          <tr><td>3</td><td>決定木UI</td><td>0円</td><td>★★★★★</td><td>★★★★★</td><td>★★★★★</td></tr>
+          <tr><td>4</td><td>ブラウザLLM</td><td>0円</td><td>★★★</td><td>★★★</td><td>★★★</td></tr>
+          <tr><td>5</td><td>Notion/Sheets連携</td><td>0円</td><td>★★★★★</td><td>★★★★</td><td>★★★★</td></tr>
+          <tr><td>6</td><td>ブラウザRAG</td><td>0円</td><td>★★★★</td><td>★★★★</td><td>★★★★</td></tr>
+          <tr><td>7</td><td>人間エスカレーション</td><td>0円</td><td>★★★★★</td><td>★★★★★</td><td>必須</td></tr>
+          <tr><td>8</td><td>PWAキャッシュ</td><td>0円</td><td>★★★★</td><td>★★★★</td><td>★★★★</td></tr>
+          <tr><td>9</td><td>GitHub Issues連携</td><td>0円</td><td>★★★★★</td><td>★★★★</td><td>★★★★</td></tr>
+          <tr><td>10</td><td>週次ログ分析ループ</td><td>0円</td><td>★★★★</td><td>★★★★</td><td>★★★★★</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 推奨構成 -->
+  <div class="section">
+    <h2>推奨構成（フェーズ別ロードマップ）</h2>
+    <p class="lead">コアは No.1 + No.2 + No.3 + No.7。必ず先に動くものを出してから、4〜10を足していきます。</p>
+
+    <div class="timeline">
+      <div class="phase">
+        <h4>Phase 0 ｜ MVP（Week 1〜2）</h4>
+        <div class="duration">コスト 0円／AI 生成でそのまま実装可能</div>
+        <ul>
+          <li><strong>No.3 決定木UI</strong>：会社紹介・募集要項・面接予約・その他の4ボタン</li>
+          <li><strong>No.1 静的FAQ × Fuse.js</strong>：<code>faq.json</code>に50件程度の Q&amp;A</li>
+          <li><strong>No.7 人間エスカレーション</strong>：回答不能 → info メール送信フォーム</li>
+          <li>右下ウィジェットUI、レスポンシブ対応、営業時間外案内文言</li>
+        </ul>
+      </div>
+
+      <div class="phase">
+        <h4>Phase 1 ｜ 代表口調の強化（Week 3〜4）</h4>
+        <div class="duration">コスト ビルド時のみ（月数百円）</div>
+        <ul>
+          <li><strong>No.2 ビルド時AI事前生成</strong>：代表の本・自叙伝・HP を投入し、Claude で Q&amp;A JSON を月1回生成</li>
+          <li>生成後、代表と採用担当が PR レビューで承認 → マージで自動デプロイ</li>
+          <li>A案口調（熱意・荒牧代表らしさ）をプロンプトに明示</li>
+        </ul>
+      </div>
+
+      <div class="phase">
+        <h4>Phase 2 ｜ 運用改善ループ（Month 2）</h4>
+        <div class="duration">コスト 0円／すべて GitHub Actions 無料枠</div>
+        <ul>
+          <li><strong>No.9 GitHub Issues 連携</strong>：未回答を自動起票（匿名化）</li>
+          <li><strong>No.10 週次ログ分析</strong>：頻出質問・引き継ぎ率を Slack 通知</li>
+          <li><strong>No.8 PWA / Service Worker</strong>：体感速度とオフライン対応</li>
+        </ul>
+      </div>
+
+      <div class="phase">
+        <h4>Phase 3 ｜ 将来拡張（必要時のみ）</h4>
+        <div class="duration">採用応募数やニーズに応じて判断</div>
+        <ul>
+          <li><strong>No.5 Notion バックエンド</strong>：採用担当の更新頻度が上がってきたら移行</li>
+          <li><strong>No.4 ブラウザLLM</strong>：より自由な日常会話を求めるフェーズで追加</li>
+          <li><strong>No.6 RAG</strong>：FAQ が300件を超えて Fuse.js 単独で精度が落ちた場合</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 技術スタック -->
+  <div class="section">
+    <h2>推奨技術スタック</h2>
+    <div class="card action">
+      <span class="badge action">TECH STACK</span>
+      <h4>すべて無料ライセンス・ベンダーロックインなし</h4>
+      <ul>
+        <li><strong>ホスティング</strong>：GitHub Pages / Cloudflare Pages（無料枠）</li>
+        <li><strong>UI</strong>：素のHTML + CSS + Vanilla JS（または Preact 3KB）</li>
+        <li><strong>検索</strong>：<code>fuse.js</code>（MIT, 15KB gzip）</li>
+        <li><strong>FAQデータ</strong>：<code>faq.json</code> を Git 管理（Notion連携は Phase 3）</li>
+        <li><strong>ビルド時生成</strong>：GitHub Actions + Claude API（Opus 4.7 / 月1回）</li>
+        <li><strong>ログ保存</strong>：Cloudflare Workers KV 無料枠 or Supabase 無料枠（90日自動削除）</li>
+        <li><strong>通知</strong>：info メール送信は Resend / SendGrid 無料枠</li>
+        <li><strong>分析</strong>：Cloudflare Web Analytics（プライバシー重視・無料）</li>
+      </ul>
+    </div>
+
+    <h3>最小実装サンプル（Fuse.js）</h3>
+<pre><code>// faq.json を読み込み、あいまい検索する最小例
+const faq = await fetch('/faq.json').then(r =&gt; r.json());
+const fuse = new Fuse(faq, {
+  keys: ['question', 'keywords'],
+  threshold: 0.35,        // あいまい度
+  includeScore: true
+});
+
+function answer(userText) {
+  const hits = fuse.search(userText);
+  if (!hits.length || hits[0].score &gt; 0.35) {
+    return escalateToEmail();  // No.7 の導線
+  }
+  return hits[0].item.answer;
+}</code></pre>
+  </div>
+
+  <!-- リスク -->
+  <div class="section">
+    <h2>リスクと対策</h2>
+    <div class="card warn">
+      <span class="badge warn">RISK</span>
+      <h4>押さえておくべき5つの落とし穴</h4>
+      <ul>
+        <li><strong>①幻覚リスク</strong>：生成AIを運用時に使う案（No.4）は、会社情報を創作する可能性。要件「会社情報を勝手に断定・創作しない」に抵触するため、運用APIは原則使わない</li>
+        <li><strong>②機密情報の漏洩</strong>：FAQに未公開情報を混ぜない。PRレビューで代表・採用担当の承認を必須化</li>
+        <li><strong>③個人情報の保存</strong>：90日ルール／氏名・電話・メールは自動マスク／ログは匿名化してから分析</li>
+        <li><strong>④給与・条件交渉</strong>：回答禁止ワードリストを用意し、検知したら即座に No.7 へ切替</li>
+        <li><strong>⑤キャッシュで古い募集要項</strong>：Service Workerにバージョンキーを含め、募集更新時に必ず無効化</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- KPI -->
+  <div class="section">
+    <h2>KPI（要件11を具現化）</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>指標</th>
+            <th>定義</th>
+            <th>取得方法</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>利用者数</td><td>ウィジェットを開いたユニーク訪問者</td><td>Cloudflare Web Analytics</td></tr>
+          <tr><td>予約遷移数</td><td>応募フォームへクリックした数</td><td>UTM＋イベントログ</td></tr>
+          <tr><td>頻出質問 TOP20</td><td>週次で集計する質問カテゴリ</td><td>匿名化ログ + GitHub Actions 集計</td></tr>
+          <tr><td>エスカレーション率</td><td>人へ引き継がれた割合</td><td>イベントログ</td></tr>
+          <tr><td>未回答質問</td><td>FAQ に該当なしで離脱した質問</td><td>GitHub Issues 自動起票</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- =================================== -->
+  <!-- Addendum: 生成AI × RAG 切替可能設計     -->
+  <!-- =================================== -->
+  <div class="section">
+    <h2>追補：生成AI × RAG 版「社長の分身」を作る</h2>
+    <p class="lead">方針転換（2026-04-18）：要件「社長に答えてもらっているように感じる」を最優先するため、<strong>生成AI + RAG</strong> をコアに据える。ただし将来の乗り換えコストをゼロに近づけるため、<strong>モデルは差し替え可能な抽象化層</strong>で包み、<strong>週次で自動監視</strong>する。</p>
+
+    <div class="card gold">
+      <span class="badge gold">DECISION</span>
+      <h4>採用モデル：Gemini 3.1 Flash-Lite（2026-04時点）</h4>
+      <ul>
+        <li><strong>料金</strong>：$0.25/1M input, $1.50/1M output（Claude Haiku 4.5比 −72%）</li>
+        <li><strong>月額見込み</strong>：約 <strong>$2〜$5</strong>（採用ボット想定・キャッシュ活用後）</li>
+        <li><strong>強み</strong>：1Mコンテキスト（代表の本を丸ごと投入可）／Context Caching／RAG文脈に忠実でハルシネーション低／Google Cloud でデータ残留地域選択可</li>
+        <li><strong>代替候補</strong>：GPT-5.4 nano（$0.20/$1.25）、Nova Lite、Ministral 3 8B</li>
+      </ul>
+    </div>
+
+    <h3>切替可能設計の4本柱</h3>
+    <div class="pillars">
+      <div class="pillar">
+        <div class="num">1</div>
+        <h4>抽象化層</h4>
+        <p>Adapter パターン or LiteLLM で全プロバイダ統一API化</p>
+      </div>
+      <div class="pillar">
+        <div class="num">2</div>
+        <h4>設定一元化</h4>
+        <p><code>config/llm.yaml</code> 1ファイルで全てを制御</p>
+      </div>
+      <div class="pillar">
+        <div class="num">3</div>
+        <h4>週次自動監視</h4>
+        <p>GitHub Actions で毎週月曜に新モデル検知</p>
+      </div>
+      <div class="pillar">
+        <div class="num">4</div>
+        <h4>評価スイート</h4>
+        <p>50問の採用特化 Eval で自動合否判定</p>
+      </div>
+    </div>
+
+    <h3>週次ワークフロー（自動化フロー）</h3>
+    <div class="card action">
+      <ol style="padding-left: 20px; line-height: 2;">
+        <li><strong>毎週月曜 09:00 JST</strong>：GitHub Actions が起動</li>
+        <li>Gemini 公式 API <code>/v1beta/models</code> から最新モデル一覧を取得</li>
+        <li>現行設定 (<code>config/llm.yaml</code>) と差分チェック → 新モデル候補を抽出</li>
+        <li>候補モデルに対して <strong>Eval スイート 50問</strong> を自動実行</li>
+        <li>スコアが閾値（0.85）以上 <strong>かつ</strong> 現行より安ければ合格</li>
+        <li>合格したら <strong>切替用 PR を自動作成</strong>（タイトル：「LLM切替提案: &lt;新モデル&gt; (cost -X%)」）</li>
+        <li>Slack に週次レポート投稿（新モデル／価格変動／推奨アクション）</li>
+        <li>人間は PR レビューして merge するだけ</li>
+      </ol>
+    </div>
+
+    <h3>コア実装（config/llm.yaml）</h3>
+<pre><code>current:
+  provider: google
+  model: gemini-3.1-flash-lite-preview
+  temperature: 0.7
+  max_output_tokens: 1024
+  system_prompt: ./prompts/sanbo-persona.md
+
+fallback_chain:
+  - { provider: google,    model: gemini-3-flash }
+  - { provider: openai,    model: gpt-5.4-nano }
+  - { provider: anthropic, model: claude-haiku-4-5-20251001 }
+
+eval:
+  min_score: 0.85
+  test_cases: ./eval/gline-50cases.json
+
+ab_test:
+  enabled: false
+  candidate_model: null
+  traffic_percentage: 0</code></pre>
+
+    <h3>Adapter 層（lib/llm.ts 抜粋）</h3>
+<pre><code>interface LLMProvider {
+  chat(msgs: Message[], opts?: Options): Promise&lt;Response&gt;
+}
+
+const providerMap = {
+  google:    GeminiProvider,
+  openai:    OpenAIProvider,
+  anthropic: AnthropicProvider,
+}
+
+export async function chatWithFallback(msgs, opts) {
+  const cfg = loadConfig()
+  for (const m of [cfg.current, ...cfg.fallback_chain]) {
+    try { return await new providerMap[m.provider](m).chat(msgs, opts) }
+    catch (e) { console.warn(`[${m.provider}/${m.model}] failed, next...`) }
+  }
+  throw new Error('All providers failed')
+}</code></pre>
+
+    <h3>段階的ロールアウト（A/B + ロールバック）</h3>
+    <div class="card lv2">
+      <ul>
+        <li><strong>10%トラフィックで7日間試験</strong> → 応答品質ログを匿名収集</li>
+        <li>Eval スコア ＋ ユーザー満足度シグナル（エスカレーション率・会話継続率）で判定</li>
+        <li>問題あれば <code>ab_test.enabled: false</code> に戻すだけで即ロールバック</li>
+        <li>全量切替は PR merge 1回で完了（コード変更ゼロ）</li>
+      </ul>
+    </div>
+
+    <h3>切替コストの試算</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>作業</th>
+            <th>従来設計</th>
+            <th>本設計</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>新モデル発見</td><td>手動で情報収集（月数時間）</td><td><strong>0分（自動検知）</strong></td></tr>
+          <tr><td>性能評価</td><td>手動テスト（半日〜1日）</td><td><strong>0分（Eval自動実行）</strong></td></tr>
+          <tr><td>コード修正</td><td>プロバイダSDKの差し替えで数時間</td><td><strong>YAML 1行変更</strong></td></tr>
+          <tr><td>障害時のフォールバック</td><td>手動介入</td><td><strong>自動（fallback_chain）</strong></td></tr>
+          <tr><td>年間切替コスト見込み</td><td>20〜40時間</td><td><strong>1〜2時間（レビューのみ）</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>雛形リポジトリ（すぐに使える）</h3>
+    <div class="card gold">
+      <p>本ページと同階層の <code>template/</code> に動く雛形一式を配置しています。</p>
+      <ul>
+        <li><code>template/config/llm.yaml</code> — 設定一元化ファイル</li>
+        <li><code>template/lib/llm.ts</code> — Adapter 層（Gemini / OpenAI / Anthropic 対応）</li>
+        <li><code>template/eval/gline-50cases.json</code> — 採用特化 Eval テストケース</li>
+        <li><code>template/scripts/fetch-models.mjs</code> — Gemini モデル一覧取得</li>
+        <li><code>template/scripts/diff-and-eval.mjs</code> — 差分検知 & 自動評価</li>
+        <li><code>template/scripts/report-slack.mjs</code> — 週次レポート</li>
+        <li><code>template/.github/workflows/llm-weekly-check.yml</code> — 週次 GitHub Actions</li>
+        <li><code>template/prompts/sanbo-persona.md</code> — 社長ペルソナ プロンプト例</li>
+        <li><code>template/README.md</code> — セットアップ手順</li>
+      </ul>
+      <p>セットアップは <code>npm ci</code> + GitHub Secrets に <code>GEMINI_API_KEY</code> / <code>SLACK_WEBHOOK</code> を登録するだけです。</p>
+    </div>
+
+    <h3>リスクと対策（追補）</h3>
+    <div class="card warn">
+      <ul>
+        <li><strong>モデル乗り換え時の口調のブレ</strong> → Eval の <code>tone_check</code> 項目で A案らしさを数値化し、閾値割れで不合格</li>
+        <li><strong>Preview モデルの突然の廃止</strong> → fallback_chain で GA モデルを必ず含める（gemini-3-flash, gpt-5.4-nano）</li>
+        <li><strong>API キー漏洩</strong> → GitHub Secrets 管理、ブラウザ直叩き禁止（Cloudflare Workers 経由で中継）</li>
+        <li><strong>評価基準の陳腐化</strong> → Eval ケースを月次で追加（未回答 Issue から補充する運用）</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- =================================== -->
+  <!-- Addendum 2: データベース設計            -->
+  <!-- =================================== -->
+  <div class="section">
+    <h2>追補2：データベース設計（Neon PostgreSQL 単体構成）</h2>
+    <p class="lead">
+      Supabase / Cloudflare D1+R2 / BigQuery / Firestore 等を全て検討した結果、<strong>Neon PostgreSQL 単体</strong>が「個人情報保護・RAG・分析・GDPR対応・データ増加耐性・既存知見流用」を最もバランス良く満たす結論に至りました。
+    </p>
+
+    <div class="card gold">
+      <span class="badge gold">DECISION</span>
+      <h4>採用：Neon PostgreSQL（pgvector 付き・東京リージョン）</h4>
+      <ul>
+        <li><strong>料金</strong>：無料 0.5GB（採用ボット実データ10年分）／超過後 $19/月 10GB</li>
+        <li><strong>pgvector で RAG も同じDB</strong>（層分散なし）</li>
+        <li><strong>Neon HTTP Driver</strong> で Cloudflare Workers から直接叩ける</li>
+        <li><strong>ブランチング</strong>で開発/ステージング/本番を無料で分離</li>
+        <li><strong>Row Level Security + 列暗号化</strong>で個人情報を厳格保護</li>
+        <li><strong>業界標準 PostgreSQL</strong>。<code>pg_dump</code> で何処へでも移行可能</li>
+      </ul>
+    </div>
+
+    <h3>なぜ Neon か（他案を却下した理由の総まとめ）</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>DB</th>
+            <th>OLTP</th>
+            <th>RAG</th>
+            <th>分析</th>
+            <th>GDPR削除</th>
+            <th>既存知見</th>
+            <th>却下理由</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Supabase</td><td>◎</td><td>◎</td><td>◯</td><td>◎</td><td>◎</td><td>要件で除外</td></tr>
+          <tr style="background:#fff8e1;"><td><strong>Neon PG</strong></td><td>◎</td><td>◎</td><td>◎</td><td>◎</td><td>◎</td><td><strong>採用</strong></td></tr>
+          <tr><td>CF D1 + R2</td><td>◯</td><td>◎</td><td>◯</td><td>△分散</td><td>✕</td><td>Workers ロックイン / 3層分散</td></tr>
+          <tr><td>BigQuery</td><td>✕</td><td>△</td><td>◎</td><td>△7日残留</td><td>△</td><td>OLTP不可・リアルタイム不可</td></tr>
+          <tr><td>Turso</td><td>◎</td><td>△別途</td><td>△</td><td>◎</td><td>△</td><td>RAG別途・分析弱</td></tr>
+          <tr><td>Firestore</td><td>◯</td><td>✕</td><td>✕</td><td>◎</td><td>✕</td><td>分析弱・RAG不可</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>スキーマ設計（7テーブル）</h3>
+    <div class="card action">
+<pre><code>applicants     -- 応募者情報（氏名/メール/電話 = 暗号化列, RLS保護）
+appointments   -- 面接予約（applicants へ FK）
+conversations  -- 会話ログ（匿名化 session_id, 90日 TTL 論理削除）
+rag_chunks     -- RAG チャンク + embedding vector(768) HNSW
+faq            -- FAQ マスタ（採用担当が Notion 経由で同期）
+events         -- KPI イベント（chat_open, ask, escalate, apply_click）
+escalations    -- 人間引き継ぎキュー（info メール通知トリガ）</code></pre>
+    </div>
+
+    <h3>RLS ポリシー（個人情報保護の要）</h3>
+    <div class="card warn">
+      <ul>
+        <li><strong>ロール分離</strong>：<code>app_public</code>（書込のみ）/ <code>app_admin</code>（全権限）/ <code>app_analytics</code>（個人情報マスクビューのみ閲覧）</li>
+        <li><strong>applicants テーブル</strong>：<code>app_public</code> は INSERT のみ、SELECT/UPDATE は <code>app_admin</code> のみ</li>
+        <li><strong>conversations</strong>：session_id はハッシュ化済みで <code>app_analytics</code> も閲覧可能、ただし個人特定情報は含まない運用</li>
+        <li><strong>削除要求対応</strong>：<code>DELETE FROM applicants WHERE id = $1</code> で関連レコード CASCADE 削除 → 物理削除完了</li>
+      </ul>
+    </div>
+
+    <h3>GDPR「忘れられる権利」フロー</h3>
+    <div class="timeline">
+      <div class="phase">
+        <h4>① 削除要求受付</h4>
+        <div class="duration">info メールまたは応募フォーム経由</div>
+        <p>escalations テーブルに <code>reason = 'gdpr_deletion'</code> で起票</p>
+      </div>
+      <div class="phase">
+        <h4>② 採用担当が本人確認</h4>
+        <div class="duration">原則 7日以内</div>
+        <p>Metabase の「GDPR削除要求キュー」から該当レコードを特定</p>
+      </div>
+      <div class="phase">
+        <h4>③ 物理削除実行</h4>
+        <div class="duration">1クエリで完結</div>
+        <p><code>DELETE FROM applicants WHERE email_hash = $1</code> で CASCADE 削除。<strong>1DB 完結なので抜け漏れゼロ</strong></p>
+      </div>
+      <div class="phase">
+        <h4>④ 削除証明の発行</h4>
+        <div class="duration">自動メール</div>
+        <p>削除ログ（匿名）のみ audit_log に残して証跡</p>
+      </div>
+    </div>
+
+    <h3>RAG の仕組み（pgvector HNSW）</h3>
+    <div class="card lv1">
+      <p>代表の本・自叙伝・HP・募集要項を 500トークン単位でチャンク化 → Gemini <code>text-embedding-004</code> で 768次元に埋込 → <code>rag_chunks</code> テーブルに保存。検索時はコサイン類似度 Top5 を取得しプロンプトに注入。</p>
+<pre><code>-- RAG 検索クエリ（Top5 近傍）
+SELECT chunk_text, 1 - (embedding &lt;=&gt; $1::vector) AS similarity
+FROM rag_chunks
+ORDER BY embedding &lt;=&gt; $1::vector
+LIMIT 5;</code></pre>
+      <p>月次で GitHub Actions <code>monthly-rag-rebuild.yml</code> が代表の原稿を再埋込 → テーブル差替。</p>
+    </div>
+
+    <h3>90日ログ削除（Neon は pg_cron 非対応のため Actions で）</h3>
+    <div class="card lv2">
+      <p>Neon は 2026年時点で <code>pg_cron</code> をサポートしていないため、<strong>GitHub Actions の日次 cron（<code>daily-purge.yml</code>）で物理削除</strong>します。</p>
+<pre><code>-- 90日超の会話ログを物理削除（匿名なのでそのまま DELETE）
+DELETE FROM conversations WHERE created_at &lt; NOW() - INTERVAL '90 days';
+
+-- 個人情報は論理削除→物理削除の 2段階
+UPDATE applicants SET deleted_at = NOW() WHERE requested_deletion = TRUE;
+DELETE FROM applicants WHERE deleted_at &lt; NOW() - INTERVAL '30 days';</code></pre>
+    </div>
+
+    <h3>月額コスト試算（採用ボット規模）</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>項目</th><th>料金</th><th>備考</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Neon PostgreSQL（0.5GB 無料）</td><td><strong>$0</strong></td><td>10年分 OK</td></tr>
+          <tr><td>Cloudflare Workers（10万req/日 無料）</td><td><strong>$0</strong></td><td>採用ボットで十分</td></tr>
+          <tr><td>Cloudflare Pages</td><td><strong>$0</strong></td><td>静的ホスティング</td></tr>
+          <tr><td>Gemini API（Flash-Lite）</td><td>$2〜$5</td><td>月7,500応答想定</td></tr>
+          <tr><td>Metabase Cloud Free</td><td><strong>$0</strong></td><td>1ユーザー・ダッシュボード無料</td></tr>
+          <tr><td>Resend（info メール通知）</td><td><strong>$0</strong></td><td>月3,000通無料</td></tr>
+          <tr><td>GitHub Actions</td><td><strong>$0</strong></td><td>無料枠内</td></tr>
+          <tr style="background:#fff8e1;"><td><strong>合計</strong></td><td><strong>月 $2〜$5（約300〜750円）</strong></td><td>&nbsp;</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Neon の弱点（正直評価）</h3>
+    <div class="card warn">
+      <ul>
+        <li><strong>無料枠 0.5GB</strong>：Supabase の 500MB と同等。超過時は $19/月</li>
+        <li><strong>サーバーレスのコールドスタート</strong>：最大 500ms 遅延（採用ボットは秒単位応答なので影響軽微）</li>
+        <li><strong>AWS ベース</strong>：軽度のロックインあり、ただし <code>pg_dump</code> で即退避可能</li>
+        <li><strong>pg_cron 非対応</strong>：定期処理は GitHub Actions で代替（本雛形で対応済み）</li>
+      </ul>
+    </div>
+
+    <h3>雛形拡張ファイル一覧</h3>
+    <div class="card gold">
+<pre><code>template/
+├── db/
+│   ├── schema.sql                    # 全体スキーマ（pgvector 含む）
+│   ├── migrations/
+│   │   ├── 0001_init.sql             # 初期テーブル作成
+│   │   └── 0002_rls_policies.sql     # Row Level Security ポリシー
+│   └── seed.sql                       # FAQ 初期データ
+├── lib/
+│   ├── db.ts                          # Neon HTTP クライアント
+│   ├── rag.ts                         # pgvector 検索 + Gemini 埋込
+│   ├── logger.ts                      # 会話ログ匿名化 + 保存
+│   └── guardrails.ts                  # 禁止トピック検知
+├── scripts/
+│   ├── rebuild-rag-index.mjs          # RAG ベクトル再構築
+│   ├── export-analytics.mjs           # Metabase 接続確認
+│   └── smoke-test-db.mts              # DB 疎通テスト
+├── .github/workflows/
+│   ├── daily-purge.yml                # 日次: 90日超ログ物理削除
+│   └── monthly-rag-rebuild.yml        # 月次: RAG 再構築
+└── docs/
+    └── dashboard-queries.md           # Metabase 推奨 SQL 集</code></pre>
+    </div>
+  </div>
+
+  <!-- まとめ -->
+  <div class="section">
+    <h2>まとめ</h2>
+    <div class="card gold">
+      <h4>楽で、安全で、それでも満足度を下げない設計の要点</h4>
+      <ul>
+        <li><strong>「運用中はAIを呼ばない」が最大のコツ</strong>（No.1・No.2・No.3・No.6）</li>
+        <li><strong>代表の口調は「ビルド時に生成して固定化」</strong>（No.2）することで精度とコストを両立</li>
+        <li><strong>答えられない質問はサクッと人へ</strong>（No.7）— これが最大の品質保証</li>
+        <li><strong>改善は自動化ループ</strong>（No.9・No.10）で、代表・採用担当の手を止めない</li>
+        <li>すべて <strong>GitHub + 静的サイト</strong> で完結するので、将来ベンダーロックインの心配なし</li>
+        <li><strong>生成AI採用時も「Adapter + 週次監視」</strong>で、新モデルが出ても 1 YAML 変更で乗換可能</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  G-LINE 採用チャットボット ベストプラクティス 10選 + 切替可能設計 ｜ 作成：未来創造室<br>
+  初版 2026-04-18 ｜ 生成AI×RAG 追補 2026-04-18 ｜ 要件定義：ヒアリング結果 & WBS
+</div>
+
+</body>
+</html>
