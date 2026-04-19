@@ -10,6 +10,7 @@ import {
   AlertTriangle,
   HelpCircle,
   Trash2,
+  FlaskConical,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -21,6 +22,7 @@ const navItems = [
   { href: '/admin/appointments', label: '面接予約', icon: Calendar },
   { href: '/admin/escalations', label: 'エスカレーション', icon: AlertTriangle },
   { href: '/admin/gdpr', label: 'GDPR削除', icon: Trash2 },
+  { href: '/admin/models', label: 'モデル管理', icon: FlaskConical },
 ]
 
 export function Sidebar() {
