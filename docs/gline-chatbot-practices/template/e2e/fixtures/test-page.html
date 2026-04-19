@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>G-LINE Widget E2E Fixture</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        color-scheme: light;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: #17212b;
+        background:
+          radial-gradient(circle at top left, rgba(40, 120, 255, 0.12), transparent 40%),
+          linear-gradient(180deg, #f7fbff 0%, #eef4ff 100%);
+      }
+
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 32px 20px 120px;
+      }
+
+      h1 {
+        margin: 0 0 12px;
+        font-size: 32px;
+        line-height: 1.2;
+      }
+
+      p.lead {
+        margin: 0 0 24px;
+        color: #435266;
+      }
+
+      section {
+        margin-top: 24px;
+        padding: 20px;
+        border: 1px solid #d7e4f4;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.88);
+        box-shadow: 0 10px 30px rgba(23, 33, 43, 0.06);
+      }
+
+      h2 {
+        margin: 0 0 16px;
+        font-size: 20px;
+      }
+
+      form {
+        display: grid;
+        gap: 12px;
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        font-weight: 600;
+      }
+
+      input,
+      textarea,
+      button {
+        font: inherit;
+      }
+
+      input,
+      textarea {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #b9c9dc;
+        border-radius: 10px;
+        background: #ffffff;
+      }
+
+      textarea {
+        min-height: 96px;
+        resize: vertical;
+      }
+
+      button {
+        width: fit-content;
+        padding: 10px 16px;
+        border: 0;
+        border-radius: 999px;
+        color: #ffffff;
+        background: #1662f3;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #0f53d8;
+      }
+
+      pre {
+        margin: 12px 0 0;
+        padding: 12px;
+        overflow: auto;
+        border-radius: 10px;
+        background: #0f1720;
+        color: #d8e7ff;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>G-LINE 採用チャットボット E2E Fixture</h1>
+      <p class="lead">
+        Playwright から widget.js と API フローを検証するためのテストページです。
+      </p>
+
+      <section aria-labelledby="apply-title">
+        <h2 id="apply-title">応募フォーム</h2>
+        <form id="apply-form" action="/api/apply" method="post">
+          <label for="apply-name">
+            氏名
+            <input id="apply-name" name="name" type="text" autocomplete="name" required />
+          </label>
+
+          <label for="apply-email">
+            メールアドレス
+            <input
+              id="apply-email"
+              name="email"
+              type="email"
+              autocomplete="email"
+              required
+            />
+          </label>
+
+          <label for="apply-message">
+            応募メッセージ
+            <textarea id="apply-message" name="message" required></textarea>
+          </label>
+
+          <button type="submit">応募を送信</button>
+        </form>
+        <pre id="apply-result" aria-live="polite">{}</pre>
+      </section>
+
+      <section aria-labelledby="gdpr-title">
+        <h2 id="gdpr-title">GDPR 削除依頼</h2>
+        <form id="gdpr-form" action="/api/gdpr" method="post">
+          <label for="gdpr-email">
+            削除対象メールアドレス
+            <input
+              id="gdpr-email"
+              name="email"
+              type="email"
+              autocomplete="email"
+              required
+            />
+          </label>
+
+          <button type="submit">削除依頼を送信</button>
+        </form>
+        <pre id="gdpr-result" aria-live="polite">{}</pre>
+      </section>
+    </main>
+
+    <script>
+      (() => {
+        const markFabVisible = () => {
+          if (window.__glineFabMarked) {
+            return;
+          }
+
+          const fab = document.querySelector('.gline-fab');
+
+          if (!fab) {
+            return;
+          }
+
+          const rect = fab.getBoundingClientRect();
+          const visible = rect.width > 0 && rect.height > 0;
+
+          if (!visible) {
+            return;
+          }
+
+          window.__glineFabMarked = true;
+          performance.mark('gline:fab-visible');
+        };
+
+        const observer = new MutationObserver(() => {
+          markFabVisible();
+        });
+
+        observer.observe(document.documentElement, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+        });
+
+        window.addEventListener('load', () => {
+          markFabVisible();
+        });
+
+        const wireForm = (formId, resultId) => {
+          const form = document.getElementById(formId);
+          const result = document.getElementById(resultId);
+
+          if (!(form instanceof HTMLFormElement) || !(result instanceof HTMLElement)) {
+            return;
+          }
+
+          form.addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const formData = new FormData(form);
+            const payload = Object.fromEntries(formData.entries());
+
+            const response = await fetch(form.action, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(payload),
+            });
+
+            const json = await response.json();
+            result.textContent = JSON.stringify(json, null, 2);
+          });
+        };
+
+        wireForm('apply-form', 'apply-result');
+        wireForm('gdpr-form', 'gdpr-result');
+      })();
+    </script>
+
+    <script src="../../widget/dist/widget.js" data-tenant="test"></script>
+  </body>
+</html>

@@ -1,0 +1,23 @@
+{
+  "name": "gline-chatbot-e2e",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Playwright E2E tests for the G-LINE recruiting chatbot widget",
+  "scripts": {
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:debug": "playwright test tests/chat-flow.spec.ts --debug",
+    "install:browsers": "npx playwright install chromium firefox webkit",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "latest",
+    "@playwright/test": "latest",
+    "@types/node": "latest",
+    "axe-playwright": "latest",
+    "http-server": "latest",
+    "postgres": "^3.4.9",
+    "typescript": "latest"
+  }
+}
