@@ -1,0 +1,25 @@
+{
+  "name": "gline-chatbot-widget",
+  "version": "0.1.0",
+  "description": "G-LINE 採用チャットボット 埋め込みウィジェット（Preact + Vite）",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "preact": "^10.24.0"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.9.0",
+    "terser": "^5.46.1",
+    "typescript": "^5.6.0",
+    "vite": "^5.4.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

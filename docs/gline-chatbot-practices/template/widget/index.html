@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>G-LINE Chatbot Widget - Preview</title>
+  <style>
+    body {
+      font-family: "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+      margin: 0;
+      padding: 40px;
+      background: #f3f4f6;
+      min-height: 100vh;
+    }
+    h1 { color: #0f3460; }
+    .note {
+      background: #fff;
+      padding: 24px;
+      border-radius: 8px;
+      max-width: 600px;
+    }
+  </style>
+</head>
+<body>
+  <h1>G-LINE Chatbot Widget Preview</h1>
+  <div class="note">
+    <p>右下のチャットボタンから動作確認できます。</p>
+    <p>バックエンドが動作している場合のみ応答を返します。開発時は<code>npm run dev</code>で Vite dev server と Cloudflare Workers ローカル (http://localhost:8787) を並列起動してください。</p>
+  </div>
+  <script type="module" src="/src/main.tsx" data-tenant="preview-local"></script>
+</body>
+</html>

@@ -1,31 +1,46 @@
 // ============================================================
-// Neon PostgreSQL HTTP クライアント
-// Cloudflare Workers / Vercel Edge / Node 全環境で動作
+// PostgreSQL クライアント（AWS RDS + Cloudflare Hyperdrive 対応）
+//   - Node.js（ローカル / GitHub Actions）: DATABASE_URL へ直接接続
+//   - Cloudflare Workers: Hyperdrive binding 経由で接続
 // ============================================================
 
-import { neon } from '@neondatabase/serverless'
-
-// v0.10 以降はデフォルトで接続キャッシュ有効。追加設定不要。
+import postgres from 'postgres'
 
 export type Row = Record<string, any>
-export type SqlClient = (
-  strings: TemplateStringsArray,
-  ...values: unknown[]
-) => Promise<Row[]>
+export type SqlClient = ReturnType<typeof postgres>
 
 let _sql: SqlClient | null = null
 
-export function sql(): SqlClient {
+interface InitOptions {
+  connectionString?: string    // 優先。Hyperdrive の場合はここに binding.connectionString を渡す
+}
+
+export function sql(opts: InitOptions = {}): SqlClient {
   if (_sql) return _sql
-  const url = process.env.DATABASE_URL
+  const url = opts.connectionString ?? process.env.DATABASE_URL
   if (!url) throw new Error('DATABASE_URL is not set')
-  _sql = neon(url) as unknown as SqlClient
+
+  _sql = postgres(url, {
+    ssl: 'require',
+    max: 5,                // 接続プール上限（Workers + Hyperdrive を想定して小さく）
+    idle_timeout: 20,
+    connect_timeout: 10,
+    prepare: false,        // Hyperdrive と相性悪いので無効化
+    transform: { undefined: null },
+  })
   return _sql
+}
+
+/** 明示的に接続解放（スクリプト終了時・テスト時に使用） */
+export async function closeDb(): Promise<void> {
+  if (_sql) {
+    await _sql.end({ timeout: 5 })
+    _sql = null
+  }
 }
 
 // ------------------------------------------------------------
 // 暗号化ヘルパ（pgcrypto 使用）
-// 本番では Cloud KMS / Vault で鍵管理することを推奨
 // ------------------------------------------------------------
 
 function requireKey(): string {
@@ -34,7 +49,7 @@ function requireKey(): string {
   return k
 }
 
-/** pgcrypto の pgp_sym_encrypt を使って暗号化した形で INSERT */
+/** 応募者情報を暗号化して INSERT し id を返す */
 export async function insertApplicant(input: {
   name: string
   email: string
@@ -44,7 +59,7 @@ export async function insertApplicant(input: {
 }): Promise<string> {
   const q = sql()
   const key = requireKey()
-  const rows = await q`
+  const rows = await q<{ id: string }[]>`
     INSERT INTO applicants (
       name_enc, email_enc, email_hash, phone_enc, preferred_date, notes
     )
@@ -58,14 +73,14 @@ export async function insertApplicant(input: {
     )
     RETURNING id
   `
-  return (rows[0] as { id: string }).id
+  return rows[0].id
 }
 
 /** 暗号化済みレコードを復号して返す（admin のみ） */
 export async function getApplicant(id: string) {
   const q = sql()
   const key = requireKey()
-  const rows = await q`
+  const rows = await q<Row[]>`
     SELECT
       id,
       pgp_sym_decrypt(name_enc, ${key}) AS name,
@@ -82,13 +97,13 @@ export async function getApplicant(id: string) {
 /** GDPR 削除要求 → 論理削除 → 日次バッチで物理削除 */
 export async function requestDeletion(emailHash: string): Promise<number> {
   const q = sql()
-  const rows = (await q`
+  const rows = await q<{ id: string }[]>`
     UPDATE applicants
     SET requested_deletion = TRUE,
         deleted_at = NOW()
     WHERE email_hash = ${emailHash}
     RETURNING id
-  `) as { id: string }[]
+  `
   return rows.length
 }
 
@@ -101,27 +116,30 @@ export async function createAppointment(input: {
   location?: string
 }) {
   const q = sql()
-  const rows = await q`
+  const rows = await q<{ id: string }[]>`
     INSERT INTO appointments (applicant_id, scheduled_at, location)
     VALUES (${input.applicantId}, ${input.scheduledAt}, ${input.location ?? '対面（本社）'})
     RETURNING id
   `
-  return (rows[0] as { id: string }).id
+  return rows[0].id
 }
 
 // ------------------------------------------------------------
 // イベント
 // ------------------------------------------------------------
+export type EventType =
+  | 'chat_open' | 'ask' | 'answer' | 'escalate'
+  | 'apply_click' | 'appointment_created' | 'rag_hit' | 'rag_miss'
+
 export async function recordEvent(input: {
   sessionId: string
-  type:
-    | 'chat_open' | 'ask' | 'answer' | 'escalate'
-    | 'apply_click' | 'appointment_created' | 'rag_hit' | 'rag_miss'
+  type: EventType
   metadata?: Record<string, unknown>
 }) {
   const q = sql()
+  const meta = JSON.stringify(input.metadata ?? {})
   await q`
     INSERT INTO events (session_id, event_type, metadata)
-    VALUES (${input.sessionId}, ${input.type}, ${JSON.stringify(input.metadata ?? {})}::jsonb)
+    VALUES (${input.sessionId}, ${input.type}, ${meta}::jsonb)
   `
 }

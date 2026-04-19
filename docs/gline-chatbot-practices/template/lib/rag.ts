@@ -46,7 +46,7 @@ export async function search(query: string, k = 5, minSimilarity = 0.55): Promis
   const qvec = await embed(query)
   const vecLit = `[${qvec.join(',')}]`
   const q = sql()
-  const rows = await q`
+  const rows = await q<RagHit[]>`
     SELECT
       id::text,
       source,
@@ -56,7 +56,7 @@ export async function search(query: string, k = 5, minSimilarity = 0.55): Promis
     ORDER BY embedding <=> ${vecLit}::vector
     LIMIT ${k}
   `
-  return (rows as RagHit[]).filter(h => h.similarity >= minSimilarity)
+  return rows.filter(h => h.similarity >= minSimilarity)
 }
 
 /** RAG 結果を System Prompt に流し込む用の整形 */

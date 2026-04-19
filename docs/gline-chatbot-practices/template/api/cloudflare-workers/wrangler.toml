@@ -1,0 +1,51 @@
+# ============================================================
+# Cloudflare Workers 設定
+#   デプロイ: npx wrangler deploy
+#   開発:     npx wrangler dev
+# ============================================================
+
+name = "gline-chatbot-api"
+main = "worker.ts"
+compatibility_date = "2026-04-19"
+compatibility_flags = ["nodejs_compat"]
+
+# ------------------------------------------------------------
+# 環境変数（本番値は wrangler secret put で設定）
+#   wrangler secret put GEMINI_API_KEY
+#   wrangler secret put APPLICANT_ENC_KEY
+#   wrangler secret put SESSION_SALT
+#   wrangler secret put RESEND_API_KEY
+# ------------------------------------------------------------
+[vars]
+ALLOWED_ORIGINS = "https://g-line.co.jp,https://www.g-line.co.jp"
+GEMINI_MODEL = "gemini-3.1-flash-lite-preview"
+NOTIFY_EMAIL = "info@g-line.co.jp"
+
+# ------------------------------------------------------------
+# Hyperdrive binding（AWS RDS 接続プーリング）
+#   事前作成: wrangler hyperdrive create gline-pg --connection-string="postgresql://..."
+# ------------------------------------------------------------
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "REPLACE_WITH_HYPERDRIVE_ID"
+
+# ------------------------------------------------------------
+# Observability
+# ------------------------------------------------------------
+[observability]
+enabled = true
+
+# ------------------------------------------------------------
+# Environments
+# ------------------------------------------------------------
+[env.staging]
+name = "gline-chatbot-api-staging"
+[env.staging.vars]
+ALLOWED_ORIGINS = "https://staging.g-line.co.jp"
+GEMINI_MODEL = "gemini-3.1-flash-lite-preview"
+
+[env.production]
+name = "gline-chatbot-api-prod"
+[env.production.vars]
+ALLOWED_ORIGINS = "https://g-line.co.jp,https://www.g-line.co.jp"
+GEMINI_MODEL = "gemini-3.1-flash-lite-preview"

@@ -12,7 +12,7 @@ if (!process.env.DATABASE_URL) {
 
 const q = sql()
 
-async function run(label: string, body: () => Promise<unknown[]>) {
+async function run(label: string, body: () => Promise<readonly any[]>) {
   console.log(`\n=== ${label} ===`)
   try {
     const rows = await body()

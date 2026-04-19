@@ -26,8 +26,8 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           node --input-type=module -e "
-            import { neon } from '@neondatabase/serverless'
-            const q = neon(process.env.DATABASE_URL)
+            import postgres from 'postgres'
+            const q = postgres(process.env.DATABASE_URL, { ssl: 'require', max: 1 })
 
             const logs = await q\`
               DELETE FROM conversations
@@ -50,4 +50,6 @@ jobs:
               RETURNING id
             \`
             console.log('purged applicants (post-30d grace):', applicants.length)
+
+            await q.end()
           "
