@@ -10,10 +10,11 @@ import { sql, recordEvent } from './db.ts'
 // 匿名化
 // ------------------------------------------------------------
 const PATTERNS: Array<{ re: RegExp; mask: string }> = [
-  { re: /\b[\w.+-]+@[\w-]+\.[\w.-]+\b/g,                    mask: '[EMAIL]' },
-  { re: /\b(?:\+?81-?|0)\d{1,4}-?\d{1,4}-?\d{3,4}\b/g,      mask: '[PHONE]' },
+  { re: /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g,  mask: '[EMAIL]' },
+  { re: /\+81[-\s]?\d{1,4}[-\s]?\d{1,4}[-\s]?\d{3,4}/g,     mask: '[PHONE]' },
+  { re: /\b0\d{1,4}-?\d{1,4}-?\d{3,4}\b/g,                  mask: '[PHONE]' },
   { re: /\b\d{3}-?\d{4}\b/g,                                 mask: '[POSTAL]' },
-  { re: /\b\d{4}-?\d{4}-?\d{4}-?\d{4}\b/g,                  mask: '[CARD]' },
+  { re: /\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/g,      mask: '[CARD]' },
 ]
 
 export function anonymize(text: string): string {
@@ -26,7 +27,10 @@ export function anonymize(text: string): string {
 // session_id のハッシュ化（ブラウザ UUID -> SHA-256）
 // ------------------------------------------------------------
 export async function hashSessionId(raw: string, salt?: string): Promise<string> {
-  const s = (salt ?? process.env.SESSION_SALT ?? 'gline-salt')
+  const s = salt ?? process.env.SESSION_SALT
+  if (!s || s.length < 8) {
+    throw new Error('SESSION_SALT is not configured or too short (>= 8 chars required)')
+  }
   const enc = new TextEncoder().encode(`${s}::${raw}`)
   const buf = await crypto.subtle.digest('SHA-256', enc)
   return [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('')

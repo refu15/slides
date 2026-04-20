@@ -13,7 +13,10 @@
     "db:seed": "psql \"$DATABASE_URL\" -f db/seed.sql",
     "db:smoke": "tsx scripts/smoke-test-db.mts",
     "rag:rebuild": "tsx scripts/rebuild-rag-index.mts",
-    "analytics": "tsx scripts/export-analytics.mts"
+    "analytics": "tsx scripts/export-analytics.mts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "js-yaml": "^4.1.0",
@@ -22,8 +25,10 @@
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^2.1.8",
     "tsx": "^4.19.0",
-    "typescript": "^5.6.0"
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.8"
   },
   "engines": {
     "node": ">=20.0.0"

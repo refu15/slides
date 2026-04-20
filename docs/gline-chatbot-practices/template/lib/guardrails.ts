@@ -28,6 +28,7 @@ const RULES: Rule[] = [
       /ボーナス.*(?:いくら|出ま)/,
       /内定.*条件.*(?:出し|可能)/,
       /他社.*万円/,
+      /月収.*いくら/,
     ],
   },
   {
@@ -52,13 +53,21 @@ const RULES: Rule[] = [
     reason: 'system_prompt_probe',
     description: 'プロンプトインジェクション・システム情報探索',
     patterns: [
-      /システムプロンプト.*(?:見せ|教え|出力)/,
-      /(?:ignore|無視).*(?:instruction|指示|前提)/i,
+      /システム\s*プロンプト.*(?:見せ|教え|出力|表示)/,
+      /(?:ignore|disregard|forget|無視|破棄).*(?:instruction|prompt|指示|前提)/i,
       /あなたは.*(?:誰|何).*(?:本当|実際)/,
-      /jailbreak|脱獄/i,
+      /あなたは.*(?:本当|実際).*(?:誰|何)/,
+      /(?:jailbreak|脱獄|DAN\b|developer mode)/i,
+      // ゼロ幅文字による難読化
+      /[\u200B-\u200F\u202A-\u202E\u2060-\u2063]{2,}/,
     ],
   },
 ]
+
+// 評価前の正規化：ゼロ幅文字除去
+function normalize(text: string): string {
+  return text.replace(/[\u200B-\u200F\u202A-\u202E\u2060-\u2063]/g, '')
+}
 
 export interface GuardrailResult {
   allowed: boolean
@@ -67,9 +76,10 @@ export interface GuardrailResult {
 }
 
 export function evaluate(userText: string): GuardrailResult {
+  const text = normalize(userText)
   for (const rule of RULES) {
     for (const re of rule.patterns) {
-      if (re.test(userText)) {
+      if (re.test(text)) {
         return { allowed: false, reason: rule.reason, matchedRule: rule.description }
       }
     }

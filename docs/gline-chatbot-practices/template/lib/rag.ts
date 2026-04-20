@@ -32,11 +32,19 @@ export async function embed(text: string): Promise<number[]> {
       }),
     },
   )
-  if (!res.ok) throw new Error(`Embed failed: ${res.status} ${await res.text()}`)
+  if (!res.ok) {
+    // エラー本文はログへ、throw には含めない（PII / API key 断片漏洩防止）
+    const body = await res.text().catch(() => '')
+    console.error(`[embed ${res.status}]`, body.slice(0, 200))
+    throw new Error(`Embed failed: ${res.status}`)
+  }
   const json = (await res.json()) as { embedding: { values: number[] } }
   const vec = json.embedding.values
-  if (vec.length !== EMBED_DIM) {
-    throw new Error(`Unexpected embedding dim: ${vec.length}, expected ${EMBED_DIM}`)
+  if (!Array.isArray(vec) || vec.length !== EMBED_DIM) {
+    throw new Error(`Unexpected embedding dim: ${vec?.length}, expected ${EMBED_DIM}`)
+  }
+  if (!vec.every((n) => Number.isFinite(n))) {
+    throw new Error('Embedding contains non-finite values')
   }
   return vec
 }
@@ -70,13 +78,21 @@ export function formatContext(hits: RagHit[]): string {
 
 /** 原稿をチャンクに分割（500〜600トークン目安） */
 export function chunk(text: string, maxChars = 800, overlapChars = 100): string[] {
+  if (!text) return []
+  if (maxChars <= 0) throw new Error('maxChars must be > 0')
+  if (overlapChars < 0 || overlapChars >= maxChars) {
+    throw new Error('overlapChars must be in [0, maxChars)')
+  }
+
   const chunks: string[] = []
+  const step = maxChars - overlapChars
   let i = 0
   while (i < text.length) {
     const end = Math.min(text.length, i + maxChars)
-    chunks.push(text.slice(i, end))
-    i = end - overlapChars
-    if (i >= text.length) break
+    const piece = text.slice(i, end)
+    if (piece.length > 0) chunks.push(piece)
+    if (end >= text.length) break
+    i += step
   }
   return chunks
 }
