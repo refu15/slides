@@ -45,7 +45,7 @@ for (const f of files) {
   const text = fs.readFileSync(path.join(SOURCES_DIR, f), 'utf8')
   const source = path.basename(f, '.txt')
   console.log(`Ingesting ${f} (${text.length} chars)...`)
-  const n = await ingest({ source, sourceRef: f, text })
+  const n = await ingest(q, { source, sourceRef: f, text })
   console.log(`  ${n} chunks indexed`)
   total += n
 }

@@ -22,13 +22,16 @@ CREATE TABLE IF NOT EXISTS applicants (
   phone_enc       BYTEA,                        -- 電話（pgcrypto で暗号化）
   preferred_date  DATE,
   notes           TEXT,
-  requested_deletion BOOLEAN   NOT NULL DEFAULT FALSE,  -- GDPR 削除要求
-  deleted_at      TIMESTAMPTZ,                  -- 論理削除
+  first_session_id TEXT,                        -- GDPR cascade 削除用リンク (Migration 0003)
+  requested_deletion BOOLEAN   NOT NULL DEFAULT FALSE,
+  deleted_at      TIMESTAMPTZ,
   created_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
   updated_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 CREATE INDEX IF NOT EXISTS idx_applicants_email_hash ON applicants(email_hash);
 CREATE INDEX IF NOT EXISTS idx_applicants_deleted_at ON applicants(deleted_at);
+CREATE INDEX IF NOT EXISTS idx_applicants_first_session
+  ON applicants(first_session_id) WHERE first_session_id IS NOT NULL;
 
 -- ============================================================
 -- 2. appointments ── 面接予約

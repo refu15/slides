@@ -1,10 +1,10 @@
 // ============================================================
-// 会話ログの匿名化 + 書き込み
-// - session_id はブラウザ側のランダムUUIDをハッシュ化して使用
-// - 個人情報（電話番号・メール・氏名らしき文字列）を検出したら自動マスク
+// 会話ログの匿名化 + 書き込み（Workers / Node 共通）
+//   sql と salt をすべて引数で受ける。
 // ============================================================
 
-import { sql, recordEvent } from './db.ts'
+import type { SqlClient } from './db.ts'
+import { recordEvent } from './db.ts'
 
 // ------------------------------------------------------------
 // 匿名化
@@ -24,7 +24,7 @@ export function anonymize(text: string): string {
 }
 
 // ------------------------------------------------------------
-// session_id のハッシュ化（ブラウザ UUID -> SHA-256）
+// session_id のハッシュ化（salt を引数で必須化）
 // ------------------------------------------------------------
 export async function hashSessionId(raw: string, salt?: string): Promise<string> {
   const s = salt ?? process.env.SESSION_SALT
@@ -40,7 +40,7 @@ export async function hashSessionId(raw: string, salt?: string): Promise<string>
 // 書き込み
 // ------------------------------------------------------------
 export interface LogEntry {
-  sessionId: string              // すでにハッシュ化済み
+  sessionId: string              // ハッシュ化済み
   turnIndex: number
   role: 'user' | 'assistant' | 'system'
   content: string
@@ -51,8 +51,7 @@ export interface LogEntry {
   latencyMs?: number
 }
 
-export async function writeConversation(entry: LogEntry): Promise<void> {
-  const q = sql()
+export async function writeConversation(q: SqlClient, entry: LogEntry): Promise<void> {
   const content = anonymize(entry.content)
   await q`
     INSERT INTO conversations (
@@ -68,11 +67,19 @@ export async function writeConversation(entry: LogEntry): Promise<void> {
 }
 
 /** チャット開始時のエントリーイベント */
-export async function logChatOpen(sessionId: string, meta: Record<string, unknown> = {}) {
-  await recordEvent({ sessionId, type: 'chat_open', metadata: meta })
+export async function logChatOpen(
+  q: SqlClient,
+  sessionId: string,
+  meta: Record<string, unknown> = {},
+) {
+  await recordEvent(q, { sessionId, type: 'chat_open', metadata: meta })
 }
 
 /** 応募フォームクリック */
-export async function logApplyClick(sessionId: string, meta: Record<string, unknown> = {}) {
-  await recordEvent({ sessionId, type: 'apply_click', metadata: meta })
+export async function logApplyClick(
+  q: SqlClient,
+  sessionId: string,
+  meta: Record<string, unknown> = {},
+) {
+  await recordEvent(q, { sessionId, type: 'apply_click', metadata: meta })
 }
