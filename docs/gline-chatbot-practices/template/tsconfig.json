@@ -3,14 +3,24 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "lib": ["ES2022", "DOM"],
+    "lib": [
+      "ES2022",
+      "DOM"
+    ],
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "resolveJsonModule": true,
-    "types": ["node"]
+    "types": [
+      "node"
+    ]
   },
-  "include": ["lib/**/*", "scripts/**/*.ts", "scripts/**/*.mts"]
+  "include": [
+    "lib/**/*",
+    "scripts/**/*.ts",
+    "scripts/**/*.mts",
+    "pipeline/**/*.ts"
+  ]
 }

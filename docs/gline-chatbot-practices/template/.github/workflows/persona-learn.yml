@@ -1,0 +1,61 @@
+name: Persona Auto-Learn
+
+on:
+  push:
+    paths:
+      - 'rag_sources/**'
+  schedule:
+    - cron: '0 0 * * 0'  # 毎週日曜 00:00 UTC (09:00 JST)
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  analyze-persona:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run persona analysis
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          DATABASE_URL:   ${{ secrets.DATABASE_URL }}
+        run: npx tsx scripts/analyze-persona.mts
+
+      - name: Check for persona changes
+        id: check_diff
+        run: |
+          if [ -f tmp/persona-diff.md ]; then
+            if grep -q "乖離は検出されませんでした" tmp/persona-diff.md; then
+              echo "has_changes=false" >> $GITHUB_OUTPUT
+            else
+              echo "has_changes=true" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create Pull Request
+        if: steps.check_diff.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: persona 分析結果を更新'
+          branch: auto/persona-${{ github.run_number }}
+          title: "🤖 persona 改訂案 (${{ github.run_number }})"
+          body-path: tmp/persona-diff.md
+          labels: |
+            persona
+            auto-generated
+          delete-branch: true

@@ -11,6 +11,7 @@ import {
   HelpCircle,
   Trash2,
   FlaskConical,
+  BookOpen,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -23,6 +24,7 @@ const navItems = [
   { href: '/admin/escalations', label: 'エスカレーション', icon: AlertTriangle },
   { href: '/admin/gdpr', label: 'GDPR削除', icon: Trash2 },
   { href: '/admin/models', label: 'モデル管理', icon: FlaskConical },
+  { href: '/admin/persona', label: 'ペルソナ管理', icon: BookOpen },
 ]
 
 export function Sidebar() {

@@ -16,11 +16,13 @@
     "analytics": "tsx scripts/export-analytics.mts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "persona:learn": "tsx scripts/analyze-persona.mts"
   },
   "dependencies": {
     "js-yaml": "^4.1.0",
-    "postgres": "^3.4.9"
+    "postgres": "^3.4.9",
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
