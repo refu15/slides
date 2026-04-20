@@ -12,6 +12,7 @@ import {
   Trash2,
   FlaskConical,
   BookOpen,
+  ShieldCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -25,6 +26,7 @@ const navItems = [
   { href: '/admin/gdpr', label: 'GDPR削除', icon: Trash2 },
   { href: '/admin/models', label: 'モデル管理', icon: FlaskConical },
   { href: '/admin/persona', label: 'ペルソナ管理', icon: BookOpen },
+  { href: '/admin/audit', label: '監査ログ', icon: ShieldCheck },
 ]
 
 export function Sidebar() {

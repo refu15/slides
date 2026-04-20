@@ -47,6 +47,7 @@ export interface Env {
   NOTIFY_EMAIL?: string
   ADMIN_BASE_URL?: string
   GEMINI_MODEL?: string
+  TURNSTILE_SECRET_KEY?: string
   CHAT_LIMITER?: RateLimit
   APPLY_LIMITER?: RateLimit
   GDPR_LIMITER?: RateLimit
@@ -135,6 +136,43 @@ function getClientKey(
 ): string {
   const ip = c.req.header('CF-Connecting-IP') ?? c.req.header('X-Forwarded-For') ?? 'unknown'
   return `${ip}:${sessionId.slice(0, 16)}`
+}
+
+// ------------------------------------------------------------
+// Cloudflare Turnstile（Bot 検知）
+// ------------------------------------------------------------
+async function verifyTurnstile(
+  token: string,
+  secret: string,
+  remoteip?: string,
+): Promise<boolean> {
+  try {
+    const res = await fetch(
+      'https://challenges.cloudflare.com/turnstile/v0/siteverify',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          secret,
+          response: token,
+          ...(remoteip ? { remoteip } : {}),
+        }),
+        signal: AbortSignal.timeout(5_000),
+      },
+    )
+    if (!res.ok) {
+      console.warn('[turnstile] verify HTTP', res.status)
+      return false
+    }
+    const json = await res.json<{ success: boolean; 'error-codes'?: string[] }>()
+    if (!json.success) {
+      console.warn('[turnstile] verify failed:', json['error-codes'])
+    }
+    return json.success === true
+  } catch (e) {
+    console.error('[turnstile] exception:', (e as Error).message)
+    return false
+  }
 }
 
 function safeWaitUntil(
@@ -320,10 +358,11 @@ app.post('/api/apply', async (c) => {
     phone?: string
     preferredDate?: string
     notes?: string
+    turnstileToken?: string
   }>().catch(() => null)
   if (!body) return c.json({ error: 'invalid request body' }, 400)
 
-  const { sessionId: rawSid, name, email, phone, preferredDate, notes } = body
+  const { sessionId: rawSid, name, email, phone, preferredDate, notes, turnstileToken } = body
 
   if (typeof name !== 'string' || name.trim().length === 0 || name.length > MAX_NAME_CHARS) {
     return c.json({ error: 'invalid name' }, 400)
@@ -336,6 +375,16 @@ app.post('/api/apply', async (c) => {
   }
   if (notes !== undefined && (typeof notes !== 'string' || notes.length > MAX_NOTES_CHARS)) {
     return c.json({ error: 'invalid notes' }, 400)
+  }
+
+  // Cloudflare Turnstile 検証（TURNSTILE_SECRET_KEY が設定されている場合のみ必須化）
+  if (c.env.TURNSTILE_SECRET_KEY) {
+    if (typeof turnstileToken !== 'string' || !turnstileToken) {
+      return c.json({ error: 'turnstile_token_required' }, 400)
+    }
+    const clientIp = c.req.header('CF-Connecting-IP') ?? undefined
+    const ok = await verifyTurnstile(turnstileToken, c.env.TURNSTILE_SECRET_KEY, clientIp)
+    if (!ok) return c.json({ error: 'turnstile_verification_failed' }, 403)
   }
 
   const salt = requireSalt(c.env)

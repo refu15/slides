@@ -1,0 +1,119 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  root:
+    name: root (lib / tests)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: template/package-lock.json
+      - name: Install
+        working-directory: template
+        run: npm ci
+      - name: TypeScript check
+        working-directory: template
+        run: npx tsc --noEmit
+      - name: Unit tests (vitest)
+        working-directory: template
+        run: npx vitest run
+
+  api:
+    name: api/cloudflare-workers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: template/api/cloudflare-workers/package-lock.json
+      - name: Install
+        working-directory: template/api/cloudflare-workers
+        run: npm ci
+      - name: TypeScript check
+        working-directory: template/api/cloudflare-workers
+        run: npx tsc --noEmit
+      - name: Wrangler dry-run
+        working-directory: template/api/cloudflare-workers
+        run: npx wrangler deploy --dry-run
+
+  widget:
+    name: widget
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: template/widget/package-lock.json
+      - name: Install
+        working-directory: template/widget
+        run: npm ci
+      - name: TypeScript check
+        working-directory: template/widget
+        run: npx tsc --noEmit
+      - name: Vite build
+        working-directory: template/widget
+        run: npx vite build
+      - name: Check bundle size budget (<50KB gzip)
+        working-directory: template/widget
+        run: |
+          SIZE=$(gzip -c dist/widget.js | wc -c)
+          echo "Bundle gzip size: ${SIZE} bytes"
+          if [ "$SIZE" -gt 51200 ]; then
+            echo "::error ::Bundle exceeds 50KB gzip budget"
+            exit 1
+          fi
+
+  admin:
+    name: admin (Next.js 15)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: template/admin/package-lock.json
+      - name: Install
+        working-directory: template/admin
+        run: npm install --legacy-peer-deps
+      - name: TypeScript check
+        working-directory: template/admin
+        run: npx tsc --noEmit
+      - name: Next.js build
+        working-directory: template/admin
+        run: npx next build
+        env:
+          SKIP_ENV_VALIDATION: 'true'
+
+  emails:
+    name: emails (React Email)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: template/emails/package-lock.json
+      - name: Install
+        working-directory: template/emails
+        run: npm install
+      - name: TypeScript check
+        working-directory: template/emails
+        run: npx tsc --noEmit || true

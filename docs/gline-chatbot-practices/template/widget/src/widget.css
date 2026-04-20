@@ -207,6 +207,140 @@
 }
 .gline-footer small { font-size: 10px; }
 
+/* ====== 応募モーダル ====== */
+.gline-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 2147483100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.gline-modal {
+  background: #fff;
+  border-radius: 12px;
+  width: 100%;
+  max-width: 480px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+}
+
+.gline-modal-header {
+  padding: 16px 20px;
+  background: var(--gline-primary, #0f3460);
+  color: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 12px 12px 0 0;
+}
+.gline-modal-title {
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.gline-apply-form {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.gline-label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: #2d3748;
+}
+.gline-label > span {
+  font-weight: 600;
+}
+.gline-required {
+  color: var(--gline-accent, #e94560);
+  margin-left: 4px;
+}
+.gline-apply-form .gline-input {
+  padding: 10px 12px;
+  border: 1px solid #cbd5e0;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+.gline-apply-form textarea.gline-input {
+  resize: vertical;
+  min-height: 80px;
+}
+.gline-apply-form .gline-input:focus {
+  border-color: var(--gline-primary, #0f3460);
+}
+
+.gline-turnstile {
+  min-height: 65px;
+  display: flex;
+  justify-content: center;
+}
+
+.gline-consent {
+  color: #718096;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.gline-consent a {
+  color: var(--gline-primary, #0f3460);
+  text-decoration: underline;
+}
+
+.gline-form-result {
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+.gline-form-result.ok {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+.gline-form-result.ng {
+  background: #fff5f5;
+  color: #c53030;
+}
+
+.gline-modal-footer {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 4px;
+}
+.gline-btn-primary,
+.gline-btn-secondary {
+  padding: 10px 18px;
+  border-radius: 6px;
+  border: none;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.gline-btn-primary {
+  background: var(--gline-primary, #0f3460);
+  color: #fff;
+}
+.gline-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.gline-btn-secondary {
+  background: #fff;
+  color: #4a5568;
+  border: 1px solid #cbd5e0;
+}
+
 /* モバイル最適化 */
 @media (max-width: 480px) {
   .gline-widget {

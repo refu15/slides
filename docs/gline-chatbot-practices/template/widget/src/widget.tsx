@@ -1,8 +1,25 @@
 import { useState, useRef, useEffect, useCallback } from 'preact/hooks'
+/* eslint-disable @typescript-eslint/no-explicit-any */
 
 interface Props {
   apiUrl: string
   tenantId: string
+  turnstileSiteKey?: string
+}
+
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (el: HTMLElement, opts: {
+        sitekey: string
+        callback?: (token: string) => void
+        'error-callback'?: () => void
+        'expired-callback'?: () => void
+        theme?: 'light' | 'dark' | 'auto'
+      }) => string
+      reset: (widgetId?: string) => void
+    }
+  }
 }
 
 interface Message {
@@ -20,7 +37,7 @@ const QUICK_REPLIES = [
   '代表はどんな人ですか？',
 ]
 
-export function ChatbotApp({ apiUrl, tenantId }: Props) {
+export function ChatbotApp({ apiUrl, tenantId, turnstileSiteKey }: Props) {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: WELCOME_TEXT },
@@ -28,6 +45,7 @@ export function ChatbotApp({ apiUrl, tenantId }: Props) {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [showApply, setShowApply] = useState(false)
+  const [applyFormOpen, setApplyFormOpen] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
   const sessionIdRef = useRef<string>(getOrCreateSessionId())
 
@@ -143,13 +161,15 @@ export function ChatbotApp({ apiUrl, tenantId }: Props) {
 
           {showApply && (
             <div class="gline-apply-cta">
-              <a
+              <button
                 class="gline-apply-btn"
-                href={`#apply?tenant=${tenantId}`}
-                onClick={() => sendEvent('apply_click')}
+                onClick={() => {
+                  sendEvent('apply_click')
+                  setApplyFormOpen(true)
+                }}
               >
-                応募フォームへ →
-              </a>
+                応募フォームを開く →
+              </button>
             </div>
           )}
 
@@ -179,6 +199,180 @@ export function ChatbotApp({ apiUrl, tenantId }: Props) {
           </div>
         </div>
       )}
+
+      {applyFormOpen && (
+        <ApplyForm
+          apiUrl={apiUrl}
+          tenantId={tenantId}
+          sessionId={sessionIdRef.current}
+          turnstileSiteKey={turnstileSiteKey}
+          onClose={() => setApplyFormOpen(false)}
+        />
+      )}
+    </div>
+  )
+}
+
+// ============================================================
+// 応募フォーム（Turnstile 組み込み）
+// ============================================================
+
+interface ApplyFormProps {
+  apiUrl: string
+  tenantId: string
+  sessionId: string
+  turnstileSiteKey?: string
+  onClose: () => void
+}
+
+function ApplyForm({ apiUrl, tenantId, sessionId, turnstileSiteKey, onClose }: ApplyFormProps) {
+  const [form, setForm] = useState({
+    name: '', email: '', phone: '', preferredDate: '', notes: '',
+  })
+  const [sending, setSending] = useState(false)
+  const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+  const turnstileRef = useRef<HTMLDivElement>(null)
+
+  // Turnstile レンダー
+  useEffect(() => {
+    if (!turnstileSiteKey || !turnstileRef.current) return
+    const tryRender = () => {
+      if (typeof window !== 'undefined' && window.turnstile && turnstileRef.current) {
+        window.turnstile.render(turnstileRef.current, {
+          sitekey: turnstileSiteKey,
+          theme: 'auto',
+          callback: (token: string) => setTurnstileToken(token),
+          'error-callback': () => setTurnstileToken(null),
+          'expired-callback': () => setTurnstileToken(null),
+        })
+        return true
+      }
+      return false
+    }
+    if (!tryRender()) {
+      const interval = setInterval(() => {
+        if (tryRender()) clearInterval(interval)
+      }, 300)
+      const timeout = setTimeout(() => clearInterval(interval), 10_000)
+      return () => {
+        clearInterval(interval)
+        clearTimeout(timeout)
+      }
+    }
+  }, [turnstileSiteKey])
+
+  const submit = async (e: Event) => {
+    e.preventDefault()
+    if (!form.name.trim() || !form.email.trim()) {
+      setResult({ ok: false, message: '氏名とメールは必須です' })
+      return
+    }
+    if (turnstileSiteKey && !turnstileToken) {
+      setResult({ ok: false, message: 'ボット検知チェックを完了してください' })
+      return
+    }
+    setSending(true)
+    setResult(null)
+    try {
+      const res = await fetch(`${apiUrl}/api/apply`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-Tenant-Id': tenantId },
+        body: JSON.stringify({
+          sessionId,
+          ...form,
+          ...(turnstileToken ? { turnstileToken } : {}),
+        }),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'unknown' })) as { error?: string }
+        throw new Error(err.error ?? `HTTP ${res.status}`)
+      }
+      setResult({ ok: true, message: 'ご応募ありがとうございます。追って担当者からご連絡いたします。' })
+      setTimeout(onClose, 3000)
+    } catch (e) {
+      setResult({ ok: false, message: `送信に失敗しました: ${(e as Error).message}` })
+    } finally {
+      setSending(false)
+    }
+  }
+
+  return (
+    <div class="gline-modal-backdrop" onClick={onClose}>
+      <div class="gline-modal" onClick={(e) => e.stopPropagation()}>
+        <div class="gline-modal-header">
+          <div class="gline-modal-title">応募フォーム</div>
+          <button class="gline-close" onClick={onClose} aria-label="閉じる">×</button>
+        </div>
+
+        <form class="gline-apply-form" onSubmit={submit}>
+          <label class="gline-label">
+            <span>氏名 <span class="gline-required">*</span></span>
+            <input
+              class="gline-input" type="text" required maxLength={100}
+              value={form.name}
+              onInput={(e) => setForm({ ...form, name: (e.target as HTMLInputElement).value })}
+            />
+          </label>
+          <label class="gline-label">
+            <span>メールアドレス <span class="gline-required">*</span></span>
+            <input
+              class="gline-input" type="email" required maxLength={254}
+              value={form.email}
+              onInput={(e) => setForm({ ...form, email: (e.target as HTMLInputElement).value })}
+            />
+          </label>
+          <label class="gline-label">
+            <span>電話番号</span>
+            <input
+              class="gline-input" type="tel" maxLength={20}
+              value={form.phone}
+              onInput={(e) => setForm({ ...form, phone: (e.target as HTMLInputElement).value })}
+            />
+          </label>
+          <label class="gline-label">
+            <span>ご希望日時</span>
+            <input
+              class="gline-input" type="text" placeholder="例: 5月10日(金) 14:00"
+              value={form.preferredDate}
+              onInput={(e) => setForm({ ...form, preferredDate: (e.target as HTMLInputElement).value })}
+            />
+          </label>
+          <label class="gline-label">
+            <span>相談内容・メッセージ</span>
+            <textarea
+              class="gline-input" rows={4} maxLength={2000}
+              value={form.notes}
+              onInput={(e) => setForm({ ...form, notes: (e.target as HTMLTextAreaElement).value })}
+            />
+          </label>
+
+          {turnstileSiteKey && (
+            <div class="gline-turnstile" ref={turnstileRef} />
+          )}
+
+          <div class="gline-consent">
+            <small>
+              送信により<a href="/privacy" target="_blank" rel="noreferrer">プライバシーポリシー</a>に同意したものとみなされます。
+            </small>
+          </div>
+
+          {result && (
+            <div class={`gline-form-result ${result.ok ? 'ok' : 'ng'}`}>
+              {result.message}
+            </div>
+          )}
+
+          <div class="gline-modal-footer">
+            <button type="button" class="gline-btn-secondary" onClick={onClose} disabled={sending}>
+              キャンセル
+            </button>
+            <button type="submit" class="gline-btn-primary" disabled={sending}>
+              {sending ? '送信中...' : '送信する'}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }
