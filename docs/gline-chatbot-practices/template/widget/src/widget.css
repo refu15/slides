@@ -59,6 +59,10 @@
 }
 .gline-title { font-weight: 700; font-size: 15px; }
 .gline-subtitle { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+.gline-badge-off {
+  color: #ffc107;
+  font-weight: 600;
+}
 .gline-close {
   background: transparent;
   border: none;

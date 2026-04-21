@@ -32,6 +32,8 @@ import {
   escalationMessage,
   type EscalationReason,
 } from '../../lib/guardrails.ts'
+import { isBusinessHours, outsideHoursNotice } from '../../lib/business-hours.ts'
+import { sendToSentryDirect } from '../../lib/sentry.ts'
 
 // ------------------------------------------------------------
 // Env bindings
@@ -48,6 +50,7 @@ export interface Env {
   ADMIN_BASE_URL?: string
   GEMINI_MODEL?: string
   TURNSTILE_SECRET_KEY?: string
+  SENTRY_DSN?: string
   CHAT_LIMITER?: RateLimit
   APPLY_LIMITER?: RateLimit
   GDPR_LIMITER?: RateLimit
@@ -179,10 +182,19 @@ function safeWaitUntil(
   ctx: { waitUntil: (p: Promise<unknown>) => void },
   label: string,
   fn: () => Promise<unknown>,
+  env?: Env,
 ) {
   ctx.waitUntil(
-    fn().catch(e => {
-      console.error(`[waitUntil:${label}]`, (e as Error).message)
+    fn().catch(async (e) => {
+      const msg = (e as Error).message
+      console.error(`[waitUntil:${label}]`, msg)
+      if (env?.SENTRY_DSN) {
+        await sendToSentryDirect(env.SENTRY_DSN, {
+          message: `[waitUntil:${label}] ${msg}`,
+          level: 'error',
+          extra: { label, stack: (e as Error).stack },
+        })
+      }
     }),
   )
 }
@@ -241,6 +253,20 @@ async function geminiChat(
 // ============================================================
 
 app.get('/api/health', (c) => c.json({ ok: true, ts: Date.now() }))
+
+// グローバルエラーハンドラ：500 応答前に Sentry へ通知
+app.onError(async (err, c) => {
+  const env = c.env as Env
+  console.error('[worker.onError]', err.message, err.stack)
+  if (env.SENTRY_DSN) {
+    await sendToSentryDirect(env.SENTRY_DSN, {
+      message: `[worker:500] ${err.message}`,
+      level: 'error',
+      extra: { path: c.req.path, method: c.req.method, stack: err.stack },
+    })
+  }
+  return c.json({ error: 'internal_error' }, 500)
+})
 
 // ------------- /api/chat -------------
 app.post('/api/chat', async (c) => {
@@ -346,7 +372,17 @@ app.post('/api/chat', async (c) => {
     await q.end()
   })
 
-  return c.json({ reply: text, escalated: false, ragHits: ragHits.length, latencyMs: latency })
+  // 営業時間外なら注釈を追加（要件定義書 4.1 / 11.4）
+  const withinHours = isBusinessHours()
+  const finalReply = withinHours ? text : text + outsideHoursNotice(notifyEmail)
+
+  return c.json({
+    reply: finalReply,
+    escalated: false,
+    ragHits: ragHits.length,
+    latencyMs: latency,
+    businessHours: withinHours,
+  })
 })
 
 // ------------- /api/apply -------------

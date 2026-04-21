@@ -30,6 +30,19 @@ interface Message {
 
 const WELCOME_TEXT = 'こんにちは！G-LINE の採用担当AIです。会社のこと、お仕事のこと、応募のこと — 何でもお気軽にお尋ねください。私は代表の考え方を学んでいるので、率直にお答えします。'
 
+function isBusinessHoursJST(now = new Date()): boolean {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Asia/Tokyo',
+    weekday: 'short',
+    hour: '2-digit',
+    hour12: false,
+  }).formatToParts(now)
+  const weekday = parts.find((p) => p.type === 'weekday')?.value ?? ''
+  const hour = parseInt(parts.find((p) => p.type === 'hour')?.value ?? '0', 10)
+  const isWeekday = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'].includes(weekday)
+  return isWeekday && hour >= 10 && hour < 17
+}
+
 const QUICK_REPLIES = [
   '御社の事業内容を教えて',
   '未経験でも応募できますか？',
@@ -137,7 +150,12 @@ export function ChatbotApp({ apiUrl, tenantId, turnstileSiteKey }: Props) {
           <div class="gline-header">
             <div>
               <div class="gline-title">G-LINE 採用相談</div>
-              <div class="gline-subtitle">AI が代表の考えで答えます</div>
+              <div class="gline-subtitle">
+                AI が代表の考えで答えます
+                {!isBusinessHoursJST() && (
+                  <span class="gline-badge-off"> ・ 営業時間外</span>
+                )}
+              </div>
             </div>
             <button class="gline-close" onClick={toggleOpen} aria-label="閉じる">×</button>
           </div>
