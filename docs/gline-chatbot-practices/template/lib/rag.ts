@@ -26,7 +26,7 @@ function resolveConfig(config?: Partial<RagConfig>): RagConfig {
   if (!apiKey) throw new Error('GEMINI_API_KEY is not set')
   return {
     geminiApiKey: apiKey,
-    embedModel: config?.embedModel ?? 'text-embedding-004',
+    embedModel: config?.embedModel ?? 'gemini-embedding-001',
     timeoutMs: config?.timeoutMs ?? 15_000,
   }
 }
@@ -62,6 +62,7 @@ async function embedInternal(
       body: JSON.stringify({
         content: { parts: [{ text }] },
         taskType,
+        outputDimensionality: EMBED_DIM,
       }),
       signal: AbortSignal.timeout(cfg.timeoutMs ?? 15_000),
     },

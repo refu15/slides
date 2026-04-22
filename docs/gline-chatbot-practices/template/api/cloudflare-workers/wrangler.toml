@@ -28,6 +28,8 @@ NOTIFY_EMAIL = "info@g-line.co.jp"
 [[hyperdrive]]
 binding = "HYPERDRIVE"
 id = "REPLACE_WITH_HYPERDRIVE_ID"
+# ローカル開発時に使用する接続文字列（wrangler dev で読まれる）
+localConnectionString = "postgresql://gline_dev:dev_password_change_me@localhost:5433/gline_chatbot?sslmode=disable"
 
 # ------------------------------------------------------------
 # Rate Limiting Bindings (Cloudflare 標準、2024 GA)

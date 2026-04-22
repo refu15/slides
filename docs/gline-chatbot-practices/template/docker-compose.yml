@@ -1,0 +1,29 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: gline-pg-local
+    environment:
+      POSTGRES_USER: gline_dev
+      POSTGRES_PASSWORD: dev_password_change_me
+      POSTGRES_DB: gline_chatbot
+      POSTGRES_HOST_AUTH_METHOD: trust
+    ports:
+      - "5433:5432"
+    volumes:
+      - gline_pgdata:/var/lib/postgresql/data
+      # スキーマ適用用（コンテナ初回起動時に自動実行）
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./db/migrations/0002_rls_policies.sql:/docker-entrypoint-initdb.d/02-rls.sql:ro
+      - ./db/migrations/0003_gdpr_cascade.sql:/docker-entrypoint-initdb.d/03-gdpr.sql:ro
+      - ./db/migrations/0004_audit_log.sql:/docker-entrypoint-initdb.d/04-audit.sql:ro
+      - ./db/seed.sql:/docker-entrypoint-initdb.d/05-seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U gline_dev -d gline_chatbot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  gline_pgdata:
+    name: gline_pgdata

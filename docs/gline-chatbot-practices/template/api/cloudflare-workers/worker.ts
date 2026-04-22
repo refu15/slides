@@ -39,7 +39,8 @@ import { sendToSentryDirect } from '../../lib/sentry.ts'
 // Env bindings
 // ------------------------------------------------------------
 export interface Env {
-  HYPERDRIVE: Hyperdrive
+  HYPERDRIVE?: Hyperdrive           // 本番では必須、ローカル dev では未設定可
+  DATABASE_URL?: string              // ローカル dev 用フォールバック
   GEMINI_API_KEY: string
   APPLICANT_ENC_KEY: string
   SESSION_SALT: string
@@ -114,7 +115,9 @@ app.use('*', async (c, next) => {
 // Helpers
 // ------------------------------------------------------------
 function db(env: Env): SqlClient {
-  return createDb({ connectionString: env.HYPERDRIVE.connectionString })
+  const conn = env.HYPERDRIVE?.connectionString ?? env.DATABASE_URL
+  if (!conn) throw new Error('HYPERDRIVE binding or DATABASE_URL must be set')
+  return createDb({ connectionString: conn })
 }
 
 function requireSalt(env: Env): string {

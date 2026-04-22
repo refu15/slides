@@ -20,8 +20,10 @@ export interface DbConfig {
 /** Workers/Node 共通: 接続を毎回作るファクトリ */
 export function createDb(config: DbConfig): SqlClient {
   if (!config.connectionString) throw new Error('connectionString is required')
+  // sslmode=disable が URL に含まれる（ローカル Docker 等）なら SSL を無効化
+  const useSsl = !/sslmode=disable/i.test(config.connectionString)
   return postgres(config.connectionString, {
-    ssl: 'require',
+    ssl: useSsl ? 'require' : false,
     max: 5,
     idle_timeout: 10,
     connect_timeout: 10,
