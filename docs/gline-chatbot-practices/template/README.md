@@ -1,132 +1,181 @@
-# G-LINE 採用チャットボット｜LLM 切替可能テンプレート
+# G-LINE 採用チャットボット（Lite 版）
 
-Gemini 3.1 Flash-Lite をデフォルトに、将来より安く/強いモデルが出たら **YAML 1行変更だけで乗り換えられる** 雛形。週次で自動監視し、切替候補を PR で提案します。
+> 社長の分身として応募者の質問に答え、応募をメール通知で受け付ける **最小構成** の AI 採用チャットボット。
 
-## ディレクトリ構成
+[![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6)](https://www.typescriptlang.org/)
+[![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020)](https://workers.cloudflare.com/)
+[![Gemini](https://img.shields.io/badge/Gemini-3.1%20Flash--Lite-4285F4)](https://ai.google.dev/)
+
+---
+
+## 📌 Lite 版の特徴
+
+- **DB 不要**（応募情報はメール通知のみ、会話ログ保存なし）
+- **RAG は静的 JSON**（ビルド時 `chunks.json` 生成、Worker にバンドル）
+- **必要アカウント 2 つだけ**: Cloudflare + Resend（Gemini は既にあり）
+- **月額 ¥500 以下**（Cloudflare 無料 + Gemini ¥200〜500 + Resend 無料）
+- **本番公開まで 1 日**
+
+---
+
+## 🏗 アーキテクチャ
+
+```
+[G-LINE HP]
+   ↓ <script src=".../widget.js">
+[Cloudflare Pages]  widget.js 静的配信
+   ↓ fetch
+[Cloudflare Workers]  /api/chat /api/apply /api/health
+   ├─ Gemini 3.1 Flash-Lite 呼び出し
+   ├─ ガードレール（給与交渉・機密検知）
+   ├─ RAG（chunks.json 線形スキャン）
+   └─ Resend でメール通知（応募時）
+```
+
+---
+
+## 🚀 セットアップ（所要 1 時間）
+
+### 1. アカウント準備
+
+- ✅ **Cloudflare**（無料・ドメイン追加不要 → workers.dev URL で OK）
+- ✅ **Resend**（無料 3000通/月）
+- ✅ **Gemini API キー**（Google AI Studio で発行、無料）
+
+### 2. 依存インストール
+
+```bash
+cd template
+npm install
+cd api/cloudflare-workers && npm install
+cd ../../widget && npm install
+```
+
+### 3. RAG 原稿を投入
+
+```bash
+# 代表の書籍・HP原稿等を .txt または .md で置く
+cp /path/to/company-info.txt rag_sources/
+
+# chunks.json を生成（Gemini で埋込、Worker にバンドル）
+GEMINI_API_KEY=<your-key> npm run rag:build
+```
+
+### 4. Cloudflare Workers デプロイ
+
+```bash
+cd api/cloudflare-workers
+
+# 初回のみ: wrangler ログイン
+npx wrangler login
+
+# Secrets 登録
+npx wrangler secret put GEMINI_API_KEY
+npx wrangler secret put SESSION_SALT          # 32文字以上のランダム文字列
+npx wrangler secret put RESEND_API_KEY         # re_ で始まる Resend API キー
+
+# wrangler.toml の ALLOWED_ORIGINS / NOTIFY_EMAIL を編集
+# （デフォルトは g-line.co.jp / info@g-line.co.jp）
+
+# デプロイ
+npx wrangler deploy
+# → https://gline-chatbot-api.your-account.workers.dev
+```
+
+### 5. Widget デプロイ
+
+```bash
+cd widget
+
+# API URL を合わせる（vite.config.ts の __API_URL__ or data-api-url）
+# 本番ビルド
+npx vite build
+
+# Cloudflare Pages にデプロイ
+npx wrangler pages deploy dist --project-name=gline-widget
+# → https://gline-widget.pages.dev
+```
+
+### 6. G-LINE HP に埋込
+
+```html
+<!-- </body> 直前 -->
+<script
+  src="https://gline-widget.pages.dev/widget.js"
+  data-tenant="g-line"
+  data-api-url="https://gline-chatbot-api.your-account.workers.dev"
+  async
+></script>
+```
+
+これで右下に採用チャットボタンが表示されます。
+
+---
+
+## 📂 ディレクトリ構成（Lite 版）
 
 ```
 template/
-├── config/llm.yaml                         # モデル設定の単一ソース
-├── lib/
-│   ├── llm.ts                              # LLM Adapter 層（Gemini/OpenAI/Anthropic）
-│   ├── db.ts                               # Neon PostgreSQL クライアント
-│   ├── rag.ts                              # pgvector 検索 + Gemini 埋込
-│   ├── logger.ts                           # 会話ログ匿名化 + 保存
-│   └── guardrails.ts                       # 禁止トピック検知
-├── db/
-│   ├── schema.sql                          # 全体スキーマ（pgvector 含む）
-│   ├── migrations/
-│   │   ├── 0001_init.sql
-│   │   └── 0002_rls_policies.sql           # Row Level Security
-│   └── seed.sql                             # FAQ 初期データ
-├── prompts/sanbo-persona.md                # 社長ペルソナ（A案口調）
-├── eval/gline-50cases.json                 # LLM 評価テストケース
-├── rag_sources/                             # 代表の本・自叙伝・HP原稿 (*.txt)
+├── api/cloudflare-workers/  Workers API 本体
+│   ├── worker.ts            Hono + Gemini + RAG + Resend
+│   ├── chunks.json           RAG 埋込データ（ビルド時生成）
+│   └── wrangler.toml
+├── widget/                   埋め込みウィジェット（Preact）
+│   └── src/widget.tsx
+├── lib/                      共通ライブラリ
+│   ├── rag.ts                線形スキャン + 埋込
+│   ├── guardrails.ts         NGトピック検知
+│   ├── business-hours.ts     営業時間判定
+│   ├── logger.ts             PII 匿名化 + session_id ハッシュ
+│   └── sentry.ts             エラー通知（オプション）
+├── prompts/sanbo-persona.md  社長ペルソナ
+├── legal/                    プラポリ・利用規約（日英）
+├── rag_sources/              代表の原稿を置く場所
 ├── scripts/
-│   ├── fetch-models.mjs                    # Gemini モデル一覧取得
-│   ├── diff-and-eval.mjs                   # 差分検知 & 自動評価
-│   ├── report-slack.mjs                    # 週次 Slack レポート
-│   ├── chat-cli.mts                        # ローカル対話 CLI
-│   ├── smoke-test.mts                      # LLM Adapter スモークテスト
-│   ├── smoke-test-db.mts                   # DB 疎通テスト
-│   ├── rebuild-rag-index.mjs               # RAG 再構築
-│   └── export-analytics.mjs                # KPI スポットチェック
-├── .github/workflows/
-│   ├── llm-weekly-check.yml                # 週次 LLM モデル監視
-│   ├── daily-purge.yml                     # 日次 90日超ログ削除
-│   └── monthly-rag-rebuild.yml             # 月次 RAG 再構築
-├── docs/
-│   └── dashboard-queries.md                # Metabase 推奨 SQL 集
-├── package.json
-├── .env.example
-└── .gitignore
+│   └── build-rag-chunks.mts  chunks.json ビルダー
+├── tests/                    vitest（64ケース）
+├── docs/                     運用ドキュメント
+└── deprecated/               Standard/Enterprise 版の機能
+                              （admin/DB/Terraform/E2E 等）
+                              必要になったら戻す
 ```
 
-## クイックスタート
+---
 
-### A. LLM 層だけ試す（Neon 不要）
+## 🔒 セキュリティ
+
+- **TLS**: Cloudflare が自動で TLS 1.2+
+- **PII 匿名化**: 会話ログは保存しないが、Gemini へ送信する前に `anonymize()` でメール・電話番号をマスク
+- **CORS**: `ALLOWED_ORIGINS` で許可ドメインを明示
+- **Rate Limit**: Cloudflare Rate Limiting bindings（wrangler.toml 参照）
+- **Session ID ハッシュ化**: ブラウザの raw UUID はサーバー側に保存しない
+
+---
+
+## 💡 後から機能を戻す場合
+
+`deprecated/` に退避した機能（管理画面・A/Bテスト・監査ログ・ペルソナ自動学習・DB 連携）は、必要になったら以下で復元できます：
 
 ```bash
-npm ci
-cp .env.example .env
-# → GEMINI_API_KEY を記入
-npm run chat -- "御社の強みは？"
-npm run check-models
+cd template
+git log --all --oneline | grep -i 'lite\|deprecated'  # 履歴確認
+mv deprecated/admin .
+mv deprecated/db .
+# …
 ```
 
-### B. DB 含めた完全構成
+---
 
-```bash
-# 1. Neon プロジェクト作成（https://console.neon.tech）
-#    - Region: AWS Asia Pacific (Tokyo) - ap-northeast-1
-#    - Database name: gline_chatbot
+## 🔗 関連ドキュメント
 
-# 2. 接続文字列を .env の DATABASE_URL に設定
-#    APPLICANT_ENC_KEY / SESSION_SALT もランダム文字列で設定
+- [プラポリ雛形（日本語）](./legal/privacy-policy-ja.md)
+- [プラポリ雛形（英語）](./legal/privacy-policy-en.md)
+- [利用規約](./legal/terms-of-use-ja.md)
+- [法務レビュー依頼状](./docs/legal-review/cover-letter.md)
+- [Lite 版デプロイガイド](./docs/operations/lite-deploy.md)
 
-# 3. スキーマ & RLS 適用
-npm run db:init
+---
 
-# 4. FAQ 初期データ投入
-npm run db:seed
+## 📄 ライセンス
 
-# 5. 疎通確認
-npm run db:smoke
-
-# 6. RAG 原稿を配置して埋込
-mkdir -p rag_sources
-# → rag_sources/book.txt, rag_sources/website.txt などを配置
-npm run rag:rebuild
-
-# 7. スポット分析
-npm run analytics
-```
-
-## GitHub Actions セットアップ
-
-リポジトリの **Settings → Secrets and variables → Actions** で以下を登録：
-
-| Secret 名 | 用途 |
-|---|---|
-| `GEMINI_API_KEY` | Gemini API の利用 + モデル一覧取得 + 埋込生成 |
-| `DATABASE_URL` | Neon PostgreSQL 接続文字列 |
-| `APPLICANT_ENC_KEY` | 応募者個人情報の暗号化鍵（32バイト以上） |
-| `SESSION_SALT` | session_id ハッシュ化ソルト |
-| `SLACK_WEBHOOK`  | 週次レポート投稿先（任意） |
-| `RESEND_API_KEY` | info メール通知用（任意） |
-| `OPENAI_API_KEY` | LLM フォールバック用（任意） |
-| `ANTHROPIC_API_KEY` | LLM フォールバック用（任意） |
-
-毎週月曜 09:00 JST に自動実行されます。手動実行は Actions タブの「Run workflow」から。
-
-## モデル切替の流れ
-
-1. 月曜朝：ワークフローが新モデルを検知
-2. Eval 50問で自動評価（スコア 0.85 以上 かつ 現行より安い → 合格）
-3. 合格なら **切替 PR を自動作成**
-4. 人間は PR をレビューして merge するだけ
-5. 障害時は `config/llm.yaml` の `current` を戻して merge → 即ロールバック
-
-## A/B テスト
-
-`config/llm.yaml` の `ab_test` を有効化：
-
-```yaml
-ab_test:
-  enabled: true
-  candidate_model: gemini-3.2-flash-lite-preview
-  traffic_percentage: 10   # 10% のユーザーに新モデルを割当
-  start_date: 2026-04-21
-```
-
-7日後にログ集計 → 問題なければ `current` を書き換えて全量切替。
-
-## 依存先
-
-- [Google Generative AI SDK](https://ai.google.dev/)
-- [LiteLLM](https://docs.litellm.ai/)（Node 実装の場合は `@litellm/node` or 自作 Adapter）
-- [js-yaml](https://www.npmjs.com/package/js-yaml)
-
-## ライセンス
-
-MIT
+Private / Proprietary

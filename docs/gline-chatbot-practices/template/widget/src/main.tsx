@@ -23,24 +23,10 @@ const config = {
   tenantId: script?.dataset.tenant ?? 'default',
   primaryColor: script?.dataset.primaryColor ?? '#0f3460',
   accentColor: script?.dataset.accentColor ?? '#e94560',
-  turnstileSiteKey: script?.dataset.turnstileKey,
 }
 
-// Turnstile スクリプトをロード（site key が設定されている場合のみ）
-function loadTurnstile() {
-  if (!config.turnstileSiteKey) return
-  if (document.querySelector('script[src*="challenges.cloudflare.com/turnstile"]')) return
-  const s = document.createElement('script')
-  s.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js'
-  s.async = true
-  s.defer = true
-  document.head.appendChild(s)
-}
-
-// ルート要素注入（body 末尾）
 function bootstrap() {
   if (document.getElementById('gline-chatbot-root')) return
-  loadTurnstile()
 
   const root = document.createElement('div')
   root.id = 'gline-chatbot-root'
@@ -51,11 +37,7 @@ function bootstrap() {
   document.body.appendChild(root)
 
   render(
-    <ChatbotApp
-      apiUrl={config.apiUrl}
-      tenantId={config.tenantId}
-      turnstileSiteKey={config.turnstileSiteKey}
-    />,
+    <ChatbotApp apiUrl={config.apiUrl} tenantId={config.tenantId} />,
     root,
   )
 }

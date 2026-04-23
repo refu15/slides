@@ -4,22 +4,6 @@ import { useState, useRef, useEffect, useCallback } from 'preact/hooks'
 interface Props {
   apiUrl: string
   tenantId: string
-  turnstileSiteKey?: string
-}
-
-declare global {
-  interface Window {
-    turnstile?: {
-      render: (el: HTMLElement, opts: {
-        sitekey: string
-        callback?: (token: string) => void
-        'error-callback'?: () => void
-        'expired-callback'?: () => void
-        theme?: 'light' | 'dark' | 'auto'
-      }) => string
-      reset: (widgetId?: string) => void
-    }
-  }
 }
 
 interface Message {
@@ -50,7 +34,7 @@ const QUICK_REPLIES = [
   '代表はどんな人ですか？',
 ]
 
-export function ChatbotApp({ apiUrl, tenantId, turnstileSiteKey }: Props) {
+export function ChatbotApp({ apiUrl, tenantId }: Props) {
   const [open, setOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     { role: 'assistant', content: WELCOME_TEXT },
@@ -223,7 +207,6 @@ export function ChatbotApp({ apiUrl, tenantId, turnstileSiteKey }: Props) {
           apiUrl={apiUrl}
           tenantId={tenantId}
           sessionId={sessionIdRef.current}
-          turnstileSiteKey={turnstileSiteKey}
           onClose={() => setApplyFormOpen(false)}
         />
       )}
@@ -239,55 +222,20 @@ interface ApplyFormProps {
   apiUrl: string
   tenantId: string
   sessionId: string
-  turnstileSiteKey?: string
   onClose: () => void
 }
 
-function ApplyForm({ apiUrl, tenantId, sessionId, turnstileSiteKey, onClose }: ApplyFormProps) {
+function ApplyForm({ apiUrl, tenantId, sessionId, onClose }: ApplyFormProps) {
   const [form, setForm] = useState({
     name: '', email: '', phone: '', preferredDate: '', notes: '',
   })
   const [sending, setSending] = useState(false)
   const [result, setResult] = useState<{ ok: boolean; message: string } | null>(null)
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
-  const turnstileRef = useRef<HTMLDivElement>(null)
-
-  // Turnstile レンダー
-  useEffect(() => {
-    if (!turnstileSiteKey || !turnstileRef.current) return
-    const tryRender = () => {
-      if (typeof window !== 'undefined' && window.turnstile && turnstileRef.current) {
-        window.turnstile.render(turnstileRef.current, {
-          sitekey: turnstileSiteKey,
-          theme: 'auto',
-          callback: (token: string) => setTurnstileToken(token),
-          'error-callback': () => setTurnstileToken(null),
-          'expired-callback': () => setTurnstileToken(null),
-        })
-        return true
-      }
-      return false
-    }
-    if (!tryRender()) {
-      const interval = setInterval(() => {
-        if (tryRender()) clearInterval(interval)
-      }, 300)
-      const timeout = setTimeout(() => clearInterval(interval), 10_000)
-      return () => {
-        clearInterval(interval)
-        clearTimeout(timeout)
-      }
-    }
-  }, [turnstileSiteKey])
 
   const submit = async (e: Event) => {
     e.preventDefault()
     if (!form.name.trim() || !form.email.trim()) {
       setResult({ ok: false, message: '氏名とメールは必須です' })
-      return
-    }
-    if (turnstileSiteKey && !turnstileToken) {
-      setResult({ ok: false, message: 'ボット検知チェックを完了してください' })
       return
     }
     setSending(true)
@@ -296,11 +244,7 @@ function ApplyForm({ apiUrl, tenantId, sessionId, turnstileSiteKey, onClose }: A
       const res = await fetch(`${apiUrl}/api/apply`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-Tenant-Id': tenantId },
-        body: JSON.stringify({
-          sessionId,
-          ...form,
-          ...(turnstileToken ? { turnstileToken } : {}),
-        }),
+        body: JSON.stringify({ sessionId, ...form }),
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: 'unknown' })) as { error?: string }
@@ -364,10 +308,6 @@ function ApplyForm({ apiUrl, tenantId, sessionId, turnstileSiteKey, onClose }: A
               onInput={(e) => setForm({ ...form, notes: (e.target as HTMLTextAreaElement).value })}
             />
           </label>
-
-          {turnstileSiteKey && (
-            <div class="gline-turnstile" ref={turnstileRef} />
-          )}
 
           <div class="gline-consent">
             <small>

@@ -9,15 +9,10 @@
     "eval": "node scripts/diff-and-eval.mjs",
     "check-models": "node scripts/fetch-models.mjs && node scripts/diff-and-eval.mjs && node scripts/report-slack.mjs",
     "fetch-models": "node scripts/fetch-models.mjs",
-    "db:init": "psql \"$DATABASE_URL\" -f db/schema.sql && psql \"$DATABASE_URL\" -f db/migrations/0002_rls_policies.sql",
-    "db:seed": "psql \"$DATABASE_URL\" -f db/seed.sql",
-    "db:smoke": "tsx scripts/smoke-test-db.mts",
-    "rag:rebuild": "tsx scripts/rebuild-rag-index.mts",
-    "analytics": "tsx scripts/export-analytics.mts",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
-    "persona:learn": "tsx scripts/analyze-persona.mts"
+    "rag:build": "tsx scripts/build-rag-chunks.mts"
   },
   "dependencies": {
     "js-yaml": "^4.1.0",
